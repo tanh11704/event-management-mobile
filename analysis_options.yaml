@@ -1,0 +1,23 @@
+# analysis_options.yaml
+include: package:very_good_analysis/analysis_options.5.1.0.yaml
+
+analyzer:
+  exclude:
+    - lib/**/*.g.dart
+    - lib/**/*.freezed.dart
+    - lib/**/generated/**
+
+linter:
+  rules:
+    lines_longer_than_80_chars: false
+    prefer_final_locals: true
+    prefer_final_fields: true
+    avoid_redundant_argument_values: true
+    avoid_unused_constructor_parameters: true
+    unnecessary_late: true
+
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+
+    public_member_api_docs: false

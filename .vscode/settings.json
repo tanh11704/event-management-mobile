@@ -1,0 +1,63 @@
+{
+  // === Dart & Flutter ===
+  "dart.lineLength": 100,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit" // tự động fix lint khi save
+  },
+
+  // === Lints & Analyzer ===
+  "dart.analysisExcludedFolders": [
+    "lib/**/*.g.dart",
+    "lib/**/*.freezed.dart"
+  ],
+
+  // === Files & Explorer ===
+  "files.exclude": {
+    "**/.git": true,
+    "**/.dart_tool": true,
+    "**/.idea": true,
+    "**/.vscode": false,
+    "**/build": true,
+    "**/generated": true,
+    "**/*.g.dart": true,
+    "**/*.freezed.dart": true
+  },
+
+  // === Terminal ===
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+
+  // === Formatting Style ===
+  "editor.tabSize": 2,
+  "editor.insertSpaces": true,
+  "editor.detectIndentation": false,
+  "editor.rulers": [100], // đường line guide = 100 ký tự
+
+  // === UI Enhancements ===
+  "breadcrumbs.enabled": true,
+  "explorer.compactFolders": false,
+
+  // === Git ===
+  "git.autofetch": true,
+  "git.confirmSync": false,
+  "git.enableSmartCommit": true,
+  "git.suggestSmartCommit": true,
+
+  // === Testing ===
+  "dart.flutterTestDeviceId": "flutter-tester",
+  "dart.runPubGetOnPubspecChanges": "always",
+
+  // === Conventional Commits (nếu dùng plugin) ===
+  "conventionalCommits.scopes": [
+    "core",
+    "data",
+    "domain",
+    "presentation",
+    "auth",
+    "event",
+    "attendance"
+  ]
+}
