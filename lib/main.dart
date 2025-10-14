@@ -1,6 +1,6 @@
-import 'package:event_management/app/core/theme/app_colors.dart';
-import 'package:event_management/app/core/theme/app_text_styles.dart';
-import 'package:event_management/app/core/theme/app_theme.dart';
+import 'package:event_management/core/config/app_colors.dart';
+import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/config/app_theme.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,7 +12,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(title: 'Event Management', theme: AppTheme.light, home: const HomePage());
+    return MaterialApp(
+      title: 'Event Management',
+      theme: AppTheme.light,
+      home: const HomePage(),
+    );
   }
 }
 
@@ -22,12 +26,17 @@ class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.COOL_GRAY_50,
+      backgroundColor: AppColors.coolGray50,
       appBar: AppBar(
-        title: const Text('Demo', style: AppTextStyles.HEADING_2),
-        backgroundColor: AppColors.VKU_BLUE,
+        title: Text('Demo', style: AppTextStyles.heading2),
+        backgroundColor: AppColors.vkuBlue,
       ),
-      body: Center(child: Text('Xin chào VKU', style: Theme.of(context).textTheme.headlineLarge)),
+      body: Center(
+        child: Text(
+          'Xin chào VKU',
+          style: Theme.of(context).textTheme.headlineLarge,
+        ),
+      ),
     );
   }
 }
