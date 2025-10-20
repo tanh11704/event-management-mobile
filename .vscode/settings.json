@@ -1,63 +1,43 @@
 {
-  // === Dart & Flutter ===
-  "dart.lineLength": 100,
+  "dart.flutterSdkPath": ".fvm/versions/3.35.6",
   "editor.formatOnSave": true,
-  "editor.formatOnType": true,
-  "editor.codeActionsOnSave": {
-    "source.fixAll": "explicit" // tự động fix lint khi save
-  },
-
-  // === Lints & Analyzer ===
-  "dart.analysisExcludedFolders": [
-    "lib/**/*.g.dart",
-    "lib/**/*.freezed.dart"
-  ],
-
-  // === Files & Explorer ===
-  "files.exclude": {
-    "**/.git": true,
-    "**/.dart_tool": true,
-    "**/.idea": true,
-    "**/.vscode": false,
-    "**/build": true,
-    "**/generated": true,
-    "**/*.g.dart": true,
-    "**/*.freezed.dart": true
-  },
-
-  // === Terminal ===
-  "terminal.integrated.defaultProfile.linux": "bash",
-  "terminal.integrated.defaultProfile.osx": "zsh",
-  "terminal.integrated.defaultProfile.windows": "PowerShell",
-
-  // === Formatting Style ===
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
-  "editor.detectIndentation": false,
-  "editor.rulers": [100], // đường line guide = 100 ký tự
-
-  // === UI Enhancements ===
-  "breadcrumbs.enabled": true,
-  "explorer.compactFolders": false,
-
-  // === Git ===
-  "git.autofetch": true,
-  "git.confirmSync": false,
-  "git.enableSmartCommit": true,
-  "git.suggestSmartCommit": true,
-
-  // === Testing ===
-  "dart.flutterTestDeviceId": "flutter-tester",
-  "dart.runPubGetOnPubspecChanges": "always",
-
-  // === Conventional Commits (nếu dùng plugin) ===
-  "conventionalCommits.scopes": [
-    "core",
-    "data",
-    "domain",
-    "presentation",
-    "auth",
-    "event",
-    "attendance"
-  ]
+  "editor.rulers": [
+    80
+  ],
+  "files.trimTrailingWhitespace": true,
+  "files.insertFinalNewline": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.fvm": true,
+    "**/.idea": true,
+    "**/.vscode": true,
+    "**/*.freezed.dart": true,
+    "**/*.g.dart": true,
+    "**/*.gr.dart": true
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/.dart_tool": true,
+    "**/*.g.dart": true,
+    "**/*.freezed.dart": true,
+    "**/*.gr.dart": true,
+    "**/ios/Pods": true,
+    "**/ios/Flutter/App.framework": true,
+    "**/.pub-cache": true,
+    "pubspec.lock": true
+  },
+  "bloc.newBlocTemplate.type": "equatable",
+  "bloc.newCubitTemplate.type": "equatable",
+  "dart.previewFlutterUiGuides": true,
+  "dart.lineLength": 80
 }
