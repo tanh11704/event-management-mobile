@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/event_list/domain/entities/event.dart';
-import 'package:event_management/features/event_list/domain/entities/event_counters.dart';
+import 'package:event_management/features/event_list/data/models/event.dart';
+import 'package:event_management/features/event_list/data/models/event_counters.dart';
 
 abstract class EventListState extends Equatable {
   const EventListState();
