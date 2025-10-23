@@ -2,7 +2,6 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
-/// TextField cho mật khẩu với toggle hiển thị/ẩn
 class PasswordTextField extends StatelessWidget {
   const PasswordTextField({
     required this.hintText,

@@ -4,8 +4,8 @@ import 'package:event_management/core/config/app_text_styles.dart'
     as app_text_styles;
 import 'package:flutter/cupertino.dart';
 
-class CardHeader extends StatelessWidget {
-  const CardHeader({super.key});
+class ChangePasswordHeader extends StatelessWidget {
+  const ChangePasswordHeader({super.key});
 
   @override
   Widget build(BuildContext context) {

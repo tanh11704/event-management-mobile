@@ -4,7 +4,6 @@ import 'package:event_management/features/auth/presentation/widgets/change_passw
 import 'package:event_management/features/auth/presentation/widgets/change_password_header.dart';
 import 'package:flutter/material.dart';
 
-/// Card chứa form đổi mật khẩu
 class ChangePasswordCard extends StatelessWidget {
   const ChangePasswordCard({super.key});
 
@@ -27,7 +26,7 @@ class ChangePasswordCard extends StatelessWidget {
       child: const Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          CardHeader(),
+          ChangePasswordHeader(),
           SizedBox(height: AppSpacing.spaceLG),
           ChangePasswordForm(),
         ],
