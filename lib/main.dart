@@ -1,6 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/config/app_theme.dart';
+import 'package:event_management/presentation/features/auth/pages/change_password_sceen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Event Management',
       theme: AppTheme.light,
-      home: const HomePage(),
+      home: const ChangePasswordScreen(),
     );
   }
 }
