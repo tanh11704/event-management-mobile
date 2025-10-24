@@ -41,6 +41,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/vku_logo.png
 
 fonts:
   - family: Inter
@@ -53,3 +55,4 @@ fonts:
         weight: 600
       - asset: assets/fonts/Inter-Bold.ttf
         weight: 700
+

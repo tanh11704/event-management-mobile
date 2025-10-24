@@ -9,4 +9,6 @@ class AppSpacing {
   static const spaceLG = 24.0;
 
   static const spaceXL = 32.0;
+
+  static double? get spaceSM => null;
 }
