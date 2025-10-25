@@ -1,7 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/widgets/vku_logo.dart';
-import 'package:event_management/presentation/features/auth/widgets/change_password_card.dart';
+import 'package:event_management/features/auth/presentation/widgets/change_password_card.dart';
 import 'package:flutter/material.dart';
 
 /// Màn hình đổi mật khẩu
