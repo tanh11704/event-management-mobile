@@ -3,7 +3,9 @@ import 'package:event_management/features/auth/data/models/register_request_dto.
 import 'package:event_management/features/auth/domain/repository/auth_repository.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_event.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_state.dart';
+import 'package:injectable/injectable.dart';
 
+@Injectable()
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   RegisterBloc(this.authRepository) : super(RegisterInitial()) {
     on<RegisterSubmitted>(_onRegisterSubmitted);

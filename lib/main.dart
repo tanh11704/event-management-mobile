@@ -2,11 +2,17 @@ import 'package:event_management/app.dart';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/config/app_theme.dart';
+import 'package:event_management/injection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future<void> main() async {
   await dotenv.load();
+
+  WidgetsFlutterBinding.ensureInitialized();
+
+  configureDependencies();
+
   runApp(const MyApp());
 }
 
