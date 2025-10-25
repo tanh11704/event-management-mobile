@@ -1,23 +1,17 @@
-import 'package:dio/dio.dart';
-import 'package:event_management/core/config/environtment.dart';
+import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
 import 'package:event_management/features/auth/domain/repository/auth_repository.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl(this.dio) {
-    dio.options.baseUrl = Environment.baseUrl;
+  AuthRepositoryImpl() {
+    _authApiClient = AuthApiClient(Dio);
   }
-  final Dio dio;
+  late final AuthApiClient _authApiClient;
 
   @override
-  Future<Map<String, dynamic>> register(
-    RegisterRequestDto registerRequestDto,
-  ) async {
-    final response = await dio.post<Map<String, dynamic>>(
-      '/auth/register',
-      data: registerRequestDto.toJson(),
-    );
+  Future<String> register(RegisterRequestDto registerRequestDto) async {
+    final response = await _authApiClient.register(registerRequestDto);
 
-    return response.data!;
+    return response;
   }
 }

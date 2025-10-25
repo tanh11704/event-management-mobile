@@ -12,7 +12,7 @@ class RegisterScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => RegisterBloc(AuthRepositoryImpl(Dio())),
+      create: (_) => RegisterBloc(AuthRepositoryImpl(),
       child: const Scaffold(
         body: Padding(
           padding: EdgeInsets.all(24),
