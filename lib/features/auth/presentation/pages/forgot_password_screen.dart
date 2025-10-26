@@ -151,7 +151,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   // ===== Quay lại đăng nhập =====
                   TextButton(
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () {
+                      Navigator.pushNamedAndRemoveUntil(
+                        context,
+                        '/login', // ✅ quay lại login
+                        (route) => false,
+                      );
+                    },
                     child: Text(
                       'Quay lại đăng nhập',
                       style: AppTextStyles.bodyMedium.copyWith(

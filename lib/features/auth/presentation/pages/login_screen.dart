@@ -214,7 +214,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   Column(
                     children: [
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forgot-password');
+                        },
                         child: Text(
                           'Quên mật khẩu?',
                           style: AppTextStyles.bodyMedium.copyWith(
