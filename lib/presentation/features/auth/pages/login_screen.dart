@@ -15,6 +15,8 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  static const int _minPasswordLength = 6;
+
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
@@ -147,8 +149,8 @@ class _LoginScreenState extends State<LoginScreen> {
                               if (value == null || value.isEmpty) {
                                 return 'Vui lòng nhập mật khẩu';
                               }
-                              if (value.length < 6) {
-                                return 'Mật khẩu phải có ít nhất 6 ký tự';
+                              if (value.length < _minPasswordLength) {
+                                return 'Mật khẩu phải có ít nhất $_minPasswordLength ký tự';
                               }
                               return null;
                             },
