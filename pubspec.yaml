@@ -44,6 +44,8 @@ flutter:
   uses-material-design: true
   assets:
     - .env
+    - assets/images/vku_logo.png
+
 fonts:
   - family: Inter
     fonts:
