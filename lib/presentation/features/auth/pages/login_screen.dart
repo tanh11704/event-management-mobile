@@ -16,7 +16,6 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   static const int _minPasswordLength = 6;
-
   bool _obscurePassword = true;
   bool _rememberMe = false;
 
@@ -42,7 +41,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Nền gradient xanh nhạt từ AppColors.background
       body: Container(
         decoration: BoxDecoration(gradient: AppColors.background),
         child: SafeArea(
@@ -66,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   const SizedBox(height: AppSpacing.spaceXL),
 
-                  // ===== Form Container =====
+                  // ===== Khung Form =====
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.spaceLG),
                     decoration: BoxDecoration(
@@ -179,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: AppSpacing.spaceMD),
 
-                          // ===== Nút đăng nhập (Gradient xanh từ AppColors.primaryGradient) =====
+                          // ===== Nút đăng nhập (Gradient xanh) =====
                           Container(
                             decoration: BoxDecoration(
                               gradient: AppColors.primaryGradient,
@@ -213,8 +211,11 @@ class _LoginScreenState extends State<LoginScreen> {
                   // ===== Quên mật khẩu + Đăng ký =====
                   Column(
                     children: [
+                      // Điều hướng sang Forgot Password
                       TextButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          Navigator.pushNamed(context, '/forgot-password');
+                        },
                         child: Text(
                           'Quên mật khẩu?',
                           style: AppTextStyles.bodyMedium.copyWith(
@@ -223,6 +224,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -233,7 +235,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           TextButton(
-                            onPressed: () {},
+                            onPressed: () {
+                              // TODO: Thêm navigation sang RegisterScreen nếu có
+                            },
                             child: Text(
                               'Đăng ký ngay',
                               style: AppTextStyles.bodyMedium.copyWith(
