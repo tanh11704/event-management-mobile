@@ -1,7 +1,7 @@
 import 'package:event_management/core/config/app_theme.dart';
-import 'package:event_management/features/auth/presentation/bloc/forgot_password_screen.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_screen.dart';
-import 'package:event_management/features/auth/presentation/bloc/reset_password_screen.dart';
+import 'package:event_management/features/auth/presentation/pages/forgot_password_screen.dart';
+import 'package:event_management/features/auth/presentation/pages/login_screen.dart';
+import 'package:event_management/features/auth/presentation/pages/reset_password_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
