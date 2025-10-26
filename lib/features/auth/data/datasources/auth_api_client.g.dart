@@ -2,6 +2,8 @@
 
 part of 'auth_api_client.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -28,7 +30,7 @@ class _AuthApiClient implements AuthApiClient {
       Options(method: 'POST', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
-            '/login',
+            '/auth/login',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -72,3 +74,5 @@ class _AuthApiClient implements AuthApiClient {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on
