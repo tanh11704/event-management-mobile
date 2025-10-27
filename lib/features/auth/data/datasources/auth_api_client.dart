@@ -9,7 +9,7 @@ part 'auth_api_client.g.dart';
 @LazySingleton()
 abstract class AuthApiClient {
   @factoryMethod
-  factory AuthApiClient(Dio dio, {String baseUrl}) = _AuthApiClient;
+  factory AuthApiClient(Dio dio) = _AuthApiClient;
 
   @POST('/auth/register')
   Future<String> register(@Body() RegisterRequestDto registerRequestDto);

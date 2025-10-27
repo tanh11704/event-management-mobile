@@ -18,6 +18,12 @@ import 'package:event_management/features/auth/domain/repository/auth_repository
     as _i488;
 import 'package:event_management/features/auth/presentation/bloc/register_bloc.dart'
     as _i325;
+import 'package:event_management/features/unit/data/datasource/unit_api_client.dart'
+    as _i132;
+import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart'
+    as _i110;
+import 'package:event_management/features/unit/domain/repository/unit_repository.dart'
+    as _i1037;
 import 'package:event_management/injection.dart' as _i695;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
@@ -32,13 +38,22 @@ extension GetItInjectableX on _i174.GetIt {
     final registerModule = _$RegisterModule();
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio);
     gh.lazySingleton<_i881.AuthApiClient>(
-      () => _i881.AuthApiClient(gh<_i361.Dio>(), baseUrl: gh<String>()),
+      () => _i881.AuthApiClient(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i132.UnitApiClient>(
+      () => _i132.UnitApiClient(gh<_i361.Dio>()),
+    );
+    gh.lazySingleton<_i1037.UnitRepository>(
+      () => _i110.UnitRepositoryImpl(gh<_i132.UnitApiClient>()),
     );
     gh.lazySingleton<_i488.AuthRepository>(
       () => _i964.AuthRepositoryImpl(gh<_i881.AuthApiClient>()),
     );
     gh.factory<_i325.RegisterBloc>(
-      () => _i325.RegisterBloc(gh<_i488.AuthRepository>()),
+      () => _i325.RegisterBloc(
+        gh<_i488.AuthRepository>(),
+        gh<_i1037.UnitRepository>(),
+      ),
     );
     return this;
   }

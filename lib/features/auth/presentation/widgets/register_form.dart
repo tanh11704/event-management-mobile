@@ -1,6 +1,7 @@
 import 'package:event_management/features/auth/presentation/bloc/register_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_event.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_state.dart';
+import 'package:event_management/features/unit/domain/entity/unit_entity.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -18,8 +19,14 @@ class _RegisterFormState extends State<RegisterForm> {
   String? phoneNumber;
   String? password;
   String? confirmPassword;
-  String? accountType;
   int? unitId;
+
+  @override
+  void initState() {
+    super.initState();
+    // Chỉ fetch units 1 lần khi khởi tạo form
+    context.read<RegisterBloc>().add(const RegisterGetUnits());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,9 +45,12 @@ class _RegisterFormState extends State<RegisterForm> {
       },
       builder: (context, state) {
         final isLoading = state is RegisterLoading;
+        final unitsLoaded = state is RegisterUnitsLoaded ? state : null;
+
         return Form(
           key: _formKey,
-          child: Column(
+          child: ListView(
+            shrinkWrap: true,
             children: [
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Họ tên'),
@@ -71,56 +81,73 @@ class _RegisterFormState extends State<RegisterForm> {
                 onSaved: (v) => confirmPassword = v,
                 validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
               ),
-              DropdownButtonFormField<String>(
-                decoration: const InputDecoration(labelText: 'Loại tài khoản'),
-                initialValue: accountType,
-                items: const [
-                  DropdownMenuItem(
-                    value: 'sponsor',
-                    child: Text('Nhà tài trợ'),
+              if (unitsLoaded != null)
+                DropdownButtonFormField<int>(
+                  decoration: const InputDecoration(
+                    labelText: 'Loại tài khoản',
                   ),
-                  DropdownMenuItem(value: 'student', child: Text('Sinh viên')),
-                  DropdownMenuItem(value: 'teacher', child: Text('Giáo viên')),
-                ],
-                onChanged: (value) => setState(() => accountType = value),
-                validator: (v) => v == null ? 'Bắt buộc' : null,
-              ),
-              if (accountType != null)
+                  initialValue: unitsLoaded.selectedAccountTypeId,
+                  items: unitsLoaded.accountTypes
+                      .map<DropdownMenuItem<int>>(
+                        (UnitEntity u) => DropdownMenuItem(
+                          value: u.id,
+                          child: Text(u.unitName),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      unitId = null;
+                    });
+                    context.read<RegisterBloc>().add(
+                      RegisterAccountTypeChanged(value!),
+                    );
+                  },
+                  validator: (v) => v == null ? 'Bắt buộc' : null,
+                ),
+              if (unitsLoaded != null &&
+                  unitsLoaded.selectedAccountTypeId != null)
                 DropdownButtonFormField<int>(
                   decoration: const InputDecoration(labelText: 'Đơn vị / Lớp'),
                   initialValue: unitId,
-                  items: const [
-                    DropdownMenuItem(value: 3, child: Text('HLE')),
-                    DropdownMenuItem(value: 4, child: Text('KMA')),
-                  ],
+                  items: unitsLoaded.filteredUnits
+                      .map<DropdownMenuItem<int>>(
+                        (UnitEntity u) => DropdownMenuItem(
+                          value: u.id,
+                          child: Text(u.unitName),
+                        ),
+                      )
+                      .toList(),
                   onChanged: (value) => setState(() => unitId = value),
+                  validator: (v) => v == null ? 'Bắt buộc' : null,
                 ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          if (_formKey.currentState!.validate()) {
-                            _formKey.currentState!.save();
-                            context.read<RegisterBloc>().add(
-                              RegisterSubmitted(
-                                name: name!,
-                                email: email!,
-                                phoneNumber: phoneNumber!,
-                                password: password!,
-                                confirmPassword: confirmPassword!,
-                                unitId: unitId,
-                              ),
-                            );
-                          }
-                        },
-                  child: isLoading
-                      ? const CircularProgressIndicator()
-                      : const Text('Đăng ký'),
+              if (isLoading)
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
                 ),
-              ),
+              if (!isLoading)
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (_formKey.currentState!.validate()) {
+                        _formKey.currentState!.save();
+                        context.read<RegisterBloc>().add(
+                          RegisterSubmitted(
+                            name: name!,
+                            email: email!,
+                            phoneNumber: phoneNumber!,
+                            password: password!,
+                            confirmPassword: confirmPassword!,
+                            unitId: unitId,
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Đăng ký'),
+                  ),
+                ),
             ],
           ),
         );

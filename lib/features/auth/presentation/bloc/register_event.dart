@@ -7,6 +7,22 @@ abstract class RegisterEvent extends Equatable {
   List<Object?> get props => [];
 }
 
+class RegisterGetUnits extends RegisterEvent {
+  const RegisterGetUnits({this.page = 0, this.size = 1000});
+
+  final int page;
+  final int size;
+}
+
+class RegisterAccountTypeChanged extends RegisterEvent {
+  const RegisterAccountTypeChanged(this.typeId);
+
+  final int typeId;
+
+  @override
+  List<Object?> get props => [typeId];
+}
+
 class RegisterSubmitted extends RegisterEvent {
   const RegisterSubmitted({
     required this.name,
@@ -16,6 +32,7 @@ class RegisterSubmitted extends RegisterEvent {
     required this.confirmPassword,
     this.unitId,
   });
+
   final String name;
   final String email;
   final String phoneNumber;
