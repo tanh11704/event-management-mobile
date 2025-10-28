@@ -1,423 +1,345 @@
-# Quy tắc Viết mã (Coding Rules)
+# 📖 Quy tắc Code (Coding Rules) - Dự án Event Management
 
-Chào mừng đến với dự án! Tài liệu này định nghĩa các quy tắc và tiêu chuẩn viết mã cho toàn bộ dự án. Việc tuân thủ các quy tắc này là bắt buộc để đảm bảo code base của chúng ta luôn nhất quán, dễ đọc, dễ bảo trì và dễ dàng cho các thành viên mới tham gia.
-
----
-
-## Mục lục
-
-1. [Quy ước Đặt tên (Naming Convention)](#1-quy-ước-đặt-tên-naming-convention)
-2. [Cấu trúc Thư mục (Folder Structure)](#2-cấu-trúc-thư-mục-folder-structure)
-3. [Định dạng Code (Formatting)](#3-định-dạng-code-formatting)
-4. [Kiến trúc & Cấu trúc](#4-kiến-trúc--cấu-trúc)
-5. [Quản lý State (Riverpod)](#5-quản-lý-state-riverpod)
-6. [Models & Entities](#6-models--entities)
-7. [Error Handling](#7-error-handling)
-8. [Networking](#8-networking)
-9. [UI & Widgets](#9-ui--widgets)
-10. [Constants & Strings](#10-constants--strings)
-11. [Quy trình làm việc với Git](#11-quy-trình-làm-việc-với-git)
-12. [Testing](#12-testing)
-13. [CI/CD](#13-cicd)
-14. [Review Rules](#14-review-rules)
-15. [Ghi chú & Bình luận](#15-ghi-chú--bình-luận)
+Chào mừng các thành viên đến với dự án! Để đảm bảo chất lượng code, sự nhất quán và giúp chúng ta làm việc song song (UI/Logic) một cách hiệu quả, tất cả các thành viên **bắt buộc** phải tuân thủ các quy tắc dưới đây.
 
 ---
 
-## 1. Quy ước Đặt tên (Naming Convention)
+## 1. Môi trường & Công cụ (Environment & Tooling)
 
-| Loại                     | Quy tắc                                  | Ví dụ                                                             |
-| ------------------------ | ---------------------------------------- | ----------------------------------------------------------------- |
-| **Folder & File**        | `snake_case`                             | `user_repository.dart`, `event_detail_page.dart`, `auth_api.dart` |
-| **Class, Enum, Typedef** | `PascalCase`                             | `UserRepository`, `AuthApi`, `NetworkStatus`, `JsonMap`           |
-| **Hàm, Biến**            | `camelCase`                              | `fetchUserData`, `userName`, `isLoading`, `fetchEvents()`         |
-| **Hằng số (Constants)**  | `kCamelCase` hoặc `SCREAMING_SNAKE_CASE` | `kDefaultPadding`, `kApiTimeout`, `DEFAULT_TIMEOUT`               |
-| **Thành viên private**   | `_camelCase`                             | `_fetchData()`, `_internalState`                                  |
-| **Provider**             | `camelCase` + suffix `Provider`          | `authRepositoryProvider`, `homeControllerProvider`                |
+**Quy tắc quan trọng nhất** để tránh "lỗi trên máy em chạy được":
 
----
+### Bắt buộc sử dụng FVM (Flutter Version Management)
 
-## 2. Cấu trúc Thư mục (Folder Structure)
-
-```
-lib/
-├── core/                          # Config & utilities dùng chung
-│   ├── constants/                 # app_strings.dart, app_colors.dart, app_sizes.dart
-│   ├── theme/                     # AppTheme
-│   ├── network/                   # Dio setup, interceptors
-│   ├── di/                        # Dependency injection (Riverpod providers)
-│   └── utils/                     # Helper functions
-├── data/                          # Data layer
-│   ├── datasources/               # Remote/Local datasources
-│   ├── models/                    # DTOs (với json_serializable)
-│   └── repositories/              # Repository implementations
-├── domain/                        # Domain layer
-│   ├── entities/                  # Pure Dart classes (immutable)
-│   ├── repositories/              # Repository interfaces
-│   └── usecases/                  # Business logic
-├── presentation/                  # Presentation layer
-│   ├── common_widgets/            # Reusable widgets
-│   ├── features/                  # Feature modules
-│   │   └── <feature_name>/
-│   │       ├── pages/
-│   │       ├── widgets/
-│   │       └── providers/
-│   └── router/                    # go_router configuration
-├── generated/                     # ❌ KHÔNG commit (*.g.dart, *.freezed.dart)
-└── main.dart
-```
-
-### Quy tắc thư mục:
-
-- **`core/`**: Chứa config & utilities dùng chung (theme, network, DI, constants).
-- **`data/`**: Datasource, models (DTO), repository implement.
-- **`domain/`**: Entities (pure), repository interface, usecases.
-- **`presentation/`**: UI (pages, widgets), state (providers), navigation.
-- **`features/`**: Khi có module lớn, group tất cả tầng vào một feature riêng.
-- **`generated/`**: KHÔNG commit. Ignore các file `.g.dart`, `.freezed.dart`.
+- Dự án này sử dụng FVM để "khóa" phiên bản Flutter.
+- Phiên bản Flutter của dự án là **3.35.6** (theo settings.json).
+- Sau khi clone dự án, hãy chạy `fvm install` để cài đặt.
+- Luôn chạy các lệnh Flutter qua FVM (ví dụ: `fvm flutter pub get`, `fvm flutter run`).
 
 ---
 
-## 3. Định dạng Code (Formatting)
+## 2. Cài đặt VS Code (Bắt buộc)
 
-### Công cụ duy nhất: `dart format`
+Toàn bộ các quy tắc định dạng (formatting) của dự án đã được định nghĩa trong file `.vscode/settings.json`.
 
-Mọi đoạn code trước khi commit phải được format.
+Để các cài đặt này tự động được áp dụng, hãy đảm bảo bạn đã:
 
-**💡 Tip:** Cấu hình IDE của bạn để tự động format file mỗi khi lưu.
+- Cài đặt các Extension (Tiện ích) khuyến nghị mà VS Code gợi ý (thường là Flutter và Dart).
+- Bật "Format on Save" và "Organize Imports on Save" trong VS Code.
 
-### Quy tắc:
+File `settings.json` của dự án sẽ tự động cấu hình IDE của bạn:
 
-- **Độ dài dòng:** Tối đa **100 ký tự** một dòng.
-- **Dấu phẩy cuối (Trailing commas):** Luôn luôn sử dụng dấu phẩy ở cuối trong danh sách tham số, collection... Điều này giúp cho Git diff sạch sẽ hơn rất nhiều khi thêm một phần tử mới.
-
-### Analyzer:
-
-- Sử dụng `very_good_analysis` + custom rule trong `analysis_options.yaml`.
-- Không ignore warnings trừ khi có lý do chính đáng.
+- **Tab Size**: 2 Spaces.
+- **Line Length**: Tối đa 80 ký tự.
+- **Format on Save**: Tự động format và organizeImports khi lưu file.
 
 ---
 
-## 4. Kiến trúc & Cấu trúc
+## 3. Quy tắc Đặt tên (Naming Conventions)
 
-### Clean Architecture
-
-Tuân thủ 3 tầng:
-
-1. **Domain Layer** (business logic thuần túy, không phụ thuộc framework)
-2. **Data Layer** (implement repositories, call API/Database)
-3. **Presentation Layer** (UI + State Management)
-
-### Nguyên tắc:
-
-- **Tuân thủ cấu trúc boilerplate:** Luôn tuân theo kiến trúc đã được định sẵn (domain → data → presentation).
-- **Ưu tiên theo tính năng (Feature-First):** Mọi màn hình, widget, provider liên quan đến một tính năng phải được đặt trong thư mục của tính năng đó: `lib/presentation/features/<feature_name>/`.
-- **Thư mục core:** Chỉ chứa những thành phần được sử dụng chung cho toàn bộ ứng dụng và không thuộc về một tính năng cụ thể nào.
+| Hạng mục            | Quy tắc           | Ví dụ                                                               |
+| ------------------- | ----------------- | ------------------------------------------------------------------- |
+| Thư mục (Directory) | `snake_case`      | `core`, `features`, `user_profile`, `auth_service`                  |
+| Files               | `snake_case.dart` | `login_screen.dart`, `event_model.dart`, `auth_repository.dart`     |
+| Class               | `PascalCase`      | `User`, `LoginBloc`, `AuthService`, `EventRepositoryImpl`           |
+| Biến & Hàm          | `camelCase`       | `userName`, `fetchUserData()`, `currentPage`                        |
+| Biến private        | `_camelCase`      | `_userName`, `_fetchUserData()`                                     |
+| Widget private      | `_PascalCase`     | `class _BuildAppBar extends StatelessWidget { ... }`                |
+| Constants (Hằng số) | `kCamelCase`      | `const kDefaultPadding = 8.0;`, `static const kApiTimeout = 30000;` |
 
 ---
 
-## 5. Quản lý State (Riverpod)
+## 4. Tiêu chuẩn Code (Coding Standards)
 
-### Đặt tên Provider
+### a. Imports (Thứ tự ưu tiên)
 
-Tên provider phải có hậu tố `Provider`.
-
-**Ví dụ:** `authRepositoryProvider`, `homeControllerProvider`.
-
-### Provider chia 2 loại:
-
-- **Hạ tầng (Infrastructure):** Đặt trong `core/di`.
-- **Theo feature:** Đặt trong `features/<feature>/presentation/providers/`.
-
-### State phải bất biến (Immutable)
-
-Luôn tạo một state mới thay vì thay đổi trực tiếp state hiện tại. Sử dụng hàm `copyWith` do `freezed` tạo ra.
-
-### `ref.watch` vs `ref.read`
-
-- **`ref.watch`:** Sử dụng trong phương thức `build` để lắng nghe sự thay đổi của state và tự động rebuild widget.
-- **`ref.read`:** Sử dụng bên trong các hàm callback (như `onPressed`, `onTap`) để lấy giá trị state tại một thời điểm mà không gây rebuild widget.
-
-### Không sử dụng `get_it`
-
-Riverpod đã hỗ trợ DI đầy đủ.
-
----
-
-## 6. Models & Entities
-
-### Entities
-
-- **Immutable**, không phụ thuộc JSON.
-- Đặt trong `domain/entities/`.
-- Không chứa logic serialize/deserialize.
+Luôn sắp xếp các import theo thứ tự sau. Sử dụng "Organize Imports" (có trong settings.json) sẽ tự động làm điều này.
 
 ```dart
-// ✅ Tốt - Entity
-class User {
-  final String id;
-  final String name;
-  final String email;
+// 1. Gói Dart
+import 'dart:async';
 
-  const User({
-    required this.id,
-    required this.name,
-    required this.email,
-  });
-}
+// 2. Gói Flutter
+import 'package:flutter/material.dart';
+
+// 3. Gói bên thứ ba (Packages) - Sắp xếp theo alphabet
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:get_it/get_it.dart';
+
+// 4. Code của Dự án (Source) - Dùng relative path (đường dẫn tương đối)
+import 'core/config/app_theme.dart';
+import 'features/auth/presentation/bloc/login_bloc.dart';
 ```
 
-### Models (DTO)
+### b. `const` là bắt buộc
 
-- Dùng `freezed` + `json_serializable`.
-- Đặt trong `data/models/`.
-- Chịu trách nhiệm serialize/deserialize JSON.
+Luôn sử dụng `const` cho các constructor của Widget và các biến hằng số bất cứ khi nào có thể. Điều này giúp tối ưu hiệu suất của Flutter.
 
 ```dart
-// ✅ Tốt - Model (DTO)
-import 'package:freezed_annotation/freezed_annotation.dart';
-
-part 'user_model.freezed.dart';
-part 'user_model.g.dart';
-
-@freezed
-class UserModel with _$UserModel {
-  const factory UserModel({
-    required String id,
-    required String name,
-    required String email,
-  }) = _UserModel;
-
-  factory UserModel.fromJson(Map<String, dynamic> json) =>
-      _$UserModelFromJson(json);
-}
-```
-
-### Mapping
-
-Luôn map `Model ↔ Entity` tại **repository layer**, không expose DTO ra UI.
-
-```dart
-// ✅ Tốt - Repository
-class UserRepositoryImpl implements UserRepository {
-  @override
-  Future<User> getUser(String id) async {
-    final userModel = await remoteDataSource.getUser(id);
-    return userModel.toEntity(); // Map sang Entity
-  }
-}
-```
-
----
-
-## 7. Error Handling
-
-### Sử dụng `Result<T>` hoặc `Either<Failure, T>`
-
-Không throw exception trực tiếp từ repository lên UI.
-
-```dart
-// ✅ Tốt
-sealed class Result<T> {
-  const Result();
-}
-
-class Success<T> extends Result<T> {
-  final T data;
-  const Success(this.data);
-}
-
-class Failure<T> extends Result<T> {
-  final String message;
-  const Failure(this.message);
-}
-```
-
-### UI chỉ xử lý 3 trạng thái:
-
-- `Success`
-- `Failure`
-- `Loading`
-
-```dart
-// ✅ Tốt
-final result = ref.watch(getUserProvider);
-
-return result.when(
-  data: (user) => Text(user.name),
-  loading: () => CircularProgressIndicator(),
-  error: (error, stack) => Text('Error: $error'),
-);
-```
-
----
-
-## 8. Networking
-
-### Stack:
-
-- Sử dụng `dio` + `retrofit`.
-- Interceptors: logging, auth, retry.
-
-### Configuration:
-
-- Base URL lấy từ `.env` theo flavor.
-- Timeout mặc định: **15s**.
-
-```dart
-// ✅ Tốt - Dio setup
-final dio = Dio(
-  BaseOptions(
-    baseUrl: Environment.baseUrl,
-    connectTimeout: Duration(seconds: 15),
-    receiveTimeout: Duration(seconds: 15),
+// TỐT ✅
+return const Scaffold(
+  body: Center(
+    child: Text('Hello'),
   ),
 );
 
-dio.interceptors.addAll([
-  LogInterceptor(),
-  AuthInterceptor(),
-  RetryInterceptor(),
-]);
+// KHÔNG TỐT ❌
+return Scaffold(
+  body: Center(
+    child: Text('Hello'),
+  ),
+);
 ```
 
----
+### c. Comments
 
-## 9. UI & Widgets
-
-### Sử dụng `const`
-
-Thêm `const` vào trước các widget không thay đổi để tối ưu hiệu năng. Linter sẽ giúp bạn việc này.
+- Sử dụng `///` (3 gạch chéo) để viết tài liệu (documentation) cho các class và hàm public.
+- Sử dụng `//` (2 gạch chéo) để giải thích các logic phức tạp bên trong hàm.
 
 ```dart
-// ✅ Tốt
-const Text('Hello World')
-
-// ❌ Xấu
-Text('Hello World')
-```
-
-### Chia nhỏ Widget
-
-Giữ cho phương thức `build` luôn ngắn gọn và dễ đọc. Tách các phần phức tạp ra thành các widget con (private Widget class hoặc `_build...` methods).
-
-```dart
-// ✅ Tốt
-class HomePage extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: _buildAppBar(),
-      body: _buildBody(),
-    );
-  }
-
-  AppBar _buildAppBar() => AppBar(title: const Text('Home'));
-
-  Widget _buildBody() => const Center(child: Text('Content'));
+/// Lấy thông tin người dùng từ server.
+/// Ném ra một [NetworkException] nếu có lỗi xảy ra.
+Future<User> fetchUser(String id) async {
+  // TODO: Implement logic
 }
 ```
 
-### Không "Magic Number" hay "Magic String"
+---
 
-- **Màu sắc, Khoảng cách, Kiểu chữ:** Luôn sử dụng giá trị từ `AppTheme` đã định nghĩa.
-- **Văn bản:** Tất cả các chuỗi văn bản hiển thị cho người dùng phải được lấy từ file localization (ARB). Không hardcode text trong UI.
+## 5. Kiến trúc Dự án (Project Architecture)
+
+Dự án tuân theo cấu trúc thư mục **Clean Architecture** (`core`, `data`, `features`).
+
+### a. `lib/core`
+
+Chứa code được sử dụng chung bởi toàn bộ ứng dụng (ví dụ: theme, router, dependency_injection, constants, core_widgets).
+
+**⚠️ QUY TẮC VÀNG**: Code trong `core` **KHÔNG được phép** import bất kỳ file nào từ `features` hay `data`.
+
+### b. `lib/features`
+
+Chứa các màn hình và logic nghiệp vụ. Mỗi feature là một "ứng dụng nhỏ" độc lập.
+
+Mỗi feature (ví dụ: `login`) nên có 3 thư mục con:
+
+- **`presentation`**: Chứa UI (screens, widgets) và BLoC (bloc).
+- **`domain`**: Chứa Entities (POCO - các class data thuần túy) và Repositories (abstract class - giao diện).
+- **`data`**: Chứa Models (class data có fromJson/toJson), DataSources (nơi gọi API), và RepositoryImpl (nơi implement domain/Repositories).
+
+**⚠️ QUY TẮC VÀNG (Dependency Rule)**:
+
+- Một feature **KHÔNG được** import trực tiếp một feature khác.
+- Ví dụ: `features/login` **KHÔNG được** `import 'features/profile/...'`.
+- **Cách giao tiếp**: Hai feature giao tiếp với nhau thông qua `core` (ví dụ: `core/router` để điều hướng).
+
+### c. `lib/data` (Global)
+
+Chứa các DataSources hoặc Repositories được dùng chung bởi nhiều feature (ví dụ: `AuthRepositoryImpl`).
+
+---
+
+## 6. BLoC & State Management
+
+File `settings.json` đã chỉ định: `"bloc.newCubitTemplate.type": "equatable"`
+
+**⚠️ QUY TẮC**: Tất cả các BLoC State và Cubit State **BẮT BUỘC** phải kế thừa từ `Equatable`.
+
+Điều này giúp BLoC/Cubit nhận biết được khi nào state thực sự thay đổi và rebuild UI một cách hiệu quả.
 
 ```dart
-// ❌ Xấu
-Container(
-  color: Color(0xFF0000FF),
-  padding: EdgeInsets.all(16),
-  child: Text('Welcome'),
-)
+// TỐT ✅
+class LoginState extends Equatable {
+  final bool isLoading;
+  const LoginState({this.isLoading = false});
 
-// ✅ Tốt
-Container(
-  color: AppColors.primary,
-  padding: EdgeInsets.all(AppSizes.paddingMedium),
-  child: Text(context.l10n.welcomeMessage),
-)
-```
+  @override
+  List<Object> get props => [isLoading];
+}
 
-### Page & Widget structure:
-
-- **Page:** Đặt trong `features/<feature>/presentation/pages`.
-- **Widget tái sử dụng:** Đặt trong `presentation/common_widgets`.
-- **Navigation:** Dùng `go_router`, định nghĩa route trong từng feature, merge vào `app/router.dart`.
-
----
-
-## 10. Constants & Strings
-
-### Tạm thời:
-
-- `core/constants/app_strings.dart`
-- `core/constants/app_colors.dart`
-- `core/constants/app_sizes.dart`
-
-### Về lâu dài:
-
-Dùng **l10n ARB** cho text.
-
-### Quy tắc:
-
-- **KHÔNG hardcode string** trong UI.
-- Tất cả text hiển thị phải từ localization hoặc constants.
-
-```dart
-// ❌ Xấu
-Text('Login')
-
-// ✅ Tốt
-Text(AppStrings.login)
-// hoặc
-Text(context.l10n.login)
+// KHÔNG TỐT ❌
+class LoginState {
+  final bool isLoading;
+  const LoginState({this.isLoading = false});
+}
 ```
 
 ---
 
-## 11. Quy trình làm việc với Git
+## 7. Quy trình Git (Git Workflow)
 
-### Phân nhánh (Branching)
+Chúng ta sử dụng **Simplified Git-Flow**.
 
-- `main`: Release branch (protected)
-- `develop`: Development branch
-- `feat/<feature-name>`: Cho các tính năng mới (ví dụ: `feat/login-with-google`)
-- `fix/<bug-name>`: Cho việc sửa lỗi (ví dụ: `fix/wrong-password-error`)
-- `chore/<task-name>`: Cho các công việc không liên quan đến code (cập nhật docs, cấu hình CI...)
+### Nhánh Chính
 
-### Commit Message
+- **`main`**: Nhánh ổn định, code chạy được (chỉ merge khi nộp bài/demo).
+- **`develop`**: Nhánh làm việc chính. Tất cả Pull Request (PR) đều phải merge vào đây.
 
-Tuân thủ tiêu chuẩn **Conventional Commits**.
+### Quy trình làm việc (cho 1 User Story, ví dụ EM-32)
 
-**Cấu trúc:** `<type>: <subject>`
+#### Dev Logic 1 (Integrator)
 
-**`<type>` phổ biến:**
-
-- `feat`: Thêm một tính năng mới
-- `fix`: Sửa một lỗi
-- `refactor`: Tái cấu trúc code mà không thay đổi hành vi
-- `style`: Thay đổi về định dạng, dấu chấm phẩy...
-- `docs`: Cập nhật tài liệu
-- `chore`: Các công việc vặt
-- `test`: Thêm hoặc sửa tests
-
-**Ví dụ:**
-
-```
-feat: add user logout functionality
-fix: correct password validation logic
-docs: update CODE_RULE.md with Git workflow
-refactor: extract user repository to separate file
+```bash
+git checkout develop
+git checkout -b feature/EM-32-login
+git push -u origin feature/EM-32-login  # Đẩy nhánh lên để team thấy
 ```
 
-### Pull Request (PR)
+#### Dev UI 1 (UI)
 
-- Mỗi PR nên nhỏ và chỉ tập trung vào một nhiệm vụ duy nhất.
-- Mô tả của PR phải rõ ràng, giải thích những gì đã được thực hiện.
-- Mọi PR cần được **ít nhất 1 thành viên khác review và approve** trước khi merge.
+```bash
+git fetch origin
+git checkout feature/EM-32-login
+git checkout -b feature/EM-32-login-ui
+# ... (Code UI) ...
+git push -u origin feature/EM-32-login-ui
+```
+
+#### Dev Logic 2 (Logic)
+
+```bash
+git fetch origin
+git checkout feature/EM-32-login
+git checkout -b feature/EM-32-login-logic
+# ... (Code BLoC/Service) ...
+git push -u origin feature/EM-32-login-logic
+```
+
+#### Dev Logic 1 (Integrator - Sau khi 2 bạn kia xong)
+
+```bash
+git checkout feature/EM-32-login  # Quay lại nhánh chính của feature
+git pull origin feature/EM-32-login-ui  # Merge code UI vào
+git pull origin feature/EM-32-login-logic  # Merge code Logic vào
+# ... (Code tích hợp, giải quyết conflict) ...
+```
+
+### Pull Request
+
+- Dev Logic 1 tạo **1 Pull Request duy nhất** từ `feature/EM-32-login` vào `develop`.
+- Cần ít nhất 1 người (Dev UI 1 hoặc Dev Logic 2) review và Approve.
+- Sau khi Approve, tiến hành Merge.
 
 ---
 
-**Phiên bản:** 1.0.0  
-**Cập nhật lần cuối:** 2025-01-01
+## 8. Các Nguyên tắc Thiết kế Cốt lõi
+
+Đây là các triết lý giúp "Nhóm Logic" và "Nhóm UI" viết code hiệu quả.
+
+### a. KISS (Keep It Simple, Stupid) - Giữ nó đơn giản
+
+**Là gì**: Luôn chọn giải pháp đơn giản nhất có thể. Đừng phức tạp hóa vấn đề (over-engineer).
+
+**Cách áp dụng thực tế trong dự án này**:
+
+- **BLoC**: Nếu một màn hình chỉ cần "tải dữ liệu và hiển thị", hãy dùng Cubit (đơn giản hơn BLoC). Chỉ dùng BLoC khi có logic nghiệp vụ phức tạp với nhiều Events.
+- **UI**: Đừng tạo một StatefulWidget khổng lồ quản lý 10 trạng thái khác nhau. Hãy chia nó thành nhiều StatelessWidget con, nhận dữ liệu từ BlocBuilder.
+- **Hàm (Function)**: Một hàm chỉ nên làm một việc và làm tốt việc đó. Nếu hàm của bạn dài quá 30 dòng, hãy nghĩ cách tách nó ra.
+
+### b. DRY (Don't Repeat Yourself) - Đừng lặp lại chính mình
+
+**Là gì**: Không bao giờ lặp lại một đoạn code hoặc một logic ở nhiều nơi.
+
+**Cách áp dụng thực tế trong dự án này**:
+
+#### UI (Task của Dev UI)
+
+**Phát hiện**: Bạn thấy `TextFormField` "Email" (với validator, icon, hint text) xuất hiện ở 3 màn hình: Đăng nhập, Đăng ký, Quên mật khẩu.
+
+**Hành động**: Tạo một widget mới `EmailTextFormField.dart` trong `lib/core/widgets` và tái sử dụng nó ở cả 3 nơi.
+
+**Phát hiện**: Cả 3 màn hình đều có nút "Xác nhận" màu tím, bo góc.
+
+**Hành động**: Tạo một widget `PrimaryButton.dart` trong `lib/core/widgets`.
+
+#### Logic (Task của Dev Logic)
+
+**Phát hiện**: Cả `EventService` và `PollService` đều cần xử lý lỗi API (ví dụ: 401 - Unauthenticated).
+
+**Hành động**: Viết một hàm `handleApiError(Response response)` chung trong `lib/core/network` (hoặc trong Dio Interceptor).
+
+### c. SOLID
+
+Đây là 5 nguyên tắc nền tảng của Lập trình Hướng đối tượng, và nó là lý do chính tại sao chúng ta sử dụng kiến trúc Clean Architecture và BLoC.
+
+#### S - Single Responsibility Principle (Nguyên tắc Đơn trách nhiệm)
+
+**Là gì**: Một class (lớp) chỉ nên chịu một trách nhiệm duy nhất.
+
+**Cách áp dụng thực tế**:
+
+- **Kiến trúc**: Đây chính là lý do chúng ta chia dự án thành 3 sub-task song song ([UI], [Logic], [Integration]).
+
+**Ví dụ**:
+
+- `login_screen.dart` (UI) chỉ chịu trách nhiệm hiển thị (build widget).
+- `LoginBloc` (Logic) chỉ chịu trách nhiệm quản lý state (biến isLoading thành true/false).
+- `AuthService` (Data) chỉ chịu trách nhiệm gọi API và trả về data.
+
+**⚠️ Cảnh báo**: Nếu bạn thấy mình `import 'package:http/http.dart'` (gọi API) ngay trong file `login_screen.dart` (UI), là bạn đang vi phạm nguyên tắc này!
+
+#### O - Open/Closed Principle (Nguyên tắc Đóng/Mở)
+
+**Là gì**: Một class nên **Mở (Open)** cho việc mở rộng, nhưng **Đóng (Closed)** cho việc sửa đổi.
+
+**Cách áp dụng thực tế**:
+
+- **Kiến trúc**: Đây là lý do chúng ta dùng Repository (abstract class) trong domain.
+
+**Ví dụ**:
+
+- `EventListBloc` của bạn import `event_repository.dart` (một abstract class).
+- Ban đầu (Sprint 1), `EventRepositoryImpl` (implement class) gọi API để lấy data.
+- Sau này (Sprint 4), chúng ta thêm tính năng Offline (EM-57).
+  - Chúng ta không cần sửa 1 dòng code nào trong `EventListBloc` (nó đã "Đóng").
+  - Chúng ta chỉ cần sửa `EventRepositoryImpl` để nó kiểm tra mạng: "Nếu có mạng, gọi API. Nếu không, đọc từ Hive." (Nó "Mở" cho việc mở rộng logic).
+
+#### L - Liskov Substitution Principle (Nguyên tắc Thay thế Liskov)
+
+**Là gì**: (Nói đơn giản) Các lớp con (child classes) phải có khả năng thay thế hoàn toàn lớp cha (base class) mà không gây ra lỗi.
+
+**Cách áp dụng thực tế**:
+
+- **BLoC**: Đây là lý do chúng ta dùng abstract class cho State.
+
+**Ví dụ**:
+
+- Cả `LoginSuccess` và `LoginFailure` đều kế thừa (extends) từ `LoginState`.
+- `BlocBuilder` của bạn lắng nghe `LoginState`.
+- Khi BLoC phát ra `LoginSuccess` hay `LoginFailure`, `BlocBuilder` đều xử lý được mà không bị lỗi.
+
+#### I - Interface Segregation Principle (Nguyên tắc Phân tách Interface)
+
+**Là gì**: Đừng tạo ra các "interface" (abstract class) "béo phì" (chứa quá nhiều hàm mà class con không cần dùng). Hãy chia nhỏ chúng.
+
+**Cách áp dụng thực tế**:
+
+- **Ví Dụ (Không tốt)**: Tạo một `UserRepository` khổng lồ chứa: `login()`, `register()`, `updateProfile()`, `changePassword()`, `getAvatar()`, `uploadBanner()`.
+- **Ví Dụ (TỐT)**: Chia nhỏ thành 2 interface:
+  - `AuthRepository` (chỉ chứa `login()`, `register()`, `changePassword()`).
+  - `ProfileRepository` (chỉ chứa `updateProfile()`, `getAvatar()`).
+
+#### D - Dependency Inversion Principle (Nguyên tắc Đảo ngược Phụ thuộc)
+
+**Là gì**: Lớp cấp cao (ví dụ: BLoC) không nên phụ thuộc vào lớp cấp thấp (ví dụ: Service). Cả hai nên phụ thuộc vào một "Hợp đồng" (Abstraction, hay abstract class).
+
+**Cách áp dụng thực tế**:
+
+- Đây là **CỐT LÕI** của toàn bộ kiến trúc Clean Architecture.
+
+**Ví dụ (TỐT)**:
+
+- `LoginBloc` (cấp cao) import `auth_repository.dart` (Hợp đồng/Abstraction).
+- `AuthRepositoryImpl` (cấp thấp) implement `auth_repository.dart`.
+- **Kết quả**: `LoginBloc` không hề biết `AuthService` hay API là gì. Nó chỉ biết "Tôi cần một ai đó tuân thủ 'Hợp đồng AuthRepository' để lấy data cho tôi". Điều này giúp việc thay thế (ví dụ: đổi `AuthService` sang `FirebaseAuth`) hoặc viết Unit Test (mock repository) trở nên cực kỳ dễ dàng.
+
+---
+
+## 📝 Tóm tắt
+
+- ✅ Luôn dùng FVM để đảm bảo phiên bản Flutter nhất quán
+- ✅ Tuân thủ quy tắc đặt tên và coding standards
+- ✅ Sử dụng `const` và Equatable cho State
+- ✅ Tôn trọng kiến trúc Clean Architecture và Dependency Rule
+- ✅ Áp dụng KISS, DRY, và SOLID trong mọi tình huống
+- ✅ Làm việc song song hiệu quả với Git workflow
+
+**Chúc các bạn code vui vẻ! 🚀**
