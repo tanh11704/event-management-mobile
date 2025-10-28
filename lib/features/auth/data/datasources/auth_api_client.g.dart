@@ -2,8 +2,6 @@
 
 part of 'auth_api_client.dart';
 
-// dart format off
-
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -21,7 +19,6 @@ class _AuthApiClient implements AuthApiClient {
 
   @override
   Future<String> register(RegisterRequestDto registerRequestDto) async {
-  Future<LoginResponse> login(LoginDto loginDto) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
@@ -32,12 +29,6 @@ class _AuthApiClient implements AuthApiClient {
           .compose(
             _dio.options,
             '/auth/register',
-    _data.addAll(loginDto.toJson());
-    final _options = _setStreamType<LoginResponse>(
-      Options(method: 'POST', headers: _headers, extra: _extra)
-          .compose(
-            _dio.options,
-            '/auth/login',
             queryParameters: queryParameters,
             data: _data,
           )
@@ -77,6 +68,30 @@ class _AuthApiClient implements AuthApiClient {
     late String _value;
     try {
       _value = _result.data!;
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<LoginResponse> login(LoginDto loginDto) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = <String, dynamic>{};
+    _data.addAll(loginDto.toJson());
+    final _options = _setStreamType<LoginResponse>(
+      Options(method: 'POST', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/auth/login',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
     final _result = await _dio.fetch<Map<String, dynamic>>(_options);
     late LoginResponse _value;
     try {
@@ -115,5 +130,3 @@ class _AuthApiClient implements AuthApiClient {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
-
-// dart format on

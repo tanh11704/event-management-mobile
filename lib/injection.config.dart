@@ -1,5 +1,5 @@
-// GENERATED CODE - DO NOT MODIFY BY HAND
 // dart format width=80
+// GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
 // InjectableConfigGenerator
@@ -12,10 +12,8 @@
 import 'package:dio/dio.dart' as _i361;
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart'
     as _i881;
-import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart'
-    as _i964;
-import 'package:event_management/features/auth/domain/repository/auth_repository.dart'
-    as _i488;
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart'
+    as _i257;
 import 'package:event_management/features/auth/presentation/bloc/change_password_bloc.dart'
     as _i517;
 import 'package:event_management/features/auth/presentation/bloc/register_bloc.dart'
@@ -40,23 +38,20 @@ extension GetItInjectableX on _i174.GetIt {
     final registerModule = _$RegisterModule();
     gh.lazySingleton<_i361.Dio>(() => registerModule.dio);
     gh.lazySingleton<_i881.AuthApiClient>(
-      () => _i881.AuthApiClient(gh<_i361.Dio>()),
+      () => _i881.AuthApiClient.new(gh<_i361.Dio>()),
     );
     gh.lazySingleton<_i132.UnitApiClient>(
-      () => _i132.UnitApiClient(gh<_i361.Dio>()),
+      () => _i132.UnitApiClient.new(gh<_i361.Dio>()),
+    );
+    gh.factory<_i517.ChangePasswordBloc>(
+      () => _i517.ChangePasswordBloc(gh<InvalidType>()),
     );
     gh.lazySingleton<_i1037.UnitRepository>(
       () => _i110.UnitRepositoryImpl(gh<_i132.UnitApiClient>()),
     );
-    gh.lazySingleton<_i488.AuthRepository>(
-      () => _i964.AuthRepositoryImpl(gh<_i881.AuthApiClient>()),
-    );
-    gh.factory<_i517.ChangePasswordBloc>(
-      () => _i517.ChangePasswordBloc(gh<_i488.AuthRepository>()),
-    );
     gh.factory<_i325.RegisterBloc>(
       () => _i325.RegisterBloc(
-        gh<_i488.AuthRepository>(),
+        gh<_i257.AuthRepository>(),
         gh<_i1037.UnitRepository>(),
       ),
     );

@@ -5,9 +5,14 @@
 // ignore_for_file: no_leading_underscores_for_library_prefixes
 import 'dart:async' as _i3;
 
+import 'package:event_management/features/auth/data/models/change_password_request_dto.dart'
+    as _i6;
+import 'package:event_management/features/auth/data/models/register_request_dto.dart'
+    as _i4;
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart'
     as _i2;
 import 'package:mockito/mockito.dart' as _i1;
+import 'package:mockito/src/dummies.dart' as _i5;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -39,4 +44,32 @@ class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
             returnValueForMissingStub: _i3.Future<void>.value(),
           )
           as _i3.Future<void>);
+
+  @override
+  _i3.Future<String> register(_i4.RegisterRequestDto? registerRequestDto) =>
+      (super.noSuchMethod(
+            Invocation.method(#register, [registerRequestDto]),
+            returnValue: _i3.Future<String>.value(
+              _i5.dummyValue<String>(
+                this,
+                Invocation.method(#register, [registerRequestDto]),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
+
+  @override
+  _i3.Future<String> changePassword(
+    _i6.ChangePasswordRequestDto? changePasswordRequestDto,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#changePassword, [changePasswordRequestDto]),
+            returnValue: _i3.Future<String>.value(
+              _i5.dummyValue<String>(
+                this,
+                Invocation.method(#changePassword, [changePasswordRequestDto]),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
 }

@@ -2,8 +2,6 @@
 
 part of 'unit_api_client.dart';
 
-// dart format off
-
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
@@ -73,5 +71,3 @@ class _UnitApiClient implements UnitApiClient {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
-
-// dart format on

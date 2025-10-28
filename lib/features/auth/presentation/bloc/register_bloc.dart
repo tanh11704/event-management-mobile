@@ -1,6 +1,6 @@
 import 'package:bloc/bloc.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
-import 'package:event_management/features/auth/domain/repository/auth_repository.dart';
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_event.dart';
 import 'package:event_management/features/auth/presentation/bloc/register_state.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
