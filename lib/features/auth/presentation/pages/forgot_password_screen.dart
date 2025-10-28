@@ -48,7 +48,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               child: Column(
                 children: [
                   // ===== Logo VKU =====
-                  const Image.asset('assets/images/vku_logo.png', height: 80),
+                  Image.asset('assets/images/vku_logo.png', height: 80),
                   const SizedBox(height: AppSpacing.spaceLG),
 
                   // ===== Tiêu đề =====
