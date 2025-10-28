@@ -1,10 +1,9 @@
-import 'package:event_management/core/config/app_colors.dart';
-import 'package:event_management/core/config/app_spacing.dart';
-import 'package:event_management/core/config/app_text_styles.dart';
-import 'package:event_management/core/widgets/password_text_field.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password_bloc.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-/// Form đổi mật khẩu
 class ChangePasswordForm extends StatefulWidget {
   const ChangePasswordForm({super.key});
 
@@ -13,95 +12,75 @@ class ChangePasswordForm extends StatefulWidget {
 }
 
 class _ChangePasswordFormState extends State<ChangePasswordForm> {
-  bool _isCurrentPasswordVisible = false;
-  bool _isNewPasswordVisible = false;
-  bool _isConfirmPasswordVisible = false;
+  final _formKey = GlobalKey<FormState>();
+  String? oldPassword;
+  String? newPassword;
+  String? confirmPassword;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        PasswordTextField(
-          hintText: 'Mật khẩu hiện tại',
-          icon: Icons.lock_outline,
-          isPasswordVisible: _isCurrentPasswordVisible,
-          onToggleVisibility: () {
-            setState(() {
-              _isCurrentPasswordVisible = !_isCurrentPasswordVisible;
-            });
-          },
-        ),
-        const SizedBox(height: AppSpacing.spaceMD),
-        PasswordTextField(
-          hintText: 'Mật khẩu mới',
-          icon: Icons.lock,
-          isPasswordVisible: _isNewPasswordVisible,
-          onToggleVisibility: () {
-            setState(() {
-              _isNewPasswordVisible = !_isNewPasswordVisible;
-            });
-          },
-        ),
-        const SizedBox(height: AppSpacing.spaceMD),
-        PasswordTextField(
-          hintText: 'Xác nhận mật khẩu mới',
-          icon: Icons.lock_outline,
-          isPasswordVisible: _isConfirmPasswordVisible,
-          onToggleVisibility: () {
-            setState(() {
-              _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
-            });
-          },
-        ),
-        const SizedBox(height: AppSpacing.spaceXL),
-        _buildChangePasswordButton(),
-        const SizedBox(height: AppSpacing.spaceMD),
-        _buildBackToLoginLink(),
-      ],
-    );
-  }
-
-  Widget _buildChangePasswordButton() {
-    return ElevatedButton(
-      onPressed: () {
-        // TODO: Implement change password logic
+    return BlocConsumer<ChangePasswordBloc, ChangePasswordState>(
+      listener: (context, state) {
+        if (state is ChangePasswordSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Đổi mật khẩu thành công!')),
+          );
+        }
+        if (state is ChangePasswordFailure) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(state.message)));
+        }
       },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: AppColors.vkuBlue,
-        foregroundColor: AppColors.white,
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.spaceMD),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        elevation: 0,
-      ),
-      child: Text(
-        'Đổi mật khẩu',
-        style: AppTextStyles.heading5.copyWith(
-          color: AppColors.white,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBackToLoginLink() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('Quay lại trang ', style: AppTextStyles.bodyMedium),
-        GestureDetector(
-          onTap: () {
-            // TODO: Navigate to login screen
-          },
-          child: Text(
-            'Đăng nhập',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.vkuBlue,
-              fontWeight: FontWeight.w600,
-            ),
+      builder: (context, state) {
+        final isLoading = state is ChangePasswordLoading;
+        return Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Mật khẩu cũ'),
+                obscureText: true,
+                onSaved: (v) => oldPassword = v,
+                validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Mật khẩu mới'),
+                obscureText: true,
+                onSaved: (v) => newPassword = v,
+                validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(
+                  labelText: 'Xác nhận mật khẩu mới',
+                ),
+                obscureText: true,
+                onSaved: (v) => confirmPassword = v,
+                validator: (v) => v == null || v.isEmpty ? 'Bắt buộc' : null,
+              ),
+              const SizedBox(height: 16),
+              if (isLoading)
+                const CircularProgressIndicator()
+              else
+                ElevatedButton(
+                  onPressed: () {
+                    if (_formKey.currentState!.validate()) {
+                      _formKey.currentState!.save();
+                      context.read<ChangePasswordBloc>().add(
+                        ChangePasswordSubmitted(
+                          oldPassword: oldPassword!,
+                          newPassword: newPassword!,
+                          confirmPassword: confirmPassword!,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Đổi mật khẩu'),
+                ),
+            ],
           ),
-        ),
-      ],
+        );
+      },
     );
   }
 }

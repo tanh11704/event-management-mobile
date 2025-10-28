@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/features/auth/data/models/change_password_request_dto.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
@@ -13,4 +14,9 @@ abstract class AuthApiClient {
 
   @POST('/auth/register')
   Future<String> register(@Body() RegisterRequestDto registerRequestDto);
+
+  @POST('/auth/change-password')
+  Future<String> changePassword(
+    @Body() ChangePasswordRequestDto changePasswordRequestDto,
+  );
 }

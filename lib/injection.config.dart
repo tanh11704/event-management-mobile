@@ -16,6 +16,8 @@ import 'package:event_management/features/auth/data/repository/auth_repository_i
     as _i964;
 import 'package:event_management/features/auth/domain/repository/auth_repository.dart'
     as _i488;
+import 'package:event_management/features/auth/presentation/bloc/change_password_bloc.dart'
+    as _i517;
 import 'package:event_management/features/auth/presentation/bloc/register_bloc.dart'
     as _i325;
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart'
@@ -48,6 +50,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i488.AuthRepository>(
       () => _i964.AuthRepositoryImpl(gh<_i881.AuthApiClient>()),
+    );
+    gh.factory<_i517.ChangePasswordBloc>(
+      () => _i517.ChangePasswordBloc(gh<_i488.AuthRepository>()),
     );
     gh.factory<_i325.RegisterBloc>(
       () => _i325.RegisterBloc(

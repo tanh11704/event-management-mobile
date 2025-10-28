@@ -1,4 +1,4 @@
-import 'package:event_management/features/auth/presentation/pages/register_screen.dart';
+import 'package:event_management/features/auth/presentation/pages/change_password_sceen.dart';
 import 'package:flutter/material.dart';
 
 class App extends StatelessWidget {
@@ -9,7 +9,7 @@ class App extends StatelessWidget {
     return MaterialApp(
       title: 'Event Management',
       theme: ThemeData.light(),
-      home: const Scaffold(body: Scaffold(body: RegisterScreen())),
+      home: const Scaffold(body: Scaffold(body: ChangePasswordScreen())),
     );
   }
 }
