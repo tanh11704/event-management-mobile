@@ -36,18 +36,17 @@ File `settings.json` của dự án sẽ tự động cấu hình IDE của bạ
 
 ## 3. Quy tắc Đặt tên (Naming Conventions)
 
-| Hạng mục              | Quy tắc               | Ví dụ                                                               |
-| --------------------- | --------------------- | ------------------------------------------------------------------- |
-| Thư mục (Directory)   | `snake_case`          | `core`, `features`, `user_profile`, `auth_service`                  |
-| Files                 | `snake_case.dart`     | `login_screen.dart`, `event_model.dart`, `auth_repository.dart`     |
-| Class                 | `PascalCase`          | `User`, `LoginBloc`, `AuthService`, `EventRepositoryImpl`           |
-| Biến & Hàm            | `camelCase`           | `userName`, `fetchUserData()`, `currentPage`                        |
-| Biến private          | `_camelCase`          | `_userName`, `_fetchUserData()`                                     |
-| Widget private        | `_PascalCase`         | `class _BuildAppBar extends StatelessWidget { ... }`                |
-| Constants (Hằng số)   | `kCamelCase`          | `const kDefaultPadding = 8.0;`, `static const kApiTimeout = 30000;` |
-| API Client (Retrofit) | `PascalCaseApiClient` | `AuthApiClient`, `EventApiClient`                                   |
+| Hạng mục            | Quy tắc           | Ví dụ                                                               |
+| ------------------- | ----------------- | ------------------------------------------------------------------- |
+| Thư mục (Directory) | `snake_case`      | `core`, `features`, `user_profile`, `auth_service`                  |
+| Files               | `snake_case.dart` | `login_screen.dart`, `event_model.dart`, `auth_repository.dart`     |
+| Class               | `PascalCase`      | `User`, `LoginBloc`, `AuthService`, `EventRepositoryImpl`           |
+| Biến & Hàm          | `camelCase`       | `userName`, `fetchUserData()`, `currentPage`                        |
+| Biến private        | `_camelCase`      | `_userName`, `_fetchUserData()`                                     |
+| Widget private      | `_PascalCase`     | `class _BuildAppBar extends StatelessWidget { ... }`                |
+| Constants (Hằng số) | `kCamelCase`      | `const kDefaultPadding = 8.0;`, `static const kApiTimeout = 30000;` |
 
-##
+---
 
 ## 4. Tiêu chuẩn Code (Coding Standards)
 
@@ -134,7 +133,7 @@ Mỗi feature (ví dụ: `login`) nên có 3 thư mục con:
 
 ### c. `lib/data` (Global)
 
-Chứa các DataSources hoặc Repositories được dùng chung bởi nhiều feature (ví dụ: `AuthRepositoryImpl`, `AuthApiClient`).
+Chứa các DataSources hoặc Repositories được dùng chung bởi nhiều feature (ví dụ: `AuthRepositoryImpl`).
 
 ---
 
@@ -329,173 +328,18 @@ git pull origin feature/EM-32-login-logic  # Merge code Logic vào
 **Ví dụ (TỐT)**:
 
 - `LoginBloc` (cấp cao) import `auth_repository.dart` (Hợp đồng/Abstraction).
-- `AuthRepositoryImpl` (Data) implement `auth_repository.dart`.
-- `AuthRepositoryImpl` lại import `auth_api_client.dart` (Hợp đồng DataSource - Retrofit Interface).
-- **Kết quả**: `LoginBloc` không biết gì về `AuthRepositoryImpl`. `AuthRepositoryImpl` không biết gì về Dio hay cách `Retrofit` gọi API. Mọi thứ đều phụ thuộc vào "Hợp đồng" (abstract class), giúp code cực kỳ linh hoạt và dễ test.
-
----
-
-## 9. Mạng & Gọi API (Networking & API Calls) 🌐
-
-Để đảm bảo tính nhất quán, type-safe và giảm boilerplate khi gọi API, dự án bắt buộc sử dụng các thư viện sau:
-
-### a. Thư viện Chính
-
-- **`dio`**: Là HTTP client nền tảng, cung cấp các tính năng mạnh mẽ như Interceptors, FormData, xử lý lỗi.
-- **`retrofit`**: Bộ sinh code (code generator) giúp tạo ra các API client type-safe từ các định nghĩa abstract class (interface).
-- **`json_serializable` / `freezed`**: (Tùy chọn nhưng khuyến khích) Dùng để tạo các Model (`fromJson`/`toJson`) một cách tự động, kết hợp hoàn hảo với Retrofit.
-
-### b. Quy trình làm việc với Retrofit
-
-#### 1. Định nghĩa API Client Interface
-
-- Trong thư mục `data/datasources` (của feature hoặc global), tạo một file `_api_client.dart` (ví dụ: `auth_api_client.dart`).
-- Định nghĩa một `abstract class` với chú thích (annotation) `@RestApi`.
-- Khai báo các phương thức gọi API sử dụng các annotation của Retrofit (`@GET`, `@POST`, `@Body`, `@Path`, `@Query`...).
-
-```dart
-// lib/features/auth/data/datasources/auth_api_client.dart
-import 'package:dio/dio.dart';
-import 'package:retrofit/retrofit.dart';
-import '../models/login_dto.dart';
-import '../models/login_response.dart';
-
-part 'auth_api_client.g.dart'; // File sẽ được sinh ra
-
-@RestApi(baseUrl: "YOUR_BASE_URL_FROM_ENV") // Lấy baseUrl từ .env
-abstract class AuthApiClient {
-  factory AuthApiClient(Dio dio, {String baseUrl}) = _AuthApiClient;
-
-  @POST('/login')
-  Future<LoginResponse> login(@Body() LoginDto loginDto);
-
-  @POST('/register')
-  Future<void> register(@Body() RegisterDto registerDto); // Giả sử có RegisterDto
-
-  // ... các API khác liên quan đến Auth
-}
-```
-
-#### 2. Chạy Code Generator
-
-Sau khi định nghĩa interface, chạy lệnh sau trong terminal để `retrofit_generator` tự động tạo ra file implementation (`.g.dart`):
-
-```bash
-fvm flutter pub run build_runner build --delete-conflicting-outputs
-```
-
-**⚠️ QUY TẮC**: File `.g.dart` được sinh ra tự động, **KHÔNG BAO GIỜ** được chỉnh sửa thủ công. Luôn thêm các file `*.g.dart` vào `.gitignore` (hoặc `files.exclude` trong `settings.json` nếu chỉ muốn ẩn).
-
-#### 3. Sử dụng API Client trong DataSource/Service
-
-- Inject (tiêm) `AuthApiClient` vào `AuthService` (hoặc `AuthRemoteDataSource`).
-- Gọi các phương thức đã định nghĩa một cách type-safe.
-
-```dart
-// lib/features/auth/data/repository/auth_service.dart (Ví dụ cập nhật)
-import 'auth_api_client.dart'; // Import interface đã định nghĩa
-
-class AuthService implements AuthRepository {
-  // Inject ApiClient thay vì Dio trực tiếp
-  const AuthService(this._authApiClient, this._secureStorage);
-
-  final AuthApiClient _authApiClient; // Sử dụng interface
-  final FlutterSecureStorage _secureStorage;
-
-  @override
-  Future<void> login(String email, String password) async {
-    final loginDto = LoginDto(email: email, password: password);
-    try {
-      // Gọi API thông qua Retrofit một cách type-safe
-      final loginResponse = await _authApiClient.login(loginDto);
-
-      // ... (Lưu token như cũ) ...
-      await _secureStorage.write(
-        key: 'accessToken',
-        value: loginResponse.accessToken,
-      );
-      // ...
-
-    } on DioException catch (e) {
-      // ... (Xử lý lỗi DioException như cũ, Retrofit vẫn ném ra DioException) ...
-    } catch (e) {
-      // ... (Xử lý lỗi khác) ...
-    }
-  }
-}
-```
-
-### c. Cấu hình `dio` (Interceptors)
-
-Nên tạo một instance `dio` duy nhất và cấu hình các Interceptors trong `lib/core/network` để xử lý các tác vụ chung như:
-
-- Tự động thêm `Authorization: Bearer <token>` vào header (nếu đã đăng nhập).
-- Tự động refresh token nếu nhận lỗi `401 Unauthorized`.
-- Logging các request/response (trong môi trường dev).
-- Xử lý lỗi mạng chung.
-
-**Ví dụ cấu hình Dio với Interceptor**:
-
-```dart
-// lib/core/network/dio_config.dart
-import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
-class DioConfig {
-  static Dio createDio(FlutterSecureStorage secureStorage) {
-    final dio = Dio(
-      BaseOptions(
-        baseUrl: const String.fromEnvironment('API_BASE_URL'),
-        connectTimeout: const Duration(seconds: 30),
-        receiveTimeout: const Duration(seconds: 30),
-      ),
-    );
-
-    // Thêm Auth Interceptor
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          // Tự động thêm token vào header
-          final token = await secureStorage.read(key: 'accessToken');
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          return handler.next(options);
-        },
-        onError: (error, handler) async {
-          // Xử lý refresh token khi gặp 401
-          if (error.response?.statusCode == 401) {
-            // TODO: Implement refresh token logic
-          }
-          return handler.next(error);
-        },
-      ),
-    );
-
-    // Thêm Logging Interceptor (chỉ trong dev mode)
-    if (const bool.fromEnvironment('DEBUG', defaultValue: false)) {
-      dio.interceptors.add(LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-      ));
-    }
-
-    return dio;
-  }
-}
-```
+- `AuthRepositoryImpl` (cấp thấp) implement `auth_repository.dart`.
+- **Kết quả**: `LoginBloc` không hề biết `AuthService` hay API là gì. Nó chỉ biết "Tôi cần một ai đó tuân thủ 'Hợp đồng AuthRepository' để lấy data cho tôi". Điều này giúp việc thay thế (ví dụ: đổi `AuthService` sang `FirebaseAuth`) hoặc viết Unit Test (mock repository) trở nên cực kỳ dễ dàng.
 
 ---
 
 ## 📝 Tóm tắt
 
 - ✅ Luôn dùng FVM để đảm bảo phiên bản Flutter nhất quán
-- ✅ Tuân thủ quy tắc đặt tên và coding standards (bao gồm cả API Client)
-- ✅ Sử dụng Retrofit cho tất cả các tương tác API
+- ✅ Tuân thủ quy tắc đặt tên và coding standards
 - ✅ Sử dụng `const` và Equatable cho State
 - ✅ Tôn trọng kiến trúc Clean Architecture và Dependency Rule
 - ✅ Áp dụng KISS, DRY, và SOLID trong mọi tình huống
 - ✅ Làm việc song song hiệu quả với Git workflow
-- ✅ Luôn chạy build_runner sau khi thay đổi API client
 
 **Chúc các bạn code vui vẻ! 🚀**
