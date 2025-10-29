@@ -7,7 +7,7 @@ import 'package:event_management/features/auth/domain/repositories/auth_reposito
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 
-@LazySingleton(as: AuthRepositoryImpl)
+@LazySingleton(as: AuthRepository)
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._authApiClient, this._secureStorage);
 
