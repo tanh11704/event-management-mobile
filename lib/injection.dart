@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/core/config/api_config_service.dart';
 import 'package:event_management/injection.config.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 
@@ -19,4 +20,7 @@ abstract class RegisterModule {
       receiveTimeout: const Duration(seconds: 3),
     ),
   );
+
+  @lazySingleton
+  FlutterSecureStorage get secureStorage => const FlutterSecureStorage();
 }
