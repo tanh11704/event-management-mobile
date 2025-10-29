@@ -1,8 +1,8 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_bloc.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_event.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_state.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';

@@ -1,15 +1,19 @@
 import 'package:bloc/bloc.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
-import 'package:event_management/features/auth/presentation/bloc/register_event.dart';
-import 'package:event_management/features/auth/presentation/bloc/register_state.dart';
+import 'package:event_management/features/auth/presentation/bloc/register/register_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/register/register_state.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
 import 'package:injectable/injectable.dart';
 
 @Injectable()
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
-  RegisterBloc(this._authRepository, this._unitRepository)
-    : super(RegisterInitial()) {
+  RegisterBloc({
+    required AuthRepository authRepository,
+    required UnitRepository unitRepository,
+  }) : _authRepository = authRepository,
+       _unitRepository = unitRepository,
+       super(RegisterInitial()) {
     on<RegisterSubmitted>(_onRegisterSubmitted);
     on<RegisterGetUnits>(_onFetchUnits);
     on<RegisterAccountTypeChanged>(_onAccountTypeChanged);
