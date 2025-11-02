@@ -1,6 +1,6 @@
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_event.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_state.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {

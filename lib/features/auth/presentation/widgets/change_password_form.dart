@@ -1,6 +1,6 @@
-import 'package:event_management/features/auth/presentation/bloc/change_password_bloc.dart';
-import 'package:event_management/features/auth/presentation/bloc/change_password_event.dart';
-import 'package:event_management/features/auth/presentation/bloc/change_password_state.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

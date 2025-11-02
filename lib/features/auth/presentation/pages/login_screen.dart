@@ -1,11 +1,12 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_bloc.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_event.dart';
-import 'package:event_management/features/auth/presentation/bloc/login_state.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_event.dart';
+import 'package:event_management/features/auth/presentation/bloc/login/login_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -265,7 +266,11 @@ class _LoginScreenState extends State<LoginScreen> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: isLoading ? null : () {},
+                                onPressed: isLoading
+                                    ? null
+                                    : () {
+                                        context.push('/register');
+                                      },
                                 child: Text(
                                   'Đăng ký ngay',
                                   style: AppTextStyles.bodyMedium.copyWith(
