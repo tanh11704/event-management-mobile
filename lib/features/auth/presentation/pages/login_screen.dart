@@ -247,7 +247,11 @@ class _LoginScreenState extends State<LoginScreen> {
                       Column(
                         children: [
                           TextButton(
-                            onPressed: isLoading ? null : () {},
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    context.push('/forgot-password');
+                                  },
                             child: Text(
                               'Quên mật khẩu?',
                               style: AppTextStyles.bodyMedium.copyWith(

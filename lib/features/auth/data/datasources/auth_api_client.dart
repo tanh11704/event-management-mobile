@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart';
-import 'package:event_management/features/auth/data/models/register_request_dto.dart';
-import 'package:injectable/injectable.dart';
+import 'package:event_management/features/auth/data/models/forgot_password_request_dto.dart';
 import 'package:event_management/features/auth/data/models/login_dto.dart';
 import 'package:event_management/features/auth/data/models/login_response.dart';
+import 'package:event_management/features/auth/data/models/register_request_dto.dart';
+import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
 part 'auth_api_client.g.dart';
@@ -21,7 +22,12 @@ abstract class AuthApiClient {
   Future<String> changePassword(
     @Body() ChangePasswordRequestDto changePasswordRequestDto,
   );
-  
+
   @POST('/auth/login')
   Future<LoginResponse> login(@Body() LoginDto loginDto);
+
+  @POST('/auth/forgot-password')
+  Future<String> forgotPassword(
+    @Body() ForgotPasswordRequestDto forgotPasswordRequestDto,
+  );
 }

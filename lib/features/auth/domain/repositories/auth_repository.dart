@@ -1,4 +1,5 @@
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart';
+import 'package:event_management/features/auth/data/models/forgot_password_request_dto.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
 
 abstract class AuthRepository {
@@ -8,5 +9,9 @@ abstract class AuthRepository {
 
   Future<String> changePassword(
     ChangePasswordRequestDto changePasswordRequestDto,
+  );
+
+  Future<String> forgotPassword(
+    ForgotPasswordRequestDto forgotPasswordRequestDto,
   );
 }
