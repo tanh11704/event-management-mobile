@@ -7,12 +7,15 @@ import 'package:event_management/features/auth/presentation/pages/change_passwor
 import 'package:event_management/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/register_screen.dart';
+import 'package:event_management/features/event_list/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event_list/presentation/pages/event_list_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRoutes {
   static const String login = '/login';
   static const String home = '/';
+  static const String eventList = '/events';
   static const String register = '/register';
   static const String changePassword = '/change-password';
   static const String forgotPassword = '/forgot-password';
@@ -29,6 +32,16 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (context) => sl<LoginBloc>(),
           child: const LoginScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.eventList,
+      name: AppRoutes.eventList,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<EventListBloc>(),
+          child: const EventListScreen(),
         );
       },
     ),

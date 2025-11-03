@@ -1,0 +1,88 @@
+import 'package:dio/dio.dart';
+import 'package:event_management/features/event_list/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
+import 'package:injectable/injectable.dart';
+
+@LazySingleton(as: EventRepository)
+class EventRepositoryImpl implements EventRepository {
+  EventRepositoryImpl(this._eventApiClient);
+
+  final EventApiClient _eventApiClient;
+
+  @override
+  Future<EventListResult> getAllEvents({
+    int page = 0,
+    int size = 12,
+    String sortBy = 'startTime',
+    String sortDir = 'asc',
+    EventStatus? status,
+    String? search,
+  }) async {
+    try {
+      final response = await _eventApiClient.getAllEvents(
+        page: page,
+        size: size,
+        sortBy: sortBy,
+        sortDir: sortDir,
+        status: status?.toJsonValue,
+        search: search,
+      );
+
+      return EventListResult(
+        events: response.pagination.content,
+        counters: response.counters,
+        hasNext: response.pagination.hasNext,
+        totalPages: response.pagination.totalPages,
+        currentPage: response.pagination.page,
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể tải danh sách sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<EventListResult> getManagedEvents({
+    int page = 0,
+    int size = 12,
+    String sortBy = 'startTime',
+    String sortDir = 'asc',
+    EventStatus? status,
+    String? search,
+  }) async {
+    try {
+      final response = await _eventApiClient.getManagedEvents(
+        page: page,
+        size: size,
+        sortBy: sortBy,
+        sortDir: sortDir,
+        status: status?.toJsonValue,
+        search: search,
+      );
+
+      return EventListResult(
+        events: response.pagination.content,
+        counters: response.counters,
+        hasNext: response.pagination.hasNext,
+        totalPages: response.pagination.totalPages,
+        currentPage: response.pagination.page,
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(
+          errorMessage ?? 'Không thể tải danh sách sự kiện quản lý.',
+        );
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+}
