@@ -7,6 +7,8 @@ import 'dart:async' as _i3;
 
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart'
     as _i6;
+import 'package:event_management/features/auth/data/models/forgot_password_request_dto.dart'
+    as _i7;
 import 'package:event_management/features/auth/data/models/register_request_dto.dart'
     as _i4;
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart'
@@ -68,6 +70,21 @@ class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
               _i5.dummyValue<String>(
                 this,
                 Invocation.method(#changePassword, [changePasswordRequestDto]),
+              ),
+            ),
+          )
+          as _i3.Future<String>);
+
+  @override
+  _i3.Future<String> forgotPassword(
+    _i7.ForgotPasswordRequestDto? forgotPasswordRequestDto,
+  ) =>
+      (super.noSuchMethod(
+            Invocation.method(#forgotPassword, [forgotPasswordRequestDto]),
+            returnValue: _i3.Future<String>.value(
+              _i5.dummyValue<String>(
+                this,
+                Invocation.method(#forgotPassword, [forgotPasswordRequestDto]),
               ),
             ),
           )
