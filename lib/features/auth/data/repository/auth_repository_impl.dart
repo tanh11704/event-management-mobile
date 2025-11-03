@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart';
+import 'package:event_management/features/auth/data/models/forgot_password_request_dto.dart';
 import 'package:event_management/features/auth/data/models/login_dto.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
@@ -30,6 +31,28 @@ class AuthRepositoryImpl implements AuthRepository {
     ChangePasswordRequestDto changePasswordRequestDto,
   ) {
     return _authApiClient.changePassword(changePasswordRequestDto);
+  }
+
+  @override
+  Future<String> forgotPassword(
+    ForgotPasswordRequestDto forgotPasswordRequestDto,
+  ) async {
+    try {
+      final response = await _authApiClient.forgotPassword(
+        forgotPasswordRequestDto,
+      );
+      return response;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(
+          errorMessage ?? 'Không thể gửi yêu cầu đặt lại mật khẩu.',
+        );
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
   }
 
   @override

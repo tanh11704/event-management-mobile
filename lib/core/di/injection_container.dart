@@ -4,6 +4,7 @@ import 'package:event_management/features/auth/data/datasources/auth_api_client.
 import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
+import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/register/register_bloc.dart';
 import 'package:event_management/features/event_list/data/datasources/event_api_client.dart';
@@ -27,6 +28,7 @@ Future<void> init() async {
       () => RegisterBloc(authRepository: sl(), unitRepository: sl()),
     )
     ..registerFactory(() => ChangePasswordBloc(authRepository: sl()))
+    ..registerFactory(() => ForgotPasswordBloc(authRepository: sl()))
     // Event Bloc
     ..registerFactory(
       () => EventListBloc(eventRepository: sl(), eventSseService: sl()),
