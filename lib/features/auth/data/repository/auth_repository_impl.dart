@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart';
-import 'package:event_management/features/auth/data/models/forgot_password_request_dto.dart';
 import 'package:event_management/features/auth/data/models/login_dto.dart';
 import 'package:event_management/features/auth/data/models/register_request_dto.dart';
+import 'package:event_management/features/auth/data/models/reset_password_dto.dart';
+import 'package:event_management/features/auth/data/models/user_response_dto.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -19,39 +20,83 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<String> register(RegisterRequestDto registerRequestDto) async {
     try {
       final response = await _authApiClient.register(registerRequestDto);
-
-      return response;
+      return response.message;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Đăng ký thất bại.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
-      throw Exception('Failed to register user: $e');
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
 
   @override
   Future<String> changePassword(
     ChangePasswordRequestDto changePasswordRequestDto,
-  ) {
-    return _authApiClient.changePassword(changePasswordRequestDto);
+  ) async {
+    try {
+      final response = await _authApiClient.changePassword(
+        changePasswordRequestDto,
+      );
+      return response.message;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Đổi mật khẩu thất bại.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
   }
 
   @override
-  Future<String> forgotPassword(
-    ForgotPasswordRequestDto forgotPasswordRequestDto,
-  ) async {
+  Future<String> forgotPassword(String email) async {
     try {
-      final response = await _authApiClient.forgotPassword(
-        forgotPasswordRequestDto,
-      );
+      final response = await _authApiClient.forgotPassword({'email': email});
+      return response.message;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Gửi yêu cầu quên mật khẩu thất bại.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<String> resetPassword(ResetPasswordDto resetPasswordDto) async {
+    try {
+      final response = await _authApiClient.resetPassword(resetPasswordDto);
+      return response.message;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Đặt lại mật khẩu thất bại.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<UserResponseDto> getAuthUser() async {
+    try {
+      final response = await _authApiClient.getAuthUser();
       return response;
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(
-          errorMessage ?? 'Không thể gửi yêu cầu đặt lại mật khẩu.',
-        );
+        throw Exception(errorMessage ?? 'Lấy thông tin người dùng thất bại.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định.');
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
 
