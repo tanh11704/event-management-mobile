@@ -69,26 +69,67 @@ class AuthInterceptor extends Interceptor {
         // Try to refresh token
         await _authRepository.refreshToken();
 
-        // Retry original request with new token
+        // Refresh succeeded, now retry original request with new token
         final token = await _secureStorage.read(key: 'access_token');
-        final newRequestOptions = requestOptions.copyWith(
-          headers: {
-            ...requestOptions.headers,
-            'Authorization': 'Bearer $token',
-          },
-        );
+        if (token == null || token.isEmpty) {
+          throw Exception('Access token không tồn tại sau khi refresh');
+        }
+
+        // Update headers with new token while preserving original request options
+        requestOptions.headers['Authorization'] = 'Bearer $token';
 
         // Use a fresh Dio instance to avoid circular dependency
-        final dio = Dio(BaseOptions(baseUrl: requestOptions.baseUrl));
-        final response = await dio.fetch<Response<dynamic>>(newRequestOptions);
-        handler.resolve(response);
+        // Must preserve responseType from original request for Retrofit to parse correctly
+        try {
+          final dio = Dio(
+            BaseOptions(
+              baseUrl: requestOptions.baseUrl,
+              connectTimeout: const Duration(seconds: 30),
+              receiveTimeout: const Duration(seconds: 30),
+            ),
+          );
+
+          // Ensure responseType is set for Retrofit to parse correctly
+          // Retrofit expects Map<String, dynamic> for JSON responses
+          requestOptions.responseType = ResponseType.json;
+
+          final response = await dio.fetch<Map<String, dynamic>>(
+            requestOptions,
+          );
+
+          // Ensure response.data is properly formatted for Retrofit
+          // Retrofit will parse this response
+          if (response.data != null && response.data is Map<String, dynamic>) {
+            // Resolve with the successful response
+            handler.resolve(response);
+          } else {
+            // Response format is invalid, reject
+            throw DioException(
+              requestOptions: requestOptions,
+              error: 'Invalid response format after retry',
+            );
+          }
+        } catch (retryError) {
+          // Retry failed, but refresh succeeded - just reject the request
+          // Don't logout because token was successfully refreshed
+          _isRefreshing = false;
+          await _processPendingRequests();
+          if (retryError is DioException) {
+            handler.reject(retryError);
+          } else {
+            handler.reject(
+              DioException(requestOptions: requestOptions, error: retryError),
+            );
+          }
+          return;
+        }
 
         // Process pending requests
-        _processPendingRequests();
+        await _processPendingRequests();
 
         _isRefreshing = false;
       } catch (e) {
-        // Refresh failed, logout user
+        // Refresh token failed, logout user
         _isRefreshing = false;
         await _authRepository.logout();
 
@@ -121,22 +162,31 @@ class AuthInterceptor extends Interceptor {
     final requestsToProcess = List<_PendingRequest>.from(_pendingRequests);
     _pendingRequests.clear();
 
+    if (requestsToProcess.isEmpty) {
+      return;
+    }
+
     // Use a Dio instance to retry requests
     final dio = Dio(
       BaseOptions(
-        baseUrl: requestsToProcess.isNotEmpty
-            ? requestsToProcess.first.requestOptions.baseUrl
-            : '',
+        baseUrl: requestsToProcess.first.requestOptions.baseUrl,
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
       ),
     );
 
     for (final pendingRequest in requestsToProcess) {
       try {
+        // Update token in headers
         pendingRequest.requestOptions.headers['Authorization'] =
             'Bearer $token';
-        final response = await dio.fetch<Response<dynamic>>(
+
+        // Ensure responseType is set for Retrofit parsing
+        pendingRequest.requestOptions.responseType = ResponseType.json;
+        final response = await dio.fetch<Map<String, dynamic>>(
           pendingRequest.requestOptions,
         );
+
         pendingRequest.handler.resolve(response);
       } catch (e) {
         if (e is DioException) {

@@ -363,6 +363,7 @@ class _EventCardState extends State<EventCard>
     Color textColor;
     String label;
     IconData icon;
+    LinearGradient? gradient;
 
     switch (widget.event.status) {
       case EventStatus.upcoming:
@@ -370,47 +371,81 @@ class _EventCardState extends State<EventCard>
         textColor = AppColors.white;
         label = 'Sắp diễn ra';
         icon = Icons.schedule_rounded;
+        gradient = const LinearGradient(
+          colors: [AppColors.vkuBlue, AppColors.blue400],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
       case EventStatus.ongoing:
         backgroundColor = AppColors.green500;
         textColor = AppColors.white;
         label = 'Đang diễn ra';
         icon = Icons.play_circle_filled_rounded;
+        gradient = const LinearGradient(
+          colors: [AppColors.green500, AppColors.green800],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
       case EventStatus.completed:
-        backgroundColor = AppColors.coolGray700;
+        backgroundColor = AppColors.coolGray900;
         textColor = AppColors.white;
         label = 'Đã kết thúc';
         icon = Icons.check_circle_rounded;
+        gradient = const LinearGradient(
+          colors: [AppColors.coolGray900, AppColors.coolGray700],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
       case EventStatus.cancelled:
         backgroundColor = AppColors.red500;
         textColor = AppColors.white;
         label = 'Đã hủy';
         icon = Icons.cancel_rounded;
+        gradient = const LinearGradient(
+          colors: [AppColors.red500, AppColors.red800],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        );
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
       decoration: BoxDecoration(
-        color: backgroundColor,
+        gradient: gradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: backgroundColor.withOpacity(0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            blurRadius: 10,
+            offset: const Offset(0, 3),
+          ),
+          BoxShadow(
+            color: backgroundColor.withOpacity(0.2),
+            blurRadius: 4,
+            offset: const Offset(0, 1),
           ),
         ],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              color: textColor.withOpacity(0.3),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 13, color: textColor),
+          ),
+          const SizedBox(width: 5),
           Text(
             label,
             style: AppTextStyles.caption.copyWith(
               color: textColor,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w900,
               letterSpacing: 0.3,
+              fontSize: 10.5,
+              height: 1.2,
             ),
           ),
         ],
