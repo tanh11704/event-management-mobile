@@ -7,7 +7,7 @@ class LoginResponse {
   const LoginResponse({
     required this.accessToken,
     required this.tokenType,
-    required this.refreshToken,
+    this.refreshToken,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) =>
@@ -17,7 +17,7 @@ class LoginResponse {
   final String accessToken;
 
   @JsonKey(name: 'refresh_token')
-  final String refreshToken;
+  final String? refreshToken;
 
   @JsonKey(name: 'token_type')
   final String tokenType;

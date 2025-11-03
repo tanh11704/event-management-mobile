@@ -297,20 +297,21 @@ class _LoginScreenState extends State<LoginScreen> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
-              backgroundColor:
-                  Colors.red, // (Bạn nên thêm màu này vào AppColors)
+              backgroundColor: AppColors.red500,
             ),
           );
         } else if (state is LoginSuccess) {
-          // Nếu đăng nhập thành công, hiển thị SnackBar thành công
-          // Hoặc điều hướng sang màn hình Home
+          // Nếu đăng nhập thành công, chuyển sang trang danh sách sự kiện
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Đăng nhập thành công!'),
-              backgroundColor:
-                  Colors.green, // (Bạn nên thêm màu này vào AppColors)
+              backgroundColor: AppColors.green500,
+              duration: Duration(seconds: 1),
             ),
           );
+
+          // Navigate to event list screen
+          context.go('/events');
         }
       },
     );

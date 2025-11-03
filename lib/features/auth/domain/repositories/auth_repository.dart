@@ -9,4 +9,8 @@ abstract class AuthRepository {
   Future<String> changePassword(
     ChangePasswordRequestDto changePasswordRequestDto,
   );
+
+  Future<void> refreshToken();
+
+  Future<void> logout();
 }
