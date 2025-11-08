@@ -21,4 +21,13 @@ abstract class AuthRepository {
   Future<String> resetPassword(ResetPasswordDto resetPasswordDto);
 
   Future<UserResponseDto> getAuthUser();
+
+  Future<void> saveCredentialsForBiometric({
+    required String email,
+    required String password,
+  });
+
+  Future<Map<String, String>?> getSavedCredentialsForBiometric();
+
+  Future<void> clearSavedCredentialsForBiometric();
 }
