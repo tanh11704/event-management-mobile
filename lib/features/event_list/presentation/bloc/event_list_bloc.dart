@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:event_management/features/event_list/data/datasources/event_sse_service.dart';
 import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event_list/data/models/sse_event.dart';
 import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event_list/presentation/bloc/event_list_event.dart';
 import 'package:event_management/features/event_list/presentation/bloc/event_list_state.dart';
@@ -26,7 +27,6 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     on<EventListSseConnected>(_onSseConnected);
     on<EventListSseReceived>(_onSseReceived);
 
-    // Subscribe to SSE
     if (kDebugMode) {
       debugPrint('EventListBloc: Subscribing to SSE...');
     }
@@ -55,7 +55,6 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         if (kDebugMode) {
           debugPrint('SSE error in bloc: $error');
         }
-        // Handle SSE connection errors silently
       },
       onDone: () {
         if (kDebugMode) {
@@ -73,12 +72,13 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
   final EventSseService _eventSseService;
   StreamSubscription<SseEvent>? _sseSubscription;
 
-  // Cache cho pagination
   int _currentPage = 0;
   EventStatus? _currentStatus;
   String? _currentSearch;
   bool _isLoadingMore = false;
-  bool _isViewingManaged = false; // Track current tab
+  bool _isViewingManaged = false;
+
+  bool _refreshScheduled = false;
 
   Future<void> _onFetchAll(
     EventListFetchAll event,
@@ -99,6 +99,8 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         search: event.search,
       );
 
+      if (_checkAndResetScheduledRefresh(emit)) return;
+
       if (result.events.isEmpty) {
         emit(EventListEmpty(counters: result.counters));
       } else {
@@ -111,6 +113,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         );
       }
     } catch (e) {
+      if (_checkAndResetScheduledRefresh(emit)) return;
       emit(EventListError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
@@ -134,6 +137,8 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         search: event.search,
       );
 
+      if (_checkAndResetScheduledRefresh(emit)) return;
+
       if (result.events.isEmpty) {
         emit(EventListEmpty(counters: result.counters));
       } else {
@@ -146,6 +151,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         );
       }
     } catch (e) {
+      if (_checkAndResetScheduledRefresh(emit)) return;
       emit(EventListError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
@@ -197,11 +203,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListLoadMore event,
     Emitter<EventListState> emit,
   ) async {
-    // Prevent multiple concurrent load more requests
-    if (_isLoadingMore) {
-      return;
-    }
-
+    if (_isLoadingMore) return;
     final currentState = state;
     if (currentState is! EventListLoaded || !currentState.hasNextPage) {
       return;
@@ -210,8 +212,11 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     _isLoadingMore = true;
     final nextPage = _currentPage + 1;
 
+    EventListResult? result;
+    var loadSuccess = false;
+
     try {
-      final result = event.isManaged
+      result = event.isManaged
           ? await _eventRepository.getManagedEvents(
               page: nextPage,
               status: _currentStatus,
@@ -224,17 +229,25 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
             );
 
       _currentPage = nextPage;
+      loadSuccess = true;
+    } catch (e) {
+      loadSuccess = false;
+      debugPrint('Lỗi _onLoadMore: $e');
+    } finally {
       _isLoadingMore = false;
 
+      if (_checkAndResetScheduledRefresh(emit)) {
+        return;
+      }
+    }
+
+    if (loadSuccess && result != null) {
       emit(
         currentState.copyWith(
           events: [...currentState.events, ...result.events],
           hasNextPage: result.hasNext,
         ),
       );
-    } catch (e) {
-      _isLoadingMore = false;
-      // Giữ nguyên state hiện tại nếu load more thất bại
     }
   }
 
@@ -249,34 +262,40 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListSseReceived event,
     Emitter<EventListState> emit,
   ) {
-    // Auto refresh when SSE event received
     if (kDebugMode) {
       debugPrint(
         '_onSseReceived: state=${state.runtimeType}, isViewingManaged=$_isViewingManaged',
       );
     }
 
-    // Only refresh if not currently loading (to avoid race conditions)
-    // or if we have a loaded/empty state
-    if (state is! EventListLoading) {
+    if (state is EventListLoading || _isLoadingMore) {
+      if (kDebugMode) {
+        debugPrint('Skipping refresh, already loading. Scheduling refresh.');
+      }
+      _refreshScheduled = true;
+    } else {
       if (kDebugMode) {
         debugPrint('Refreshing event list, isManaged: $_isViewingManaged');
       }
-      // Refresh with current filters and search
       add(EventListRefresh(isManaged: _isViewingManaged));
-    } else {
-      if (kDebugMode) {
-        debugPrint('Skipping refresh, already loading: ${state.runtimeType}');
-      }
-      // If loading, schedule refresh after current load completes
-      // This will be handled when the load finishes
     }
   }
 
   @override
   Future<void> close() {
     _sseSubscription?.cancel();
-    _eventSseService.dispose();
     return super.close();
+  }
+
+  bool _checkAndResetScheduledRefresh(Emitter<EventListState> emit) {
+    if (_refreshScheduled) {
+      if (kDebugMode) {
+        debugPrint('Executing scheduled refresh...');
+      }
+      _refreshScheduled = false;
+      add(EventListRefresh(isManaged: _isViewingManaged));
+      return true;
+    }
+    return false;
   }
 }
