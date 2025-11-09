@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:event_management/features/event_list/data/datasources/event_api_client.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
-import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: EventRepository)

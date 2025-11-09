@@ -22,7 +22,7 @@ class ForgotPasswordBloc
     emit(ForgotPasswordLoading());
     try {
       final message = await _authRepository.forgotPassword(
-        ForgotPasswordRequestDto(email: event.email),
+        ForgotPasswordRequestDto(email: event.email) as String,
       );
       emit(ForgotPasswordSuccess(message));
     } catch (e) {
