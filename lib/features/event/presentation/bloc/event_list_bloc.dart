@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:bloc/bloc.dart';
 import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/sse_event.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -25,33 +27,66 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     on<EventListSseConnected>(_onSseConnected);
     on<EventListSseReceived>(_onSseReceived);
 
-    // Subscribe to SSE
+    if (kDebugMode) {
+      debugPrint('EventListBloc: Subscribing to SSE...');
+    }
     _sseSubscription = _eventSseService.subscribeToEvents().listen(
       (event) {
+        if (kDebugMode) {
+          debugPrint(
+            'SSE event received in bloc: ${event.name}, data: ${event.data}',
+          );
+        }
         if (event.name == 'event_list_updated') {
+          if (kDebugMode) {
+            debugPrint(
+              'Triggering EventListSseReceived, current tab: $_isViewingManaged',
+            );
+          }
           add(const EventListSseReceived());
+        } else if (event.name == 'connection_established') {
+          if (kDebugMode) {
+            debugPrint('SSE connection established in bloc');
+          }
+          add(const EventListSseConnected());
         }
       },
-      onError: (error) {
-        // Handle SSE connection errors silently
+      onError: (Object error) {
+        if (kDebugMode) {
+          debugPrint('SSE error in bloc: $error');
+        }
       },
+      onDone: () {
+        if (kDebugMode) {
+          debugPrint('SSE stream done in bloc');
+        }
+      },
+      cancelOnError: false,
     );
+    if (kDebugMode) {
+      debugPrint('EventListBloc: SSE subscription created');
+    }
   }
 
   final EventRepository _eventRepository;
   final EventSseService _eventSseService;
   StreamSubscription<SseEvent>? _sseSubscription;
 
-  // Cache cho pagination
   int _currentPage = 0;
   EventStatus? _currentStatus;
   String? _currentSearch;
+  bool _isLoadingMore = false;
+  bool _isViewingManaged = false;
+
+  bool _refreshScheduled = false;
 
   Future<void> _onFetchAll(
     EventListFetchAll event,
     Emitter<EventListState> emit,
   ) async {
     emit(EventListLoading());
+    _isLoadingMore = false;
+    _isViewingManaged = false;
 
     _currentPage = event.page;
     _currentStatus = event.status;
@@ -64,6 +99,8 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         search: event.search,
       );
 
+      if (_checkAndResetScheduledRefresh(emit)) return;
+
       if (result.events.isEmpty) {
         emit(EventListEmpty(counters: result.counters));
       } else {
@@ -76,6 +113,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         );
       }
     } catch (e) {
+      if (_checkAndResetScheduledRefresh(emit)) return;
       emit(EventListError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
@@ -85,6 +123,8 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     Emitter<EventListState> emit,
   ) async {
     emit(EventListLoading());
+    _isLoadingMore = false;
+    _isViewingManaged = true;
 
     _currentPage = event.page;
     _currentStatus = event.status;
@@ -97,6 +137,8 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         search: event.search,
       );
 
+      if (_checkAndResetScheduledRefresh(emit)) return;
+
       if (result.events.isEmpty) {
         emit(EventListEmpty(counters: result.counters));
       } else {
@@ -109,6 +151,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         );
       }
     } catch (e) {
+      if (_checkAndResetScheduledRefresh(emit)) return;
       emit(EventListError(e.toString().replaceFirst('Exception: ', '')));
     }
   }
@@ -160,15 +203,20 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListLoadMore event,
     Emitter<EventListState> emit,
   ) async {
+    if (_isLoadingMore) return;
     final currentState = state;
     if (currentState is! EventListLoaded || !currentState.hasNextPage) {
       return;
     }
 
+    _isLoadingMore = true;
     final nextPage = _currentPage + 1;
 
+    EventListResult? result;
+    var loadSuccess = false;
+
     try {
-      final result = event.isManaged
+      result = event.isManaged
           ? await _eventRepository.getManagedEvents(
               page: nextPage,
               status: _currentStatus,
@@ -181,15 +229,25 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
             );
 
       _currentPage = nextPage;
+      loadSuccess = true;
+    } catch (e) {
+      loadSuccess = false;
+      debugPrint('Lỗi _onLoadMore: $e');
+    } finally {
+      _isLoadingMore = false;
 
+      if (_checkAndResetScheduledRefresh(emit)) {
+        return;
+      }
+    }
+
+    if (loadSuccess && result != null) {
       emit(
         currentState.copyWith(
           events: [...currentState.events, ...result.events],
           hasNextPage: result.hasNext,
         ),
       );
-    } catch (e) {
-      // Giữ nguyên state hiện tại nếu load more thất bại
     }
   }
 
@@ -204,18 +262,40 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListSseReceived event,
     Emitter<EventListState> emit,
   ) {
-    // Auto refresh when SSE event received
-    // Determine if currently viewing managed or all events
-    final isManaged = state is EventListLoaded;
-    if (isManaged) {
-      add(const EventListRefresh(isManaged: false));
+    if (kDebugMode) {
+      debugPrint(
+        '_onSseReceived: state=${state.runtimeType}, isViewingManaged=$_isViewingManaged',
+      );
+    }
+
+    if (state is EventListLoading || _isLoadingMore) {
+      if (kDebugMode) {
+        debugPrint('Skipping refresh, already loading. Scheduling refresh.');
+      }
+      _refreshScheduled = true;
+    } else {
+      if (kDebugMode) {
+        debugPrint('Refreshing event list, isManaged: $_isViewingManaged');
+      }
+      add(EventListRefresh(isManaged: _isViewingManaged));
     }
   }
 
   @override
   Future<void> close() {
     _sseSubscription?.cancel();
-    _eventSseService.dispose();
     return super.close();
+  }
+
+  bool _checkAndResetScheduledRefresh(Emitter<EventListState> emit) {
+    if (_refreshScheduled) {
+      if (kDebugMode) {
+        debugPrint('Executing scheduled refresh...');
+      }
+      _refreshScheduled = false;
+      add(EventListRefresh(isManaged: _isViewingManaged));
+      return true;
+    }
+    return false;
   }
 }
