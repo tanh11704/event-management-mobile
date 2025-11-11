@@ -7,8 +7,8 @@ import 'package:event_management/features/auth/presentation/pages/change_passwor
 import 'package:event_management/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/register_screen.dart';
-import 'package:event_management/features/event_list/presentation/bloc/event_list_bloc.dart';
-import 'package:event_management/features/event_list/presentation/pages/event_list_screen.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/presentation/pages/event_list_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 

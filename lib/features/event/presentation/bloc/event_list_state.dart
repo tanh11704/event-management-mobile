@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/event_list/data/models/event.dart';
-import 'package:event_management/features/event_list/data/models/event_counters.dart';
+import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/features/event/data/models/event_counters.dart';
 
 abstract class EventListState extends Equatable {
   const EventListState();
@@ -40,7 +40,6 @@ class EventListLoaded extends EventListState {
   }
 }
 
-
 class EventListEmpty extends EventListState {
   const EventListEmpty({required this.counters});
 
@@ -58,4 +57,3 @@ class EventListError extends EventListState {
   @override
   List<Object> get props => [error];
 }
-

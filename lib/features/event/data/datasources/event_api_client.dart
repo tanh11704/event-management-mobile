@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:event_management/features/event_list/data/models/event_page_with_counters_response_dto.dart';
+import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 

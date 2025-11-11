@@ -3,8 +3,8 @@ import 'dart:async'; // Cần cho Future.delayed
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
-import 'package:event_management/features/event_list/data/models/event.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 

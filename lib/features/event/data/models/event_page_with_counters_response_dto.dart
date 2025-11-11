@@ -1,6 +1,6 @@
-import 'package:event_management/features/event_list/data/models/event.dart';
-import 'package:event_management/features/event_list/data/models/event_counters.dart';
-import 'package:event_management/features/event_list/data/models/page_response_dto.dart';
+import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/features/event/data/models/event_counters.dart';
+import 'package:event_management/features/event/data/models/page_response_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'event_page_with_counters_response_dto.g.dart';
