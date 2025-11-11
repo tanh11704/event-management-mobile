@@ -8,11 +8,11 @@ import 'package:event_management/features/auth/presentation/bloc/change_password
 import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/register/register_bloc.dart';
-import 'package:event_management/features/event_list/data/datasources/event_api_client.dart';
-import 'package:event_management/features/event_list/data/datasources/event_sse_service.dart';
-import 'package:event_management/features/event_list/data/repositories/event_repository_impl.dart';
-import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
-import 'package:event_management/features/event_list/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
+import 'package:event_management/features/event/data/repositories/event_repository_impl.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';

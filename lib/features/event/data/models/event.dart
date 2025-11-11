@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'event.g.dart';
