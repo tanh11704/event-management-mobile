@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
-import 'package:event_management/features/event_list/data/datasources/event_sse_service.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
-import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
-import 'package:event_management/features/event_list/presentation/bloc/event_list_event.dart';
-import 'package:event_management/features/event_list/presentation/bloc/event_list_state.dart';
+import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_event.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_state.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
