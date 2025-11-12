@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/core/biometric/biometric_service.dart';
 import 'package:event_management/core/network/dio_config.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart';
@@ -23,7 +24,12 @@ final sl = GetIt.instance;
 Future<void> init() async {
   sl
     // Auth Bloc
-    ..registerFactory(() => LoginBloc(authRepository: sl()))
+    ..registerFactory(
+      () => LoginBloc(
+        authRepository: sl(),
+        biometricService: sl<BiometricService>(),
+      ),
+    )
     ..registerFactory(
       () => RegisterBloc(authRepository: sl(), unitRepository: sl()),
     )
@@ -35,6 +41,7 @@ Future<void> init() async {
     )
     // Core - Register secure storage first
     ..registerLazySingleton(() => const FlutterSecureStorage())
+    ..registerLazySingleton(BiometricService.new) // Thêm dòng này
     // Repositories - Must be registered before Dio (which needs AuthRepository)
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(sl(), sl()),

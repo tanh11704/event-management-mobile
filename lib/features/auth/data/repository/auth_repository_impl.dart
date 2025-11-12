@@ -16,6 +16,9 @@ class AuthRepositoryImpl implements AuthRepository {
   final AuthApiClient _authApiClient;
   final FlutterSecureStorage _secureStorage;
 
+  static const String _savedEmailKey = 'saved_email_for_biometric';
+  static const String _savedPasswordKey = 'saved_password_for_biometric';
+
   @override
   Future<String> register(RegisterRequestDto registerRequestDto) async {
     try {
@@ -176,5 +179,32 @@ class AuthRepositoryImpl implements AuthRepository {
       await _secureStorage.delete(key: 'access_token');
       await _secureStorage.delete(key: 'refresh_token');
     }
+  }
+
+  @override
+  Future<void> saveCredentialsForBiometric({
+    required String email,
+    required String password,
+  }) async {
+    await _secureStorage.write(key: _savedEmailKey, value: email);
+    await _secureStorage.write(key: _savedPasswordKey, value: password);
+  }
+
+  @override
+  Future<Map<String, String>?> getSavedCredentialsForBiometric() async {
+    final email = await _secureStorage.read(key: _savedEmailKey);
+    final password = await _secureStorage.read(key: _savedPasswordKey);
+
+    if (email == null || password == null) {
+      return null;
+    }
+
+    return {'email': email, 'password': password};
+  }
+
+  @override
+  Future<void> clearSavedCredentialsForBiometric() async {
+    await _secureStorage.delete(key: _savedEmailKey);
+    await _secureStorage.delete(key: _savedPasswordKey);
   }
 }

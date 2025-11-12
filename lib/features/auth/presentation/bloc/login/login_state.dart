@@ -30,3 +30,16 @@ class LoginFailure extends LoginState {
   @override
   List<Object> get props => [error];
 }
+
+class LoginBiometricAvailabilityChecked extends LoginState {
+  const LoginBiometricAvailabilityChecked({
+    required this.isAvailable,
+    this.savedEmail,
+  });
+
+  final bool isAvailable;
+  final String? savedEmail;
+
+  @override
+  List<Object> get props => [isAvailable, savedEmail ?? ''];
+}

@@ -24,10 +24,21 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
+  bool _isBiometricAvailable = false;
+  String? _savedEmail;
 
   final RegExp _emailRegex = RegExp(
     r'^[\w\-\.]+@([\w\-]+\.)+[\w\-]{2,4}$',
   ); // regex email đơn giản
+
+  @override
+  void initState() {
+    super.initState();
+    // Kiểm tra xem có thể dùng biometric không
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<LoginBloc>().add(const LoginCheckBiometricAvailability());
+    });
+  }
 
   @override
   void dispose() {
@@ -45,8 +56,16 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text;
 
     context.read<LoginBloc>().add(
-      LoginSubmitted(email: email, password: password),
+      LoginSubmitted(
+        email: email,
+        password: password,
+        shouldRemember: _rememberMe,
+      ),
     );
+  }
+
+  void _onBiometricPressed() {
+    context.read<LoginBloc>().add(const LoginWithBiometric());
   }
 
   @override
@@ -243,6 +262,47 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: AppSpacing.spaceLG),
 
+                      // ===== Nút đăng nhập sinh trắc học =====
+                      if (_isBiometricAvailable) ...[
+                        const Text(
+                          'Hoặc',
+                          style: TextStyle(color: AppColors.coolGray500),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: AppSpacing.spaceMD),
+                        Column(
+                          children: [
+                            IconButton(
+                              onPressed: isLoading ? null : _onBiometricPressed,
+                              icon: const Icon(
+                                Icons.fingerprint,
+                                size: 64,
+                                color: AppColors.vkuBlue,
+                              ),
+                              tooltip: 'Đăng nhập bằng vân tay/Face ID',
+                            ),
+                            const SizedBox(height: AppSpacing.spaceXS),
+                            Text(
+                              'Đăng nhập bằng sinh trắc học',
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                color: AppColors.coolGray700,
+                              ),
+                            ),
+                            if (_savedEmail != null) ...[
+                              const SizedBox(height: AppSpacing.spaceXS),
+                              Text(
+                                '($_savedEmail)',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.coolGray500,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.spaceLG),
+                      ],
+
                       // ===== Quên mật khẩu + Đăng ký =====
                       Column(
                         children: [
@@ -316,6 +376,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
           // Navigate to event list screen
           context.go('/events');
+        } else if (state is LoginBiometricAvailabilityChecked) {
+          // Cập nhật trạng thái biometric availability
+          if (mounted) {
+            setState(() {
+              _isBiometricAvailable = state.isAvailable;
+              _savedEmail = state.savedEmail;
+              // Tự động điền email nếu có
+              if (_savedEmail != null && _emailController.text.isEmpty) {
+                _emailController.text = _savedEmail!;
+              }
+            });
+          }
         }
       },
     );
