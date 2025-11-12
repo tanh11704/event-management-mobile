@@ -90,10 +90,9 @@ class EventSseService {
           debugPrint('EventSseService: Stream exists, starting to listen...');
         }
 
-        final stringStream = utf8.decoder.bind(stream);
-
         final lineStream = stream
-            .transform(utf8.decoder as StreamTransformer<Uint8List, dynamic>)
+            .cast<List<int>>()
+            .transform(utf8.decoder)
             .transform(const LineSplitter());
 
         try {
@@ -187,7 +186,13 @@ class EventSseService {
   }
 
   void dispose() {
+    if (kDebugMode) {
+      debugPrint('EventSseService: dispose called');
+    }
     _cancelToken?.cancel();
     _controller?.close();
+    _controller = null;
+    _cancelToken = null;
+    _buffer = '';
   }
 }
