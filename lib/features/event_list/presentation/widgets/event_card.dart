@@ -1,17 +1,29 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/utils/date_time_formatter.dart';
 import 'package:event_management/features/event_list/data/models/event.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event_list/presentation/widgets/event_card_join_section.dart';
+import 'package:event_management/features/event_list/presentation/widgets/event_card_status_badge.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 
 class EventCard extends StatefulWidget {
-  const EventCard({required this.event, super.key, this.onTap, this.index = 0});
+  const EventCard({
+    required this.event,
+    super.key,
+    this.onTap,
+    this.onJoinTap,
+    this.isJoined = false,
+    this.isJoining = false,
+    this.index = 0,
+  });
 
   final Event event;
   final VoidCallback? onTap;
   final int index;
+  final VoidCallback? onJoinTap;
+  final bool isJoined;
+  final bool isJoining;
 
   @override
   State<EventCard> createState() => _EventCardState();
@@ -123,7 +135,9 @@ class _EventCardState extends State<EventCard>
                           Positioned(
                             top: 8,
                             right: 8,
-                            child: _buildStatusBadge(),
+                            child: EventCardStatusBadge(
+                              status: widget.event.status,
+                            ),
                           ),
                         ],
                       ),
@@ -178,9 +192,10 @@ class _EventCardState extends State<EventCard>
                                   children: [
                                     _buildInfoRow(
                                       icon: Icons.access_time_rounded,
-                                      text: _formatDateTime(
-                                        widget.event.startTime,
-                                      ),
+                                      text:
+                                          DateTimeFormatter.formatDateTimeWithTime(
+                                            widget.event.startTime,
+                                          ),
                                       iconColor: AppColors.vkuBlue,
                                     ),
                                     if (widget.event.location != null) ...[
@@ -198,6 +213,13 @@ class _EventCardState extends State<EventCard>
                                     ],
                                   ],
                                 ),
+                              ),
+                              const SizedBox(height: AppSpacing.spaceXS),
+                              EventCardJoinSection(
+                                event: widget.event,
+                                onJoinTap: widget.onJoinTap,
+                                isJoined: widget.isJoined,
+                                isJoining: widget.isJoining,
                               ),
                             ],
                           ),
@@ -356,69 +378,5 @@ class _EventCardState extends State<EventCard>
         ),
       ],
     );
-  }
-
-  Widget _buildStatusBadge() {
-    Color backgroundColor;
-    Color textColor;
-    String label;
-    IconData icon;
-
-    switch (widget.event.status) {
-      case EventStatus.upcoming:
-        backgroundColor = AppColors.vkuBlue;
-        textColor = AppColors.white;
-        label = 'Sắp diễn ra';
-        icon = Icons.schedule_rounded;
-      case EventStatus.ongoing:
-        backgroundColor = AppColors.green500;
-        textColor = AppColors.white;
-        label = 'Đang diễn ra';
-        icon = Icons.play_circle_filled_rounded;
-      case EventStatus.completed:
-        backgroundColor = AppColors.coolGray700;
-        textColor = AppColors.white;
-        label = 'Đã kết thúc';
-        icon = Icons.check_circle_rounded;
-      case EventStatus.cancelled:
-        backgroundColor = AppColors.red500;
-        textColor = AppColors.white;
-        label = 'Đã hủy';
-        icon = Icons.cancel_rounded;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: backgroundColor.withOpacity(0.4),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: textColor),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.3,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDateTime(DateTime dateTime) {
-    return DateFormat('dd/MM/yyyy • HH:mm').format(dateTime);
   }
 }
