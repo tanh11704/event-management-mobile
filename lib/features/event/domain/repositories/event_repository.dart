@@ -1,6 +1,6 @@
-import 'package:event_management/features/event_list/data/models/event.dart';
-import 'package:event_management/features/event_list/data/models/event_counters.dart';
-import 'package:event_management/features/event_list/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/features/event/data/models/event_counters.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
 
 abstract class EventRepository {
   Future<EventListResult> getAllEvents({

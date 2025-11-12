@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/core/biometric/biometric_service.dart';
 import 'package:event_management/core/network/dio_config.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart';
@@ -7,11 +8,11 @@ import 'package:event_management/features/auth/presentation/bloc/change_password
 import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/register/register_bloc.dart';
-import 'package:event_management/features/event_list/data/datasources/event_api_client.dart';
-import 'package:event_management/features/event_list/data/datasources/event_sse_service.dart';
-import 'package:event_management/features/event_list/data/repositories/event_repository_impl.dart';
-import 'package:event_management/features/event_list/domain/repositories/event_repository.dart';
-import 'package:event_management/features/event_list/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
+import 'package:event_management/features/event/data/repositories/event_repository_impl.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
@@ -23,7 +24,12 @@ final sl = GetIt.instance;
 Future<void> init() async {
   sl
     // Auth Bloc
-    ..registerFactory(() => LoginBloc(authRepository: sl()))
+    ..registerFactory(
+      () => LoginBloc(
+        authRepository: sl(),
+        biometricService: sl<BiometricService>(),
+      ),
+    )
     ..registerFactory(
       () => RegisterBloc(authRepository: sl(), unitRepository: sl()),
     )
@@ -35,6 +41,7 @@ Future<void> init() async {
     )
     // Core - Register secure storage first
     ..registerLazySingleton(() => const FlutterSecureStorage())
+    ..registerLazySingleton(BiometricService.new) // Thêm dòng này
     // Repositories - Must be registered before Dio (which needs AuthRepository)
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(sl(), sl()),
