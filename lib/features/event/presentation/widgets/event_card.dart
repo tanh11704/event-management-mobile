@@ -5,6 +5,7 @@ import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/presentation/widgets/event_card_join_button.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -148,6 +149,13 @@ class _EventCardState extends State<EventCard> with TickerProviderStateMixin {
                             const SizedBox(height: AppSpacing.spaceXM),
                             _buildParticipantsRow(),
                           ],
+
+                          // Join Button
+                          const SizedBox(height: AppSpacing.spaceXM),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: EventCardJoinButton(event: widget.event),
+                          ),
                         ],
                       ),
                     ),
@@ -312,7 +320,7 @@ class _EventCardState extends State<EventCard> with TickerProviderStateMixin {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Số người tham gia: $current / $max', // Thêm context
+                '$current / $max', // Thêm context
                 style: AppTextStyles.bodySmall.copyWith(
                   color: AppColors.coolGray700,
                   fontWeight: FontWeight.w500,

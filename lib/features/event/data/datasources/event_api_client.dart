@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
@@ -30,4 +31,7 @@ abstract class EventApiClient {
     @Query('status') String? status,
     @Query('search') String? search,
   });
+
+  @POST('/events/join/{eventToken}')
+  Future<Attendant> joinEvent(@Path('eventToken') String eventToken);
 }

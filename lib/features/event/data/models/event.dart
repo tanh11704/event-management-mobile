@@ -40,6 +40,7 @@ class Event extends Equatable {
     this.isRegistered,
     this.createdByName,
     this.managerName,
+    this.qrJoinToken,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) => _$EventFromJson(json);
@@ -85,6 +86,9 @@ class Event extends Equatable {
 
   @JsonKey(name: 'manager_name')
   final String? managerName;
+
+  @JsonKey(name: 'qr_join_token')
+  final String? qrJoinToken;
 
   @override
   List<Object?> get props => [
