@@ -7,6 +7,7 @@ import 'package:event_management/features/auth/presentation/pages/change_passwor
 import 'package:event_management/features/auth/presentation/pages/forgot_password_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/register_screen.dart';
+import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/presentation/pages/create_event_screen.dart';
 import 'package:event_management/features/event/presentation/pages/event_list_screen.dart';
@@ -82,7 +83,7 @@ final GoRouter appRouter = GoRouter(
       name: AppRoutes.createEvent,
       builder: (context, state) {
         return BlocProvider(
-          create: (context) => sl<ForgotPasswordBloc>(),
+          create: (context) => sl<CreateEventBloc>(),
           child: const CreateEventScreen(),
         );
       },
