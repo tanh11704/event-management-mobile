@@ -8,6 +8,7 @@ import 'package:event_management/features/auth/presentation/pages/forgot_passwor
 import 'package:event_management/features/auth/presentation/pages/login_screen.dart';
 import 'package:event_management/features/auth/presentation/pages/register_screen.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/presentation/pages/create_event_screen.dart';
 import 'package:event_management/features/event/presentation/pages/event_list_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -19,10 +20,11 @@ class AppRoutes {
   static const String register = '/register';
   static const String changePassword = '/change-password';
   static const String forgotPassword = '/forgot-password';
+  static const String createEvent = '/create-event';
 }
 
 final GoRouter appRouter = GoRouter(
-  initialLocation: AppRoutes.login,
+  initialLocation: AppRoutes.createEvent,
   debugLogDiagnostics: true,
   routes: [
     GoRoute(
@@ -72,6 +74,16 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (context) => sl<ForgotPasswordBloc>(),
           child: const ForgotPasswordScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.createEvent,
+      name: AppRoutes.createEvent,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<ForgotPasswordBloc>(),
+          child: const CreateEventScreen(),
         );
       },
     ),

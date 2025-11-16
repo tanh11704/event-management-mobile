@@ -33,6 +33,10 @@
 	</dict>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Chúng tôi cần sử dụng Face ID để xác thực đăng nhập an toàn</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Chúng tôi cần truy cập thư viện ảnh để chọn banner cho sự kiện</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Chúng tôi cần truy cập camera để chụp ảnh banner cho sự kiện</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
