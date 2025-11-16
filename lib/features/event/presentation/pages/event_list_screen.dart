@@ -13,6 +13,7 @@ import 'package:event_management/features/event/presentation/widgets/event_list_
 import 'package:event_management/features/event/presentation/widgets/event_list_search_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 class EventListScreen extends StatefulWidget {
   const EventListScreen({super.key});
@@ -215,7 +216,7 @@ class _EventListScreenState extends State<EventListScreen>
             events: state.events,
             hasNextPage: state.hasNextPage,
             onEventTap: (event) {
-              // TODO: Navigate to event detail
+              context.go('/events/${event.id}');
             },
           );
         }
