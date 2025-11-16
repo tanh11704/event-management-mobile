@@ -3,16 +3,20 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i3;
+import 'dart:async' as _i4;
 
 import 'package:event_management/features/auth/data/models/change_password_request_dto.dart'
-    as _i6;
+    as _i7;
 import 'package:event_management/features/auth/data/models/register_request_dto.dart'
-    as _i4;
-import 'package:event_management/features/auth/domain/repositories/auth_repository.dart'
+    as _i5;
+import 'package:event_management/features/auth/data/models/reset_password_dto.dart'
+    as _i8;
+import 'package:event_management/features/auth/data/models/user_response_dto.dart'
     as _i2;
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart'
+    as _i3;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:mockito/src/dummies.dart' as _i5;
+import 'package:mockito/src/dummies.dart' as _i6;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -28,66 +32,140 @@ import 'package:mockito/src/dummies.dart' as _i5;
 // ignore_for_file: camel_case_types
 // ignore_for_file: subtype_of_sealed_class
 
+class _FakeUserResponseDto_0 extends _i1.SmartFake
+    implements _i2.UserResponseDto {
+  _FakeUserResponseDto_0(Object parent, Invocation parentInvocation)
+    : super(parent, parentInvocation);
+}
+
 /// A class which mocks [AuthRepository].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockAuthRepository extends _i1.Mock implements _i2.AuthRepository {
+class MockAuthRepository extends _i1.Mock implements _i3.AuthRepository {
   MockAuthRepository() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
-  _i3.Future<void> login({required String? email, required String? password}) =>
+  _i4.Future<void> login({required String? email, required String? password}) =>
       (super.noSuchMethod(
             Invocation.method(#login, [], {#email: email, #password: password}),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
           )
-          as _i3.Future<void>);
+          as _i4.Future<void>);
 
   @override
-  _i3.Future<String> register(_i4.RegisterRequestDto? registerRequestDto) =>
+  _i4.Future<void> refreshToken() =>
+      (super.noSuchMethod(
+            Invocation.method(#refreshToken, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<void> logout() =>
+      (super.noSuchMethod(
+            Invocation.method(#logout, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<String> register(_i5.RegisterRequestDto? registerRequestDto) =>
       (super.noSuchMethod(
             Invocation.method(#register, [registerRequestDto]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#register, [registerRequestDto]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<String> changePassword(
-    _i6.ChangePasswordRequestDto? changePasswordRequestDto,
+  _i4.Future<String> changePassword(
+    _i7.ChangePasswordRequestDto? changePasswordRequestDto,
   ) =>
       (super.noSuchMethod(
             Invocation.method(#changePassword, [changePasswordRequestDto]),
-            returnValue: _i3.Future<String>.value(
-              _i5.dummyValue<String>(
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
                 this,
                 Invocation.method(#changePassword, [changePasswordRequestDto]),
               ),
             ),
           )
-          as _i3.Future<String>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<void> refreshToken() =>
+  _i4.Future<String> forgotPassword(String? email) =>
       (super.noSuchMethod(
-            Invocation.method(#refreshToken, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#forgotPassword, [email]),
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#forgotPassword, [email]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i4.Future<String>);
 
   @override
-  _i3.Future<void> logout() =>
+  _i4.Future<String> resetPassword(_i8.ResetPasswordDto? resetPasswordDto) =>
       (super.noSuchMethod(
-            Invocation.method(#logout, []),
-            returnValue: _i3.Future<void>.value(),
-            returnValueForMissingStub: _i3.Future<void>.value(),
+            Invocation.method(#resetPassword, [resetPasswordDto]),
+            returnValue: _i4.Future<String>.value(
+              _i6.dummyValue<String>(
+                this,
+                Invocation.method(#resetPassword, [resetPasswordDto]),
+              ),
+            ),
           )
-          as _i3.Future<void>);
+          as _i4.Future<String>);
+
+  @override
+  _i4.Future<_i2.UserResponseDto> getAuthUser() =>
+      (super.noSuchMethod(
+            Invocation.method(#getAuthUser, []),
+            returnValue: _i4.Future<_i2.UserResponseDto>.value(
+              _FakeUserResponseDto_0(this, Invocation.method(#getAuthUser, [])),
+            ),
+          )
+          as _i4.Future<_i2.UserResponseDto>);
+
+  @override
+  _i4.Future<void> saveCredentialsForBiometric({
+    required String? email,
+    required String? password,
+  }) =>
+      (super.noSuchMethod(
+            Invocation.method(#saveCredentialsForBiometric, [], {
+              #email: email,
+              #password: password,
+            }),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
+
+  @override
+  _i4.Future<Map<String, String>?> getSavedCredentialsForBiometric() =>
+      (super.noSuchMethod(
+            Invocation.method(#getSavedCredentialsForBiometric, []),
+            returnValue: _i4.Future<Map<String, String>?>.value(),
+          )
+          as _i4.Future<Map<String, String>?>);
+
+  @override
+  _i4.Future<void> clearSavedCredentialsForBiometric() =>
+      (super.noSuchMethod(
+            Invocation.method(#clearSavedCredentialsForBiometric, []),
+            returnValue: _i4.Future<void>.value(),
+            returnValueForMissingStub: _i4.Future<void>.value(),
+          )
+          as _i4.Future<void>);
 }

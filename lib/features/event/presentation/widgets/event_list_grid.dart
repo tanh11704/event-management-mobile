@@ -24,7 +24,7 @@ class EventListGrid extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.spaceMD,
           mainAxisSpacing: AppSpacing.spaceMD,
-          childAspectRatio: 0.64,
+          childAspectRatio: 0.58,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
           if (index >= events.length) {

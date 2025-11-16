@@ -75,3 +75,12 @@ class EventListSseConnected extends EventListEvent {
 class EventListSseReceived extends EventListEvent {
   const EventListSseReceived();
 }
+
+class EventListJoinEvent extends EventListEvent {
+  const EventListJoinEvent({required this.eventToken});
+
+  final String eventToken;
+
+  @override
+  List<Object?> get props => [eventToken];
+}

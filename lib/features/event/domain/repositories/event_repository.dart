@@ -1,3 +1,4 @@
+import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
@@ -20,6 +21,8 @@ abstract class EventRepository {
     EventStatus? status,
     String? search,
   });
+
+  Future<Attendant> joinEvent(String eventToken);
 }
 
 class EventListResult {

@@ -26,6 +26,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     on<EventListLoadMore>(_onLoadMore);
     on<EventListSseConnected>(_onSseConnected);
     on<EventListSseReceived>(_onSseReceived);
+    on<EventListJoinEvent>(_onJoinEvent);
 
     if (kDebugMode) {
       debugPrint('EventListBloc: Subscribing to SSE...');
@@ -278,6 +279,34 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         debugPrint('Refreshing event list, isManaged: $_isViewingManaged');
       }
       add(EventListRefresh(isManaged: _isViewingManaged));
+    }
+  }
+
+  Future<void> _onJoinEvent(
+    EventListJoinEvent event,
+    Emitter<EventListState> emit,
+  ) async {
+    try {
+      await _eventRepository.joinEvent(event.eventToken);
+      if (kDebugMode) {
+        debugPrint(
+          'Join event successful, refreshing list. isManaged: $_isViewingManaged, status: $_currentStatus, search: $_currentSearch',
+        );
+      }
+
+      _currentPage = 0;
+      if (_isViewingManaged) {
+        add(
+          EventListFetchManaged(status: _currentStatus, search: _currentSearch),
+        );
+      } else {
+        add(EventListFetchAll(status: _currentStatus, search: _currentSearch));
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('Error joining event: $e');
+      }
+      rethrow;
     }
   }
 

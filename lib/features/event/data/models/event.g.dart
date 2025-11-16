@@ -23,6 +23,7 @@ Event _$EventFromJson(Map<String, dynamic> json) => Event(
   isRegistered: json['is_registered'] as bool?,
   createdByName: json['created_by_name'] as String?,
   managerName: json['manager_name'] as String?,
+  qrJoinToken: json['qr_join_token'] as String?,
 );
 
 const _$EventStatusEnumMap = {
