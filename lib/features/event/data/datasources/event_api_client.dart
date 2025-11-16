@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
@@ -33,6 +34,9 @@ abstract class EventApiClient {
     @Query('status') String? status,
     @Query('search') String? search,
   });
+
+  @GET('/events/{id}')
+  Future<EventDetailResponse> getEventDetail(@Path('id') int id);
 
   @POST('/events/join/{eventToken}')
   Future<Attendant> joinEvent(@Path('eventToken') String eventToken);

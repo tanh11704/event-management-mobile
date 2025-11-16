@@ -12,8 +12,9 @@ import 'package:event_management/features/event/data/datasources/event_api_clien
 import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
 import 'package:event_management/features/event/data/repositories/event_repository_impl.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
-import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
@@ -40,9 +41,8 @@ Future<void> init() async {
     ..registerFactory(
       () => EventListBloc(eventRepository: sl(), eventSseService: sl()),
     )
-    ..registerFactory(
-      () => CreateEventBloc(eventRepository: sl()),
-    )
+    ..registerFactory(() => CreateEventBloc(eventRepository: sl()))
+    ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
     // Core - Register secure storage first
     ..registerLazySingleton(() => const FlutterSecureStorage())
     ..registerLazySingleton(BiometricService.new) // Thêm dòng này
