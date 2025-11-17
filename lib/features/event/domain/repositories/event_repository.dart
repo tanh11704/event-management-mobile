@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
@@ -33,10 +31,7 @@ abstract class EventRepository {
 
   Future<Event> createEvent(CreateEventDto createEventDto);
 
-  Future<Event> uploadBanner(int eventId, File bannerFile);
-
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile);
-
 }
 
 class EventListResult {

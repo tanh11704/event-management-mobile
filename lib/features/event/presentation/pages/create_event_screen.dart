@@ -202,7 +202,6 @@ class _CreateEventViewState extends State<_CreateEventView> {
     context.read<CreateEventBloc>().add(
       CreateEventSubmitted(
         createEventDto: dto,
-        bannerImage: _bannerImage,
         bannerImageFile: _bannerImageFile,
       ),
     );

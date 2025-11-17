@@ -2,11 +2,13 @@
 
 part of 'event_api_client.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main
 
 class _EventApiClient implements EventApiClient {
   _EventApiClient(this._dio, {this.baseUrl, this.errorLogger});
@@ -184,20 +186,12 @@ class _EventApiClient implements EventApiClient {
   }
 
   @override
-  Future<Event> uploadBanner(int eventId, File bannerFile) async {
+  Future<Event> uploadBanner(int eventId, MultipartFile bannerFile) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
     final _data = FormData();
-    _data.files.add(
-      MapEntry(
-        'banner',
-        MultipartFile.fromFileSync(
-          bannerFile.path,
-          filename: bannerFile.path.split(Platform.pathSeparator).last,
-        ),
-      ),
-    );
+    _data.files.add(MapEntry('banner', bannerFile));
     final _options = _setStreamType<Event>(
       Options(
             method: 'PUT',
@@ -251,3 +245,5 @@ class _EventApiClient implements EventApiClient {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

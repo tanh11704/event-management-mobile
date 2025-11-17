@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
@@ -50,6 +48,6 @@ abstract class EventApiClient {
   @MultiPart()
   Future<Event> uploadBanner(
     @Path('id') int eventId,
-    @Part(name: 'banner') File bannerFile,
+    @Part(name: 'banner') MultipartFile bannerFile,
   );
 }

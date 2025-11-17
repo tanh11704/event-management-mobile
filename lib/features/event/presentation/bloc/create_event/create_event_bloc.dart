@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:bloc/bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
@@ -30,13 +28,6 @@ class CreateEventBloc extends Bloc<CreateEventEvent, CreateEventState> {
         final updatedEvent = await _eventRepository.uploadBannerFromXFile(
           created.id,
           event.bannerImageFile!,
-        );
-
-        emit(CreateEventSuccess(updatedEvent));
-      } else if (event.bannerImage != null) {
-        final updatedEvent = await _eventRepository.uploadBanner(
-          created.id,
-          event.bannerImage!,
         );
 
         emit(CreateEventSuccess(updatedEvent));

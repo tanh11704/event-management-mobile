@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/datasources/event_api_client.dart';
 import 'package:event_management/features/event/data/models/attendant.dart';
@@ -145,26 +143,15 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Event> uploadBanner(int eventId, File bannerFile) async {
-    try {
-      return await _eventApiClient.uploadBanner(eventId, bannerFile);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tải lên banner.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định: $e');
-    }
-  }
-
-  @override
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile) async {
     try {
-      // Convert XFile to File for API call
-      final file = File(bannerFile.path);
-      return await _eventApiClient.uploadBanner(eventId, file);
+      final bytes = await bannerFile.readAsBytes();
+
+      final fileName = bannerFile.name;
+
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+
+      return await _eventApiClient.uploadBanner(eventId, multipartFile);
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
