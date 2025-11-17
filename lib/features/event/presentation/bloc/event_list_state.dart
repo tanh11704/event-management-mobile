@@ -11,7 +11,14 @@ abstract class EventListState extends Equatable {
 
 class EventListInitial extends EventListState {}
 
-class EventListLoading extends EventListState {}
+class EventListLoading extends EventListState {
+  const EventListLoading({this.joiningEventToken});
+
+  final String? joiningEventToken;
+
+  @override
+  List<Object?> get props => [joiningEventToken];
+}
 
 class EventListLoaded extends EventListState {
   const EventListLoaded({
@@ -56,4 +63,20 @@ class EventListError extends EventListState {
 
   @override
   List<Object> get props => [error];
+}
+
+class EventListJoinSuccess extends EventListState {
+  const EventListJoinSuccess();
+
+  @override
+  List<Object> get props => [];
+}
+
+class EventListJoinError extends EventListState {
+  const EventListJoinError(this.message);
+
+  final String message;
+
+  @override
+  List<Object> get props => [message];
 }
