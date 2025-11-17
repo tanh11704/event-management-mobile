@@ -2,7 +2,9 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/router/app_router.dart';
+import 'package:event_management/core/services/calendar_service.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
@@ -59,131 +61,176 @@ class _EventDetailContent extends StatelessWidget {
 
   final EventDetailResponse eventDetail;
 
+  Future<void> _addEventToCalendar(
+    BuildContext context,
+    EventDetailResponse eventDetail,
+  ) async {
+    if (eventDetail.status == EventStatus.completed ||
+        eventDetail.status == EventStatus.cancelled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text(
+            'Sự kiện này đã kết thúc, không thể thêm vào lịch',
+          ),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: AppColors.coolGray500,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    var result = false;
+    try {
+      result = await CalendarService.addEventDetailToCalendar(eventDetail);
+    } finally {
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              result
+                  ? 'Đã thêm sự kiện vào lịch của bạn!'
+                  : 'Không thể thêm sự kiện vào lịch.',
+            ),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: result ? AppColors.green500 : AppColors.red500,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        CustomScrollView(
-          slivers: [
-            // SliverAppBar với parallax effect
-            SliverAppBar(
-              expandedHeight: 300,
-              pinned: true,
-              backgroundColor: AppColors.vkuBlue,
-              leading: IconButton(
-                icon: const Icon(Icons.arrow_back, color: AppColors.white),
+    return Scaffold(
+      backgroundColor: AppColors.white,
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 300,
+            pinned: true,
+            backgroundColor: AppColors.vkuBlue,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.white),
+              onPressed: () {
+                if (context.canPop()) {
+                  context.pop();
+                } else {
+                  context.go(AppRoutes.eventList);
+                }
+              },
+            ),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.share, color: AppColors.white),
                 onPressed: () {
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(AppRoutes.eventList);
-                  }
+                  // TODO: Implement share functionality
                 },
               ),
-              actions: [
-                IconButton(
-                  icon: const Icon(Icons.share, color: AppColors.white),
-                  onPressed: () {
-                    // TODO: Implement share functionality
-                  },
+              IconButton(
+                icon: const Icon(
+                  Icons.calendar_month_rounded,
+                  color: AppColors.white,
                 ),
-              ],
-              flexibleSpace: FlexibleSpaceBar(
-                background: EventDetailBanner(bannerUrl: eventDetail.banner),
+                onPressed: () {
+                  _addEventToCalendar(context, eventDetail);
+                },
               ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: EventDetailBanner(bannerUrl: eventDetail.banner),
             ),
+          ),
 
-            // Content
-            SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Title và Status
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.spaceMD),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        EventDetailTitle(title: eventDetail.title),
-                        const SizedBox(height: AppSpacing.spaceXM),
-                        EventDetailStatusChip(status: eventDetail.status),
-                      ],
-                    ),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.spaceMD),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      EventDetailTitle(title: eventDetail.title),
+                      const SizedBox(height: AppSpacing.spaceXM),
+                      EventDetailStatusChip(status: eventDetail.status),
+                    ],
                   ),
+                ),
 
-                  // Info Section
-                  EventDetailInfoSection(eventDetail: eventDetail),
+                EventDetailInfoSection(eventDetail: eventDetail),
 
-                  const SizedBox(height: AppSpacing.spaceMD),
+                const SizedBox(height: AppSpacing.spaceMD),
 
-                  // Participants Section
-                  EventDetailParticipantsSection(
-                    participants: eventDetail.participants,
-                    maxParticipants: eventDetail.maxParticipants,
-                  ),
+                EventDetailParticipantsSection(
+                  participants: eventDetail.participants,
+                  maxParticipants: eventDetail.maxParticipants,
+                ),
 
-                  const SizedBox(height: AppSpacing.spaceMD),
+                const SizedBox(height: AppSpacing.spaceMD),
 
-                  // Description Section
-                  if (eventDetail.description != null &&
-                      eventDetail.description!.isNotEmpty)
-                    EventDetailDescription(
-                      description: eventDetail.description!,
+                if (eventDetail.description != null &&
+                    eventDetail.description!.isNotEmpty)
+                  EventDetailDescription(description: eventDetail.description!),
+
+                const SizedBox(height: AppSpacing.spaceMD),
+
+                if (eventDetail.urlDocs != null &&
+                    eventDetail.urlDocs!.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.spaceMD,
                     ),
-
-                  const SizedBox(height: AppSpacing.spaceMD),
-
-                  // Documents Section
-                  if (eventDetail.urlDocs != null &&
-                      eventDetail.urlDocs!.isNotEmpty)
-                    Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.spaceMD,
-                      ),
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          final uri = Uri.parse(eventDetail.urlDocs!);
-                          if (await canLaunchUrl(uri)) {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          }
-                        },
-                        icon: const Icon(Icons.description_rounded),
-                        label: const Text('Xem tài liệu sự kiện'),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.spaceLG,
-                            vertical: AppSpacing.spaceMD,
-                          ),
-                          side: const BorderSide(
-                            color: AppColors.vkuBlue,
-                            width: 1.5,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        final uri = Uri.parse(eventDetail.urlDocs!);
+                        if (await canLaunchUrl(uri)) {
+                          await launchUrl(
+                            uri,
+                            mode: LaunchMode.externalApplication,
+                          );
+                        }
+                      },
+                      icon: const Icon(Icons.description_rounded),
+                      label: const Text('Xem tài liệu sự kiện'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.spaceLG,
+                          vertical: AppSpacing.spaceMD,
+                        ),
+                        side: const BorderSide(
+                          color: AppColors.vkuBlue,
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
+                  ),
 
-                  // Bottom padding for CTA button (button height ~80px + safe area)
-                  SizedBox(height: 80 + MediaQuery.of(context).padding.bottom),
-                ],
-              ),
+                const SizedBox(height: AppSpacing.spaceLG),
+              ],
             ),
-          ],
-        ),
-
-        // Sticky CTA Button - sát dưới màn hình
-        Positioned(
-          bottom: 0,
-          left: 0,
-          right: 0,
-          child: EventDetailCtaButton(eventDetail: eventDetail),
-        ),
-      ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: EventDetailCtaButton(eventDetail: eventDetail),
     );
   }
 }

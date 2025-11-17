@@ -37,6 +37,8 @@
 	<string>Chúng tôi cần truy cập thư viện ảnh để chọn banner cho sự kiện</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Chúng tôi cần truy cập camera để chụp ảnh banner cho sự kiện</string>
+	<key>NSCalendarsUsageDescription</key>
+	<string>Chúng tôi cần truy cập lịch để thêm sự kiện vào ứng dụng Lịch của bạn</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

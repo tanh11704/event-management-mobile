@@ -140,4 +140,22 @@ class EventRepositoryImpl implements EventRepository {
       throw Exception('Đã xảy ra lỗi không xác định.');
     }
   }
+
+  @override
+  Future<void> unjoinEvent(int eventId) async {
+    try {
+      return await _eventApiClient.unjoinEvent(eventId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể hủy đăng ký sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
 }

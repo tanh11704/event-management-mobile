@@ -30,6 +30,7 @@ class _EventListScreenState extends State<EventListScreen>
   EventStatus? _selectedStatus;
   final ScrollController _scrollController = ScrollController();
   bool _isSearchFocused = false;
+  EventListLoaded? _lastLoadedState;
 
   @override
   void initState() {
@@ -115,7 +116,6 @@ class _EventListScreenState extends State<EventListScreen>
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () {
-        // Ẩn bàn phím khi tap ra ngoài TextField
         if (_searchFocusNode.hasFocus) {
           _searchFocusNode.unfocus();
         }
@@ -123,26 +123,45 @@ class _EventListScreenState extends State<EventListScreen>
       behavior: HitTestBehavior.translucent,
       child: Scaffold(
         backgroundColor: AppColors.white,
-        body: RefreshIndicator(
-          onRefresh: () async {
-            final isManaged = _tabController.index == 1;
-            context.read<EventListBloc>().add(
-              EventListRefresh(isManaged: isManaged),
-            );
-            // Wait for the refresh to complete
-            await Future<void>.delayed(const Duration(milliseconds: 500));
+        body: BlocListener<EventListBloc, EventListState>(
+          listener: (context, state) {
+            if (state is EventListJoinSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Tham gia sự kiện thành công!'),
+                  backgroundColor: AppColors.green500,
+                ),
+              );
+            } else if (state is EventListJoinError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: AppColors.red500,
+                ),
+              );
+            }
           },
-          color: AppColors.vkuBlue,
-          child: CustomScrollView(
-            controller: _scrollController,
-            slivers: [
-              EventListAppBar(
-                tabController: _tabController,
-                authRepository: di.sl(),
-              ),
-              _buildSearchAndFilterSection(),
-              _buildEventListContent(),
-            ],
+          child: RefreshIndicator(
+            onRefresh: () async {
+              final isManaged = _tabController.index == 1;
+              context.read<EventListBloc>().add(
+                EventListRefresh(isManaged: isManaged),
+              );
+              // Wait for the refresh to complete
+              await Future<void>.delayed(const Duration(milliseconds: 500));
+            },
+            color: AppColors.vkuBlue,
+            child: CustomScrollView(
+              controller: _scrollController,
+              slivers: [
+                EventListAppBar(
+                  tabController: _tabController,
+                  authRepository: di.sl(),
+                ),
+                _buildSearchAndFilterSection(),
+                _buildEventListContent(),
+              ],
+            ),
           ),
         ),
       ),
@@ -196,6 +215,24 @@ class _EventListScreenState extends State<EventListScreen>
   Widget _buildEventListContent() {
     return BlocBuilder<EventListBloc, EventListState>(
       builder: (context, state) {
+        if (state is EventListLoaded) {
+          _lastLoadedState = state;
+        }
+
+        if (state is EventListLoading && state.joiningEventToken != null) {
+          if (_lastLoadedState != null) {
+            return EventListGrid(
+              events: _lastLoadedState!.events,
+              hasNextPage: _lastLoadedState!.hasNextPage,
+              onEventTap: (event) {
+                context.go('/events/${event.id}');
+              },
+            );
+          }
+          return const EventListLoadingState();
+        }
+
+        // Loading toàn màn hình khi fetch dữ liệu
         if (state is EventListLoading) {
           return const EventListLoadingState();
         }
@@ -221,6 +258,15 @@ class _EventListScreenState extends State<EventListScreen>
           );
         }
 
+        if (_lastLoadedState != null) {
+          return EventListGrid(
+            events: _lastLoadedState!.events,
+            hasNextPage: _lastLoadedState!.hasNextPage,
+            onEventTap: (event) {
+              context.go('/events/${event.id}');
+            },
+          );
+        }
         return const SliverToBoxAdapter(child: SizedBox.shrink());
       },
     );
