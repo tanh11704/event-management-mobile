@@ -24,3 +24,12 @@ class EventDetailJoin extends EventDetailEvent {
   @override
   List<Object?> get props => [eventToken];
 }
+
+class EventDetailUnjoin extends EventDetailEvent {
+  const EventDetailUnjoin({required this.eventId});
+
+  final int eventId;
+
+  @override
+  List<Object?> get props => [eventId];
+}

@@ -17,8 +17,15 @@ class EventDetailCtaButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<EventDetailBloc, EventDetailState>(
+      buildWhen: (previous, current) {
+        if (previous is EventDetailSuccess && current is EventDetailSuccess) {
+          return previous.isJoining != current.isJoining;
+        }
+        return true;
+      },
       builder: (context, state) {
-        final isLoading = state is EventDetailLoading;
+        final isLoading = state is EventDetailSuccess && state.isJoining;
+
         final (text, backgroundColor, icon, isEnabled) = _getButtonConfig(
           eventDetail,
         );
@@ -47,28 +54,16 @@ class EventDetailCtaButton extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: isEnabled && !isLoading
                     ? () {
-                        if (eventDetail.status == EventStatus.upcoming ||
-                            eventDetail.status == EventStatus.ongoing) {
-                          if (eventDetail.isUserRegistered ?? false) {
-                            // TODO: Navigate to ticket view or cancel registration
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: const Text(
-                                  'Tính năng đang được phát triển',
-                                ),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            );
-                          } else if (eventDetail.qrJoinToken != null) {
-                            context.read<EventDetailBloc>().add(
-                              EventDetailJoin(
-                                eventToken: eventDetail.qrJoinToken!,
-                              ),
-                            );
-                          }
+                        if (eventDetail.isUserRegistered ?? false) {
+                          context.read<EventDetailBloc>().add(
+                            EventDetailUnjoin(eventId: eventDetail.id),
+                          );
+                        } else {
+                          context.read<EventDetailBloc>().add(
+                            EventDetailJoin(
+                              eventToken: eventDetail.qrJoinToken!,
+                            ),
+                          );
                         }
                       }
                     : null,
@@ -94,6 +89,7 @@ class EventDetailCtaButton extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: backgroundColor,
                   foregroundColor: AppColors.white,
+                  disabledBackgroundColor: AppColors.coolGray500,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
@@ -111,7 +107,6 @@ class EventDetailCtaButton extends StatelessWidget {
   (String, Color, IconData, bool) _getButtonConfig(
     EventDetailResponse eventDetail,
   ) {
-    // Nếu sự kiện đã kết thúc hoặc đã hủy
     if (eventDetail.status == EventStatus.completed ||
         eventDetail.status == EventStatus.cancelled) {
       return (
@@ -122,30 +117,50 @@ class EventDetailCtaButton extends StatelessWidget {
       );
     }
 
-    // Nếu sự kiện sắp diễn ra hoặc đang diễn ra
     if (eventDetail.status == EventStatus.upcoming ||
         eventDetail.status == EventStatus.ongoing) {
       if (eventDetail.isUserRegistered ?? false) {
         return (
-          'Xem vé của bạn',
-          AppColors.vkuBlue,
-          Icons.confirmation_number_rounded,
-          true,
-        );
-      } else {
-        return (
-          'Đăng ký tham gia',
-          AppColors.vkuBlue,
-          Icons.person_add_rounded,
+          'Hủy tham gia',
+          AppColors.red500,
+          Icons.person_remove_rounded,
           true,
         );
       }
+
+      final isFull =
+          eventDetail.maxParticipants != null &&
+          eventDetail.participants.length >= eventDetail.maxParticipants!;
+      if (isFull) {
+        return (
+          'Sự kiện đã đầy',
+          AppColors.coolGray500,
+          Icons.block_rounded,
+          false,
+        );
+      }
+
+      if (eventDetail.qrJoinToken == null || eventDetail.qrJoinToken!.isEmpty) {
+        return (
+          'Không thể đăng ký',
+          AppColors.coolGray500,
+          Icons.block_rounded,
+          false, // Disabled
+        );
+      }
+
+      return (
+        'Đăng ký tham gia',
+        AppColors.vkuBlue,
+        Icons.person_add_rounded,
+        true, // Enabled
+      );
     }
 
     return (
-      'Sự kiện đã kết thúc',
+      'Không khả dụng',
       AppColors.coolGray500,
-      Icons.check_circle_outline_rounded,
+      Icons.block_rounded,
       false,
     );
   }

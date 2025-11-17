@@ -13,6 +13,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       super(EventDetailInitial()) {
     on<EventDetailFetch>(_onFetch);
     on<EventDetailJoin>(_onJoin);
+    on<EventDetailUnjoin>(_onUnjoin);
   }
 
   final EventRepository _eventRepository;
@@ -22,7 +23,10 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     EventDetailFetch event,
     Emitter<EventDetailState> emit,
   ) async {
-    emit(EventDetailLoading());
+    if (state is! EventDetailSuccess) {
+      emit(EventDetailLoading());
+    }
+
     try {
       final eventDetail = await _getEventDetailUseCase(event.eventId);
       emit(EventDetailSuccess(eventDetail: eventDetail));
@@ -35,15 +39,45 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     EventDetailJoin event,
     Emitter<EventDetailState> emit,
   ) async {
-    try {
-      await _eventRepository.joinEvent(event.eventToken);
-      // Refresh event detail after joining
-      if (state is EventDetailSuccess) {
-        final currentState = state as EventDetailSuccess;
-        add(EventDetailFetch(eventId: currentState.eventDetail.id));
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      emit(currentState.copyWith(isJoining: true));
+
+      try {
+        await _eventRepository.joinEvent(event.eventToken);
+
+        final newEventDetail = await _getEventDetailUseCase(
+          currentState.eventDetail.id,
+        );
+
+        emit(EventDetailSuccess(eventDetail: newEventDetail));
+      } catch (e) {
+        emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
+        emit(currentState.copyWith(isJoining: false));
       }
-    } catch (e) {
-      emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onUnjoin(
+    EventDetailUnjoin event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      emit(currentState.copyWith(isJoining: true));
+
+      try {
+        await _eventRepository.unjoinEvent(event.eventId);
+
+        final newEventDetail = await _getEventDetailUseCase(
+          currentState.eventDetail.id,
+        );
+
+        emit(EventDetailSuccess(eventDetail: newEventDetail));
+      } catch (e) {
+        emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
+        emit(currentState.copyWith(isJoining: false));
+      }
     }
   }
 }
