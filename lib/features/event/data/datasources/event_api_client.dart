@@ -46,4 +46,11 @@ abstract class EventApiClient {
 
   @POST('/events')
   Future<Event> createEvent(@Body() CreateEventDto createEventDto);
+
+  @PUT('/events/{id}/upload-banner')
+  @MultiPart()
+  Future<Event> uploadBanner(
+    @Path('id') int eventId,
+    @Part(name: 'banner') MultipartFile bannerFile,
+  );
 }
