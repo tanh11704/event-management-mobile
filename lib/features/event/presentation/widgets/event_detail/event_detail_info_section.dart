@@ -1,6 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/services/calendar_service.dart';
 import 'package:event_management/core/utils/date_formatter.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:flutter/material.dart';
@@ -79,6 +80,9 @@ class EventDetailInfoSection extends StatelessWidget {
                   .join(', '),
             ),
           ],
+          // Nút thêm vào lịch
+          _Divider(),
+          _AddToCalendarTile(eventDetail: eventDetail),
         ],
       ),
     );
@@ -165,6 +169,167 @@ class _Divider extends StatelessWidget {
         height: 1,
         thickness: 1,
         color: AppColors.border.withOpacity(0.5),
+      ),
+    );
+  }
+}
+
+class _AddToCalendarTile extends StatefulWidget {
+  const _AddToCalendarTile({required this.eventDetail});
+
+  final EventDetailResponse eventDetail;
+
+  @override
+  State<_AddToCalendarTile> createState() => _AddToCalendarTileState();
+}
+
+class _AddToCalendarTileState extends State<_AddToCalendarTile> {
+  bool _isLoading = false;
+
+  Future<void> _addToCalendar() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final success =
+          await CalendarService.addEventDetailToCalendar(widget.eventDetail);
+
+      if (!mounted) return;
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.check_circle, color: AppColors.white),
+                SizedBox(width: AppSpacing.spaceXM),
+                Expanded(
+                  child: Text('Đã thêm sự kiện vào lịch thành công'),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.green500,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Row(
+              children: [
+                Icon(Icons.error_outline, color: AppColors.white),
+                SizedBox(width: AppSpacing.spaceXM),
+                Expanded(
+                  child: Text(
+                    'Không thể thêm sự kiện vào lịch. Vui lòng cấp quyền truy cập Lịch.',
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: AppColors.red500,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.error_outline, color: AppColors.white),
+              SizedBox(width: AppSpacing.spaceXM),
+              Expanded(
+                child: Text('Đã xảy ra lỗi. Vui lòng thử lại.'),
+              ),
+            ],
+          ),
+          backgroundColor: AppColors.red500,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: _isLoading ? null : _addToCalendar,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.spaceMD),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: AppColors.vkuBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: _isLoading
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(AppColors.vkuBlue),
+                        ),
+                      )
+                    : const Icon(
+                        Icons.calendar_today_rounded,
+                        color: AppColors.vkuBlue,
+                        size: 24,
+                      ),
+              ),
+              const SizedBox(width: AppSpacing.spaceMD),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Thêm vào lịch',
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.coolGray500,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _isLoading
+                          ? 'Đang thêm...'
+                          : 'Thêm sự kiện vào ứng dụng Lịch',
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
