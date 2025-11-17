@@ -32,6 +32,7 @@ dependencies:
   injectable: ^2.4.1
   analyzer: "7.7.0"
 
+  image_picker: ^1.1.2
 dev_dependencies:
   build_runner: ^2.7.1
   flutter_launcher_icons: ^0.14.4
@@ -47,7 +48,7 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+   - .env
     - assets/images/vku_logo.png
 
 fonts:

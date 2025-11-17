@@ -1,7 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: EventRepository)
@@ -83,6 +85,32 @@ class EventRepositoryImpl implements EventRepository {
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
       throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<Event> editEvent({
+    required int id,
+    required String name,
+    required String description,
+    required String location,
+    required DateTime startDate,
+    required DateTime endDate,
+    XFile? newBanner,
+  }) async {
+    try {
+      await Future.delayed(const Duration(seconds: 1));
+      throw Exception(
+        'API Client (event_api_client.dart) chưa có hàm editEvent',
+      );
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể cập nhật sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 }

@@ -1,4 +1,4 @@
-import 'dart:typed_data'; // Import để dùng Uint8List cho ảnh (hỗ trợ web)
+import 'dart:typed_data';
 
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
@@ -15,9 +15,8 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 class EditEventScreen extends StatefulWidget {
-  // ✅ [Rule 6] Sửa: Phải nhận DTO `Event`, không nhận `Map`
   const EditEventScreen({required this.event, super.key});
-  final Event event; // <-- Sửa từ Map sang Event DTO
+  final Event event;
 
   @override
   State<EditEventScreen> createState() => _EditEventScreenState();
@@ -35,7 +34,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
   DateTime? _endDate;
   TimeOfDay? _endTime;
 
-  // ✅ SỬA: Dùng XFile? thay vì File? để hỗ trợ web
   XFile? _newBannerImage;
   String? _currentBannerUrl;
 
@@ -45,13 +43,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
   void initState() {
     super.initState();
 
-    // ✅ [Checklist] Gán giá trị initial từ DTO `event`
-    // ✅ Sửa lỗi: Dùng `widget.event.title`, không phải `widget.event["name"]`
     _nameController.text = widget.event.title;
     _descriptionController.text = widget.event.description ?? '';
     _locationController.text = widget.event.location ?? '';
 
-    // ✅ Sửa lỗi: Dùng `widget.event.startTime`, không phải `widget.event["startDate"]`
     final start = widget.event.startTime;
     final end = widget.event.endTime;
 
@@ -61,7 +56,6 @@ class _EditEventScreenState extends State<EditEventScreen> {
     _endDate = DateTime(end.year, end.month, end.day);
     _endTime = TimeOfDay.fromDateTime(end);
 
-    // ✅ Sửa lỗi: Dùng `widget.event.banner`, không phải `widget.event["bannerUrl"]`
     _currentBannerUrl = widget.event.banner;
   }
 
@@ -128,7 +122,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-  // ========== LOGIC CHỌN ẢNH (Sửa lỗi Rule 10, dùng XFile) ==========
+  // ========== LOGIC CHỌN ẢNH ==========
   Future<void> _pickImage() async {
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
@@ -138,12 +132,12 @@ class _EditEventScreenState extends State<EditEventScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library),
-              title: const Text(AppStrings.selectFromGallery), // ✅ [Rule 10]
+              title: const Text(AppStrings.selectFromGallery),
               onTap: () => Navigator.pop(context, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt),
-              title: const Text(AppStrings.takePicture), // ✅ [Rule 10]
+              title: const Text(AppStrings.takePicture),
               onTap: () => Navigator.pop(context, ImageSource.camera),
             ),
           ],
@@ -161,14 +155,14 @@ class _EditEventScreenState extends State<EditEventScreen> {
     }
   }
 
-  // ========== FORMAT & VALIDATE (Sửa lỗi Rule 10) ==========
+  // ========== FORMAT & VALIDATE  ==========
   String _formatDate(DateTime? date) {
-    if (date == null) return AppStrings.notSelected; // ✅ [Rule 10]
+    if (date == null) return AppStrings.notSelected;
     return DateFormat('dd/MM/yyyy').format(date);
   }
 
   String _formatTime(TimeOfDay? t) {
-    if (t == null) return AppStrings.notSelected; // ✅ [Rule 10]
+    if (t == null) return AppStrings.notSelected;
     return "${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}";
   }
 
@@ -197,14 +191,22 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
     if (endDateTime.isBefore(startDateTime) ||
         endDateTime.isAtSameMomentAs(startDateTime)) {
-      return AppStrings.endTimeAfterStartTimeError; // ✅ [Rule 10]
+      return AppStrings.endTimeAfterStartTimeError;
     }
     return null;
   }
 
   // ========== SUBMIT (KẾT NỐI BLOC) ==========
   void _onSubmit() {
-    if (!(_formKey.currentState?.validate() ?? false)) return;
+    if (!(_formKey.currentState?.validate() ?? false)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(AppStrings.validationError),
+          backgroundColor: AppColors.red500,
+        ),
+      );
+      return;
+    }
 
     final dateTimeError = _validateDateTime();
     if (dateTimeError != null) {
@@ -232,36 +234,36 @@ class _EditEventScreenState extends State<EditEventScreen> {
       _endTime!.minute,
     );
 
-    // ✅ Gửi Event tới BLoC (Sử dụng EventId là int và XFile)
+    //  Gửi Event tới BLoC
     context.read<EditEventBloc>().add(
       EditEventSubmitted(
-        eventId: widget.event.id, // ID là int
+        eventId: widget.event.id,
         name: _nameController.text,
         description: _descriptionController.text,
         location: _locationController.text,
         startDate: startDateTime,
         endDate: endDateTime,
-        newBannerImage: _newBannerImage, // Gửi XFile
+        newBannerImage: _newBannerImage,
       ),
     );
   }
 
-  // ========== UI (Sửa lỗi Rule 10) ==========
+  // ========== UI  ==========
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.editEventTitle), // ✅ [Rule 10]
+        title: const Text(AppStrings.editEventTitle),
         backgroundColor: AppColors.vkuBlue,
         foregroundColor: AppColors.white,
       ),
-      // ✅ [BLoC] Lắng nghe State
+      // [BLoC] Lắng nghe State
       body: BlocListener<EditEventBloc, EditEventState>(
         listener: (context, state) {
           if (state is EditEventSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text(AppStrings.saveSuccess), // ✅ [Rule 10]
+                content: Text(AppStrings.saveSuccess),
                 backgroundColor: AppColors.green500,
               ),
             );
@@ -315,6 +317,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
                         // ===== MÔ TẢ =====
                         TextFormField(
+                          // ✅ Sửa: Dùng _descriptionController
                           controller: _descriptionController,
                           decoration: const InputDecoration(
                             labelText:
@@ -412,7 +415,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                             ),
                             const SizedBox(width: AppSpacing.spaceMD),
                             Expanded(
-                              // ✅ CẬP NHẬT: Thêm InkWell
+                              //CẬP NHẬT: Thêm InkWell
                               child: InkWell(
                                 onTap: _selectEndTime,
                                 child: InputDecorator(
@@ -438,7 +441,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
 
                         // ===== BANNER =====
                         Text(
-                          AppStrings.eventBanner, // ✅ [Rule 10]
+                          AppStrings.eventBanner,
                           style: AppTextStyles.bodyMedium.copyWith(
                             fontWeight: FontWeight.w600,
                             color: AppColors.coolGray700,
@@ -471,7 +474,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: ElevatedButton(
-                                // Disable nút khi đang loading
+                                //Dùng _onSubmit
                                 onPressed: isLoading ? null : _onSubmit,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: Colors.transparent,
@@ -523,7 +526,7 @@ class _EditEventScreenState extends State<EditEventScreen> {
         const Icon(Icons.image_search, size: 48, color: AppColors.coolGray500),
         const SizedBox(height: AppSpacing.spaceXM),
         Text(
-          AppStrings.uploadNewBanner, // ✅ [Rule 10]
+          AppStrings.uploadNewBanner,
           style: AppTextStyles.bodyMedium.copyWith(
             color: AppColors.coolGray500,
           ),
@@ -533,11 +536,10 @@ class _EditEventScreenState extends State<EditEventScreen> {
   }
 
   Widget _buildBannerImage() {
-    // 1. Ưu tiên ảnh mới (XFile)
     if (_newBannerImage != null) {
       return ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        // ✅ SỬA: Dùng FutureBuilder và Image.memory để hỗ trợ cả web/mobile
+        //Dùng FutureBuilder và Image.memory để hỗ trợ cả web/mobile
         child: FutureBuilder<Uint8List>(
           future: _newBannerImage!.readAsBytes(),
           builder: (context, snapshot) {
