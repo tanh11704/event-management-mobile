@@ -3,28 +3,42 @@ import 'dart:io';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/event/data/models/create_event_dto.dart';
+import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class CreateEventScreen extends StatefulWidget {
+class CreateEventScreen extends StatelessWidget {
   const CreateEventScreen({super.key});
 
   @override
-  State<CreateEventScreen> createState() => _CreateEventScreenState();
+  Widget build(BuildContext context) {
+    return const _CreateEventView();
+  }
 }
 
-class _CreateEventScreenState extends State<CreateEventScreen> {
+class _CreateEventView extends StatefulWidget {
+  const _CreateEventView();
+
+  @override
+  State<_CreateEventView> createState() => _CreateEventViewState();
+}
+
+class _CreateEventViewState extends State<_CreateEventView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
+  final TextEditingController _maxParticipantsController =
+      TextEditingController();
+  final TextEditingController _urlDocsController = TextEditingController();
+
   DateTime? _startDate;
-  TimeOfDay? _startTime;
   DateTime? _endDate;
-  TimeOfDay? _endTime;
   File? _bannerImage;
 
   final ImagePicker _imagePicker = ImagePicker();
@@ -34,6 +48,8 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _locationController.dispose();
+    _maxParticipantsController.dispose();
+    _urlDocsController.dispose();
     super.dispose();
   }
 
@@ -56,18 +72,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     }
   }
 
-  Future<void> _selectStartTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _startTime = picked;
-      });
-    }
-  }
-
   Future<void> _selectEndDate() async {
     final picked = await showDatePicker(
       context: context,
@@ -79,18 +83,6 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
     if (picked != null) {
       setState(() {
         _endDate = picked;
-      });
-    }
-  }
-
-  Future<void> _selectEndTime() async {
-    final picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null) {
-      setState(() {
-        _endTime = picked;
       });
     }
   }
@@ -147,32 +139,16 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
   }
 
   String? _validateDateTime() {
-    if (_startDate == null || _startTime == null) {
-      return 'Vui lòng chọn thời gian bắt đầu';
+    if (_startDate == null) {
+      return 'Vui lòng chọn ngày bắt đầu';
     }
-    if (_endDate == null || _endTime == null) {
-      return 'Vui lòng chọn thời gian kết thúc';
+    if (_endDate == null) {
+      return 'Vui lòng chọn ngày kết thúc';
     }
 
-    final startDateTime = DateTime(
-      _startDate!.year,
-      _startDate!.month,
-      _startDate!.day,
-      _startTime!.hour,
-      _startTime!.minute,
-    );
-
-    final endDateTime = DateTime(
-      _endDate!.year,
-      _endDate!.month,
-      _endDate!.day,
-      _endTime!.hour,
-      _endTime!.minute,
-    );
-
-    if (endDateTime.isBefore(startDateTime) ||
-        endDateTime.isAtSameMomentAs(startDateTime)) {
-      return 'Thời gian kết thúc phải sau thời gian bắt đầu';
+    if (_endDate!.isBefore(_startDate!) ||
+        _endDate!.isAtSameMomentAs(_startDate!)) {
+      return 'Ngày kết thúc phải sau ngày bắt đầu';
     }
 
     return null;
@@ -194,27 +170,38 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
       return;
     }
 
-    // TODO: Gọi BLoC để tạo sự kiện
-    // Tạm thời hiển thị thông báo thành công
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Sự kiện đã được tạo'),
-        backgroundColor: AppColors.green500,
-      ),
+    final startDateTime = DateTime.utc(
+      _startDate!.year,
+      _startDate!.month,
+      _startDate!.day,
+    );
+    final endDateTime = DateTime.utc(
+      _endDate!.year,
+      _endDate!.month,
+      _endDate!.day,
+      23,
+      59,
+      59,
     );
 
-    // Navigate back to event list
-    context.pop();
+    final dto = CreateEventDto(
+      title: _nameController.text,
+      description: _descriptionController.text,
+      location: _locationController.text,
+      startTime: startDateTime.toIso8601String(),
+      endTime: endDateTime.toIso8601String(),
+      maxParticipants: int.tryParse(_maxParticipantsController.text) ?? 0,
+      urlDocs: _urlDocsController.text,
+    );
+
+    context.read<CreateEventBloc>().add(
+      CreateEventSubmitted(createEventDto: dto, bannerImage: _bannerImage),
+    );
   }
 
   String _formatDate(DateTime? date) {
     if (date == null) return 'Chưa chọn';
     return DateFormat('dd/MM/yyyy', 'vi').format(date);
-  }
-
-  String _formatTime(TimeOfDay? time) {
-    if (time == null) return 'Chưa chọn';
-    return '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
   }
 
   @override
@@ -226,250 +213,412 @@ class _CreateEventScreenState extends State<CreateEventScreen> {
         foregroundColor: AppColors.white,
         elevation: 0,
       ),
-      body: Container(
-        decoration: BoxDecoration(gradient: AppColors.background),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.spaceLG),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ===== Form Container =====
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.spaceLG),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.coolGray500.withOpacity(0.1),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ===== Tên sự kiện =====
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Tên sự kiện *',
-                          prefixIcon: Icon(Icons.event),
-                          hintText: 'Nhập tên sự kiện',
+      body: BlocListener<CreateEventBloc, CreateEventState>(
+        listener: (context, state) {
+          if (state is CreateEventSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Sự kiện đã được tạo thành công!'),
+                backgroundColor: AppColors.green500,
+              ),
+            );
+            context.pop();
+          } else if (state is CreateEventFailure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: AppColors.red500,
+              ),
+            );
+          }
+        },
+        child: Container(
+          decoration: BoxDecoration(gradient: AppColors.background),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.spaceLG),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ===== Form Container =====
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.coolGray500.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
                         ),
-                        validator: _validateName,
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                      const SizedBox(height: AppSpacing.spaceMD),
-
-                      // ===== Mô tả sự kiện =====
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(
-                          labelText: 'Mô tả sự kiện',
-                          prefixIcon: Icon(Icons.description),
-                          hintText: 'Nhập mô tả chi tiết về sự kiện',
-                          alignLabelWithHint: true,
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ===== Tên sự kiện =====
+                        TextFormField(
+                          controller: _nameController,
+                          decoration: const InputDecoration(
+                            labelText: 'Tên sự kiện *',
+                            prefixIcon: Icon(Icons.event),
+                            hintText: 'Nhập tên sự kiện',
+                          ),
+                          validator: _validateName,
+                          textCapitalization: TextCapitalization.words,
                         ),
-                        validator: _validateDescription,
-                        maxLines: 5,
-                        textCapitalization: TextCapitalization.sentences,
-                      ),
-                      const SizedBox(height: AppSpacing.spaceMD),
+                        const SizedBox(height: AppSpacing.spaceMD),
 
-                      // ===== Địa điểm =====
-                      TextFormField(
-                        controller: _locationController,
-                        decoration: const InputDecoration(
-                          labelText: 'Địa điểm',
-                          prefixIcon: Icon(Icons.location_on),
-                          hintText: 'Nhập địa điểm tổ chức',
+                        // ===== Mô tả sự kiện =====
+                        TextFormField(
+                          controller: _descriptionController,
+                          decoration: const InputDecoration(
+                            labelText: 'Mô tả sự kiện',
+                            prefixIcon: Icon(Icons.description),
+                            hintText: 'Nhập mô tả chi tiết về sự kiện',
+                            alignLabelWithHint: true,
+                          ),
+                          validator: _validateDescription,
+                          maxLines: 5,
+                          textCapitalization: TextCapitalization.sentences,
                         ),
-                        validator: _validateLocation,
-                        textCapitalization: TextCapitalization.words,
-                      ),
-                      const SizedBox(height: AppSpacing.spaceMD),
+                        const SizedBox(height: AppSpacing.spaceMD),
 
-                      // ===== Thời gian bắt đầu =====
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: _selectStartDate,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Ngày bắt đầu *',
-                                  prefixIcon: Icon(Icons.calendar_today),
-                                  suffixIcon: Icon(Icons.arrow_drop_down),
-                                ),
-                                child: Text(
-                                  _formatDate(_startDate),
-                                  style: _startDate == null
-                                      ? AppTextStyles.bodyMedium.copyWith(
-                                          color: AppColors.coolGray500,
-                                        )
-                                      : AppTextStyles.bodyMedium,
-                                ),
-                              ),
-                            ),
+                        // ===== Địa điểm =====
+                        TextFormField(
+                          controller: _locationController,
+                          decoration: const InputDecoration(
+                            labelText: 'Địa điểm',
+                            prefixIcon: Icon(Icons.location_on),
+                            hintText: 'Nhập địa điểm tổ chức',
                           ),
-                          const SizedBox(width: AppSpacing.spaceMD),
-                          Expanded(
-                            child: InkWell(
-                              onTap: _selectStartTime,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Giờ bắt đầu *',
-                                  prefixIcon: Icon(Icons.access_time),
-                                  suffixIcon: Icon(Icons.arrow_drop_down),
-                                ),
-                                child: Text(
-                                  _formatTime(_startTime),
-                                  style: _startTime == null
-                                      ? AppTextStyles.bodyMedium.copyWith(
-                                          color: AppColors.coolGray500,
-                                        )
-                                      : AppTextStyles.bodyMedium,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.spaceMD),
-
-                      // ===== Thời gian kết thúc =====
-                      Row(
-                        children: [
-                          Expanded(
-                            child: InkWell(
-                              onTap: _selectEndDate,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Ngày kết thúc *',
-                                  prefixIcon: Icon(Icons.calendar_today),
-                                  suffixIcon: Icon(Icons.arrow_drop_down),
-                                ),
-                                child: Text(
-                                  _formatDate(_endDate),
-                                  style: _endDate == null
-                                      ? AppTextStyles.bodyMedium.copyWith(
-                                          color: AppColors.coolGray500,
-                                        )
-                                      : AppTextStyles.bodyMedium,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.spaceMD),
-                          Expanded(
-                            child: InkWell(
-                              onTap: _selectEndTime,
-                              child: InputDecorator(
-                                decoration: const InputDecoration(
-                                  labelText: 'Giờ kết thúc *',
-                                  prefixIcon: Icon(Icons.access_time),
-                                  suffixIcon: Icon(Icons.arrow_drop_down),
-                                ),
-                                child: Text(
-                                  _formatTime(_endTime),
-                                  style: _endTime == null
-                                      ? AppTextStyles.bodyMedium.copyWith(
-                                          color: AppColors.coolGray500,
-                                        )
-                                      : AppTextStyles.bodyMedium,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.spaceMD),
-
-                      // ===== Banner =====
-                      Text(
-                        'Banner sự kiện',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.coolGray700,
-                          fontWeight: FontWeight.w500,
+                          validator: _validateLocation,
+                          textCapitalization: TextCapitalization.words,
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.spaceXM),
-                      InkWell(
-                        onTap: _pickImage,
-                        child: Container(
-                          height: 200,
-                          decoration: BoxDecoration(
-                            color: AppColors.coolGray50,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.border),
-                          ),
-                          child: _bannerImage != null
-                              ? ClipRRect(
-                                  borderRadius: BorderRadius.circular(12),
-                                  child: Image.file(
-                                    _bannerImage!,
-                                    fit: BoxFit.cover,
-                                    width: double.infinity,
+                        const SizedBox(height: AppSpacing.spaceMD),
+
+                        // ===== Thời gian bắt đầu và kết thúc =====
+                        Row(
+                          children: [
+                            Expanded(
+                              child: InkWell(
+                                onTap: _selectStartDate,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.border),
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: AppColors.white,
                                   ),
-                                )
-                              : Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.add_photo_alternate,
-                                      size: 48,
-                                      color: AppColors.coolGray500,
-                                    ),
-                                    const SizedBox(height: AppSpacing.spaceXM),
-                                    Text(
-                                      'Tải lên Banner',
-                                      style: AppTextStyles.bodyMedium.copyWith(
-                                        color: AppColors.coolGray500,
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        color: _startDate == null
+                                            ? AppColors.coolGray500
+                                            : AppColors.vkuBlue,
+                                        size: 20,
                                       ),
-                                    ),
-                                  ],
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Ngày bắt đầu',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.coolGray500,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatDate(_startDate),
+                                              style: _startDate == null
+                                                  ? AppTextStyles.bodyMedium
+                                                        .copyWith(
+                                                          color: AppColors
+                                                              .coolGray500,
+                                                        )
+                                                  : AppTextStyles.bodyMedium
+                                                        .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.spaceMD),
+                            Expanded(
+                              child: InkWell(
+                                onTap: _selectEndDate,
+                                child: Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.border),
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: AppColors.white,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        color: _endDate == null
+                                            ? AppColors.coolGray500
+                                            : AppColors.vkuBlue,
+                                        size: 20,
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Ngày kết thúc',
+                                              style: AppTextStyles.bodySmall
+                                                  .copyWith(
+                                                    color:
+                                                        AppColors.coolGray500,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatDate(_endDate),
+                                              style: _endDate == null
+                                                  ? AppTextStyles.bodyMedium
+                                                        .copyWith(
+                                                          color: AppColors
+                                                              .coolGray500,
+                                                        )
+                                                  : AppTextStyles.bodyMedium
+                                                        .copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.spaceLG),
+                        const SizedBox(height: AppSpacing.spaceMD),
 
-                      // ===== Nút Tạo sự kiện =====
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: ElevatedButton(
-                          onPressed: _onSubmit,
-                          style: ElevatedButton.styleFrom(
-                            elevation: 0,
-                            backgroundColor: Colors.transparent,
-                            shadowColor: Colors.transparent,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              vertical: AppSpacing.spaceMD,
-                            ),
+                        // ===== Số người tham gia tối đa =====
+                        TextFormField(
+                          controller: _maxParticipantsController,
+                          decoration: const InputDecoration(
+                            labelText: 'Số người tham gia tối đa',
+                            prefixIcon: Icon(Icons.people),
+                            hintText: 'Nhập số lượng (nếu có)',
                           ),
-                          child: const Text(
-                            'Tạo sự kiện',
-                            style: TextStyle(
-                              color: AppColors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                          keyboardType: TextInputType.number,
+                        ),
+                        const SizedBox(height: AppSpacing.spaceMD),
+
+                        // ===== Link tài liệu =====
+                        TextFormField(
+                          controller: _urlDocsController,
+                          decoration: const InputDecoration(
+                            labelText: 'Link tài liệu',
+                            prefixIcon: Icon(Icons.link),
+                            hintText: 'Nhập URL tài liệu liên quan (nếu có)',
+                          ),
+                          keyboardType: TextInputType.url,
+                        ),
+                        const SizedBox(height: AppSpacing.spaceMD),
+
+                        // ===== Banner =====
+                        InkWell(
+                          onTap: _pickImage,
+                          child: Container(
+                            height: 180,
+                            decoration: BoxDecoration(
+                              gradient: _bannerImage == null
+                                  ? LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        AppColors.vkuBlue.withOpacity(0.05),
+                                        AppColors.coolGray50,
+                                      ],
+                                    )
+                                  : null,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: _bannerImage == null
+                                    ? AppColors.border
+                                    : AppColors.vkuBlue.withOpacity(0.3),
+                                width: 2,
+                              ),
                             ),
+                            child: _bannerImage != null
+                                ? Stack(
+                                    children: [
+                                      ClipRRect(
+                                        borderRadius: BorderRadius.circular(14),
+                                        child: Image.file(
+                                          _bannerImage!,
+                                          fit: BoxFit.cover,
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                        ),
+                                      ),
+                                      Positioned(
+                                        top: 8,
+                                        right: 8,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(
+                                              0.6,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            Icons.edit,
+                                            color: Colors.white,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.vkuBlue.withOpacity(
+                                            0.1,
+                                          ),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.add_photo_alternate_outlined,
+                                          size: 48,
+                                          color: AppColors.vkuBlue,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Tải lên ảnh Banner',
+                                        style: AppTextStyles.bodyLarge.copyWith(
+                                          color: AppColors.coolGray700,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Nhấn để chọn ảnh từ thư viện',
+                                        style: AppTextStyles.bodySmall.copyWith(
+                                          color: AppColors.coolGray500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: AppSpacing.spaceLG),
+
+                        // ===== Nút Tạo sự kiện =====
+                        BlocBuilder<CreateEventBloc, CreateEventState>(
+                          builder: (context, state) {
+                            final isLoading = state is CreateEventLoading;
+                            return Container(
+                              height: 56,
+                              decoration: BoxDecoration(
+                                gradient: isLoading
+                                    ? null
+                                    : AppColors.primaryGradient,
+                                color: isLoading ? AppColors.coolGray500 : null,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: isLoading
+                                    ? null
+                                    : [
+                                        BoxShadow(
+                                          color: AppColors.vkuBlue.withOpacity(
+                                            0.3,
+                                          ),
+                                          blurRadius: 12,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                              ),
+                              child: ElevatedButton(
+                                onPressed: isLoading ? null : _onSubmit,
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 0,
+                                  backgroundColor: Colors.transparent,
+                                  shadowColor: Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: EdgeInsets.zero,
+                                ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        height: 24,
+                                        width: 24,
+                                        child: CircularProgressIndicator(
+                                          color: AppColors.white,
+                                          strokeWidth: 3,
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(
+                                            Icons.add_circle_outline,
+                                            color: AppColors.white,
+                                            size: 24,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            'Tạo sự kiện',
+                                            style: AppTextStyles.bodyLarge
+                                                .copyWith(
+                                                  color: AppColors.white,
+                                                  fontWeight: FontWeight.bold,
+                                                  fontSize: 17,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

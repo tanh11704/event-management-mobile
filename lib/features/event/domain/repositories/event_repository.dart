@@ -1,4 +1,5 @@
 import 'package:event_management/features/event/data/models/attendant.dart';
+import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
@@ -26,6 +27,8 @@ abstract class EventRepository {
   Future<EventDetailResponse> getEventDetail(int id);
 
   Future<Attendant> joinEvent(String eventToken);
+
+  Future<Event> createEvent(CreateEventDto createEventDto);
 }
 
 class EventListResult {
