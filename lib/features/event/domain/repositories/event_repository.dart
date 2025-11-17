@@ -29,6 +29,8 @@ abstract class EventRepository {
 
   Future<Attendant> joinEvent(String eventToken);
 
+  Future<void> unjoinEvent(int eventId);
+
   Future<Event> createEvent(CreateEventDto createEventDto);
 
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile);

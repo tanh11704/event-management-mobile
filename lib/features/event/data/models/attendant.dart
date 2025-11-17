@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:event_management/core/utils/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'attendant.g.dart';
@@ -25,9 +26,11 @@ class Attendant extends Equatable {
   final int eventId;
 
   @JsonKey(name: 'checked_time')
+  @NullableTimestampConverter()
   final DateTime? checkedTime;
 
   @JsonKey(name: 'joined_at')
+  @TimestampConverter()
   final DateTime joinedAt;
 
   @override

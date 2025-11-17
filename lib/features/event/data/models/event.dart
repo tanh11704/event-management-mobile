@@ -1,25 +1,9 @@
 import 'package:equatable/equatable.dart';
+import 'package:event_management/core/utils/json_converters.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'event.g.dart';
-
-class UnixTimestampConverter implements JsonConverter<DateTime, dynamic> {
-  const UnixTimestampConverter();
-
-  @override
-  DateTime fromJson(dynamic json) {
-    if (json is num) {
-      return DateTime.fromMillisecondsSinceEpoch((json * 1000).toInt());
-    } else if (json is String) {
-      return DateTime.parse(json);
-    }
-    throw ArgumentError('Cannot convert $json to DateTime');
-  }
-
-  @override
-  dynamic toJson(DateTime object) => object.millisecondsSinceEpoch / 1000;
-}
 
 @JsonSerializable(createToJson: false)
 class Event extends Equatable {
@@ -49,11 +33,11 @@ class Event extends Equatable {
   final String title;
   final String? description;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'start_time')
   final DateTime startTime;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'end_time')
   final DateTime endTime;
 
@@ -71,10 +55,10 @@ class Event extends Equatable {
   final int? currentParticipants;
 
   @JsonKey(name: 'updated_at')
-  @UnixTimestampConverter()
+  @NullableTimestampConverter()
   final DateTime? updatedAt;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
 

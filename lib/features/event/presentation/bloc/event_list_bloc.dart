@@ -85,7 +85,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListFetchAll event,
     Emitter<EventListState> emit,
   ) async {
-    emit(EventListLoading());
+    emit(const EventListLoading());
     _isLoadingMore = false;
     _isViewingManaged = false;
 
@@ -123,7 +123,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListFetchManaged event,
     Emitter<EventListState> emit,
   ) async {
-    emit(EventListLoading());
+    emit(const EventListLoading());
     _isLoadingMore = false;
     _isViewingManaged = true;
 
@@ -286,6 +286,7 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
     EventListJoinEvent event,
     Emitter<EventListState> emit,
   ) async {
+    emit(EventListLoading(joiningEventToken: event.eventToken));
     try {
       await _eventRepository.joinEvent(event.eventToken);
       if (kDebugMode) {
@@ -294,6 +295,10 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
         );
       }
 
+      // Emit success state first
+      emit(const EventListJoinSuccess());
+
+      // Then refresh the list
       _currentPage = 0;
       if (_isViewingManaged) {
         add(
@@ -306,7 +311,27 @@ class EventListBloc extends Bloc<EventListEvent, EventListState> {
       if (kDebugMode) {
         debugPrint('Error joining event: $e');
       }
-      rethrow;
+
+      final errorMessage = e.toString().replaceFirst('Exception: ', '');
+      emit(EventListJoinError(errorMessage));
+
+      final currentState = state;
+      if (currentState is EventListLoaded) {
+        emit(currentState.copyWith());
+      } else {
+        if (_isViewingManaged) {
+          add(
+            EventListFetchManaged(
+              status: _currentStatus,
+              search: _currentSearch,
+            ),
+          );
+        } else {
+          add(
+            EventListFetchAll(status: _currentStatus, search: _currentSearch),
+          );
+        }
+      }
     }
   }
 

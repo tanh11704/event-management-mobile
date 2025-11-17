@@ -41,6 +41,9 @@ abstract class EventApiClient {
   @POST('/events/join/{eventToken}')
   Future<Attendant> joinEvent(@Path('eventToken') String eventToken);
 
+  @DELETE('/attendants/my-registration/{eventId}')
+  Future<void> unjoinEvent(@Path('eventId') int eventId);
+
   @POST('/events')
   Future<Event> createEvent(@Body() CreateEventDto createEventDto);
 

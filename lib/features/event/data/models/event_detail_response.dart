@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/core/utils/json_converters.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/data/models/manager.dart';
 import 'package:event_management/features/event/data/models/participant.dart';
@@ -38,11 +38,11 @@ class EventDetailResponse extends Equatable {
   final String title;
   final String? description;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'start_time')
   final DateTime startTime;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'end_time')
   final DateTime endTime;
 
@@ -63,11 +63,11 @@ class EventDetailResponse extends Equatable {
   @JsonKey(name: 'qr_join_token')
   final String? qrJoinToken;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'created_at')
   final DateTime createdAt;
 
-  @UnixTimestampConverter()
+  @NullableTimestampConverter()
   @JsonKey(name: 'updated_at')
   final DateTime? updatedAt;
 

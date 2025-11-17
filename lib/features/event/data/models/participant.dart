@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/event/data/models/event.dart';
+import 'package:event_management/core/utils/json_converters.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'participant.g.dart';
@@ -31,11 +31,11 @@ class ParticipantInfo extends Equatable {
   @JsonKey(name: 'user_phone')
   final String? userPhone;
 
-  @UnixTimestampConverter()
+  @TimestampConverter()
   @JsonKey(name: 'joined_at')
   final DateTime joinedAt;
 
-  @UnixTimestampConverter()
+  @NullableTimestampConverter()
   @JsonKey(name: 'checked_time')
   final DateTime? checkedTime;
 
