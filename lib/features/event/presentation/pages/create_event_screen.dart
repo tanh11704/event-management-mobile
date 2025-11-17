@@ -5,6 +5,7 @@ import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -40,6 +41,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
   DateTime? _startDate;
   DateTime? _endDate;
   File? _bannerImage;
+  XFile? _bannerImageFile;
 
   final ImagePicker _imagePicker = ImagePicker();
 
@@ -115,7 +117,10 @@ class _CreateEventViewState extends State<_CreateEventView> {
       final image = await _imagePicker.pickImage(source: source);
       if (image != null) {
         setState(() {
-          _bannerImage = File(image.path);
+          _bannerImageFile = image;
+          if (!kIsWeb) {
+            _bannerImage = File(image.path);
+          }
         });
       }
     }
@@ -195,7 +200,11 @@ class _CreateEventViewState extends State<_CreateEventView> {
     );
 
     context.read<CreateEventBloc>().add(
-      CreateEventSubmitted(createEventDto: dto, bannerImage: _bannerImage),
+      CreateEventSubmitted(
+        createEventDto: dto,
+        bannerImage: _bannerImage,
+        bannerImageFile: _bannerImageFile,
+      ),
     );
   }
 
@@ -471,17 +480,24 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                 width: 2,
                               ),
                             ),
-                            child: _bannerImage != null
+                            child: _bannerImageFile != null
                                 ? Stack(
                                     children: [
                                       ClipRRect(
                                         borderRadius: BorderRadius.circular(14),
-                                        child: Image.file(
-                                          _bannerImage!,
-                                          fit: BoxFit.cover,
-                                          width: double.infinity,
-                                          height: double.infinity,
-                                        ),
+                                        child: kIsWeb
+                                            ? Image.network(
+                                                _bannerImageFile!.path,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                              )
+                                            : Image.file(
+                                                _bannerImage!,
+                                                fit: BoxFit.cover,
+                                                width: double.infinity,
+                                                height: double.infinity,
+                                              ),
                                       ),
                                       Positioned(
                                         top: 8,

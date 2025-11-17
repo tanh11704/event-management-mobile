@@ -17,12 +17,16 @@ class Attendant extends Equatable {
       _$AttendantFromJson(json);
 
   final int id;
+
   @JsonKey(name: 'user_id')
   final int userId;
+
   @JsonKey(name: 'event_id')
   final int eventId;
+
   @JsonKey(name: 'checked_time')
   final DateTime? checkedTime;
+
   @JsonKey(name: 'joined_at')
   final DateTime joinedAt;
 
