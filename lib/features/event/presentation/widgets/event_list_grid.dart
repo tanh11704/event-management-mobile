@@ -1,6 +1,6 @@
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/features/event/data/models/event.dart';
-import 'package:event_management/features/event/presentation/widgets/event_card.dart';
+import 'package:event_management/features/event/presentation/widgets/event_card/event_card.dart';
 import 'package:flutter/material.dart';
 
 class EventListGrid extends StatelessWidget {
@@ -24,7 +24,7 @@ class EventListGrid extends StatelessWidget {
           crossAxisCount: 2,
           crossAxisSpacing: AppSpacing.spaceMD,
           mainAxisSpacing: AppSpacing.spaceMD,
-          childAspectRatio: 0.58,
+          childAspectRatio: 0.68,
         ),
         delegate: SliverChildBuilderDelegate((context, index) {
           if (index >= events.length) {
