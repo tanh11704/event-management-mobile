@@ -4,6 +4,7 @@ import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:image_picker/image_picker.dart';
@@ -160,9 +161,13 @@ class EventRepositoryImpl implements EventRepository {
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
       throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
   Future<void> unjoinEvent(int eventId) async {
     try {
-      return await _eventApiClient.unjoinEvent(eventId);
+      await _eventApiClient.unjoinEvent(eventId);
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
@@ -174,6 +179,53 @@ class EventRepositoryImpl implements EventRepository {
         rethrow;
       }
       throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<EventDetailResponse> updateEvent(
+    int eventId,
+    EventDto eventDto,
+  ) async {
+    try {
+      // Update event (returns Event)
+      await _eventApiClient.updateEvent(eventId, eventDto);
+      // Fetch updated event detail (returns EventDetailResponse)
+      return await _eventApiClient.getEventDetail(eventId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể cập nhật sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<String> uploadImage(XFile imageFile) async {
+    try {
+      final bytes = await imageFile.readAsBytes();
+      final fileName = imageFile.name;
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+
+      final response = await _eventApiClient.uploadImage(multipartFile);
+      return response.url;
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể tải lên ảnh.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
 }
