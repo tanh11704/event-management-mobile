@@ -1,8 +1,10 @@
 import 'package:bloc/bloc.dart';
+import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/domain/usecases/get_event_detail_usecase.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
@@ -14,6 +16,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailFetch>(_onFetch);
     on<EventDetailJoin>(_onJoin);
     on<EventDetailUnjoin>(_onUnjoin);
+    on<EventDetailUpdate>(_onUpdate);
   }
 
   final EventRepository _eventRepository;
@@ -77,6 +80,37 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       } catch (e) {
         emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
         emit(currentState.copyWith(isJoining: false));
+      }
+    }
+  }
+
+  Future<void> _onUpdate(
+    EventDetailUpdate event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      emit(currentState.copyWith(isUpdating: true));
+
+      try {
+        // Upload banner if provided
+        if (event.bannerFile != null) {
+          await _eventRepository.uploadBannerFromXFile(
+            event.eventId,
+            event.bannerFile as XFile,
+          );
+        }
+
+        // Update event
+        final updatedEventDetail = await _eventRepository.updateEvent(
+          event.eventId,
+          event.eventDto as EventDto,
+        );
+
+        emit(EventDetailSuccess(eventDetail: updatedEventDetail));
+      } catch (e) {
+        emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
+        emit(currentState.copyWith(isUpdating: false));
       }
     }
   }

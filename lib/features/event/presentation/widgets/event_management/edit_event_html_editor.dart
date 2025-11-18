@@ -116,6 +116,9 @@ class _EditEventHtmlEditorState extends State<EditEventHtmlEditor> {
                 },
                 onFocus: _notifyChanged,
                 onBlur: _notifyChanged,
+                // Note: Image upload via onImageUpload callback requires
+                // FileUpload type which is not available in this version.
+                // Users can paste image URLs or use external image hosting.
               ),
             ),
           ),

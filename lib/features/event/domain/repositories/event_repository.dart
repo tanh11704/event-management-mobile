@@ -3,6 +3,7 @@ import 'package:event_management/features/event/data/models/create_event_dto.dar
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -34,6 +35,10 @@ abstract class EventRepository {
   Future<Event> createEvent(CreateEventDto createEventDto);
 
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile);
+
+  Future<EventDetailResponse> updateEvent(int eventId, EventDto eventDto);
+
+  Future<String> uploadImage(XFile imageFile);
 }
 
 class EventListResult {
