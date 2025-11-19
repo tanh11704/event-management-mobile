@@ -1,5 +1,6 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_stat_card.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
@@ -346,33 +347,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildUserManagementTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.people_alt_rounded,
-            size: 80,
-            color: AppColors.coolGray500.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Quản lý người dùng',
-            style: AppTextStyles.heading3.copyWith(
-              color: AppColors.coolGray700,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Chức năng đang được phát triển',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.coolGray500,
-            ),
-          ),
-        ],
-      ),
-    );
+    return const UserManagementScreen();
   }
 
   Widget _buildUnitManagementTab() {
@@ -423,7 +398,7 @@ class _DashboardCounters extends StatelessWidget {
         final isWide = constraints.maxWidth > 960;
         final crossAxisCount = isWide ? 5 : 2;
         const spacing = 16.0;
-        final aspectRatio = isWide ? 2.2 : 2.5;
+        final aspectRatio = isWide ? 2.0 : 1.8;
         return GridView.count(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
