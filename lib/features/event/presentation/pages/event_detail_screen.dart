@@ -1,8 +1,10 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/core/services/calendar_service.dart';
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
@@ -56,17 +58,61 @@ class EventDetailScreen extends StatelessWidget {
   }
 }
 
-class _EventDetailContent extends StatelessWidget {
+class _EventDetailContent extends StatefulWidget {
   const _EventDetailContent({required this.eventDetail});
 
   final EventDetailResponse eventDetail;
+
+  @override
+  State<_EventDetailContent> createState() => _EventDetailContentState();
+}
+
+class _EventDetailContentState extends State<_EventDetailContent> {
+  bool? _isManagerOrSecretary;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPermission();
+  }
+
+  /// Kiểm tra xem user hiện tại có phải là manager hoặc secretary không
+  Future<void> _checkPermission() async {
+    try {
+      final authRepository = di.sl<AuthRepository>();
+      final currentUser = await authRepository.getAuthUser();
+      final currentUserId = currentUser.id;
+
+      // Check if user is manager
+      final isManager = widget.eventDetail.manager.any(
+        (manager) => manager.userId == currentUserId,
+      );
+
+      // Check if user is secretary
+      final isSecretary = widget.eventDetail.secretaries.any(
+        (secretary) => secretary.userId == currentUserId,
+      );
+
+      if (mounted) {
+        setState(() {
+          _isManagerOrSecretary = isManager || isSecretary;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isManagerOrSecretary = false;
+        });
+      }
+    }
+  }
 
   Future<void> _addEventToCalendar(
     BuildContext context,
     EventDetailResponse eventDetail,
   ) async {
-    if (eventDetail.status == EventStatus.completed ||
-        eventDetail.status == EventStatus.cancelled) {
+    if (widget.eventDetail.status == EventStatus.completed ||
+        widget.eventDetail.status == EventStatus.cancelled) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text(
@@ -82,7 +128,7 @@ class _EventDetailContent extends StatelessWidget {
       return;
     }
 
-    showDialog(
+    showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => const Center(child: CircularProgressIndicator()),
@@ -148,12 +194,31 @@ class _EventDetailContent extends StatelessWidget {
                   color: AppColors.white,
                 ),
                 onPressed: () {
-                  _addEventToCalendar(context, eventDetail);
+                  _addEventToCalendar(context, widget.eventDetail);
                 },
               ),
+              // Nút Quản lý - chỉ hiển thị cho manager/secretary
+              if (_isManagerOrSecretary ?? false)
+                IconButton(
+                  icon: const Icon(
+                    Icons.settings_rounded,
+                    color: AppColors.white,
+                  ),
+                  tooltip: 'Quản lý sự kiện',
+                  onPressed: () {
+                    context.go(
+                      AppRoutes.eventManagement.replaceAll(
+                        ':id',
+                        widget.eventDetail.id.toString(),
+                      ),
+                    );
+                  },
+                ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: EventDetailBanner(bannerUrl: eventDetail.banner),
+              background: EventDetailBanner(
+                bannerUrl: widget.eventDetail.banner,
+              ),
             ),
           ),
 
@@ -166,39 +231,41 @@ class _EventDetailContent extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      EventDetailTitle(title: eventDetail.title),
+                      EventDetailTitle(title: widget.eventDetail.title),
                       const SizedBox(height: AppSpacing.spaceXM),
-                      EventDetailStatusChip(status: eventDetail.status),
+                      EventDetailStatusChip(status: widget.eventDetail.status),
                     ],
                   ),
                 ),
 
-                EventDetailInfoSection(eventDetail: eventDetail),
+                EventDetailInfoSection(eventDetail: widget.eventDetail),
 
                 const SizedBox(height: AppSpacing.spaceMD),
 
                 EventDetailParticipantsSection(
-                  participants: eventDetail.participants,
-                  maxParticipants: eventDetail.maxParticipants,
+                  participants: widget.eventDetail.participants,
+                  maxParticipants: widget.eventDetail.maxParticipants,
                 ),
 
                 const SizedBox(height: AppSpacing.spaceMD),
 
-                if (eventDetail.description != null &&
-                    eventDetail.description!.isNotEmpty)
-                  EventDetailDescription(description: eventDetail.description!),
+                if (widget.eventDetail.description != null &&
+                    widget.eventDetail.description!.isNotEmpty)
+                  EventDetailDescription(
+                    description: widget.eventDetail.description!,
+                  ),
 
                 const SizedBox(height: AppSpacing.spaceMD),
 
-                if (eventDetail.urlDocs != null &&
-                    eventDetail.urlDocs!.isNotEmpty)
+                if (widget.eventDetail.urlDocs != null &&
+                    widget.eventDetail.urlDocs!.isNotEmpty)
                   Container(
                     margin: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.spaceMD,
                     ),
                     child: OutlinedButton.icon(
                       onPressed: () async {
-                        final uri = Uri.parse(eventDetail.urlDocs!);
+                        final uri = Uri.parse(widget.eventDetail.urlDocs!);
                         if (await canLaunchUrl(uri)) {
                           await launchUrl(
                             uri,
@@ -230,7 +297,9 @@ class _EventDetailContent extends StatelessWidget {
           ),
         ],
       ),
-      bottomNavigationBar: EventDetailCtaButton(eventDetail: eventDetail),
+      bottomNavigationBar: EventDetailCtaButton(
+        eventDetail: widget.eventDetail,
+      ),
     );
   }
 }

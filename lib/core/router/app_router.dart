@@ -12,16 +12,20 @@ import 'package:event_management/features/auth/presentation/pages/register_scree
 import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/presentation/pages/create_event_screen.dart';
 import 'package:event_management/features/event/presentation/pages/event_detail_screen.dart';
 import 'package:event_management/features/event/presentation/pages/event_list_screen.dart';
+import 'package:event_management/features/event/presentation/pages/event_management_screen.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 class AppRoutes {
   static const String login = '/login';
   static const String home = '/';
+  static const String admin = '/admin';
   static const String eventList = '/events';
   static const String eventDetail = '/events/:id';
   static const String register = '/register';
@@ -30,6 +34,7 @@ class AppRoutes {
   static const String admin = '/admin';
   static const String createEvent = '/create-event';
   static const String userManagement = '/admin/user-management';
+  static const String eventManagement = '/events/:id/manage';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -43,6 +48,16 @@ final GoRouter appRouter = GoRouter(
         return BlocProvider(
           create: (context) => sl<LoginBloc>(),
           child: const LoginScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.admin,
+      name: AppRoutes.admin,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<EventListBloc>(),
+          child: const AdminDashboardScreen(),
         );
       },
     ),
@@ -123,6 +138,27 @@ final GoRouter appRouter = GoRouter(
       name: AppRoutes.userManagement,
       builder: (context, state) {
         return const UserManagementScreen();
+      },
+    ),
+      path: AppRoutes.eventManagement,
+      name: AppRoutes.eventManagement,
+      builder: (context, state) {
+        final eventId = int.parse(state.pathParameters['id']!);
+        return BlocProvider(
+          create: (context) =>
+              sl<EventDetailBloc>()..add(EventDetailFetch(eventId: eventId)),
+          child: BlocBuilder<EventDetailBloc, EventDetailState>(
+            builder: (context, state) {
+              if (state is EventDetailSuccess) {
+                return EventManagementScreen(eventDetail: state.eventDetail);
+              }
+              // Show loading or error state
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
+        );
       },
     ),
   ],
