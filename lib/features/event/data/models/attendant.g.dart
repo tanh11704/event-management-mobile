@@ -10,8 +10,10 @@ Attendant _$AttendantFromJson(Map<String, dynamic> json) => Attendant(
   id: (json['id'] as num).toInt(),
   userId: (json['user_id'] as num).toInt(),
   eventId: (json['event_id'] as num).toInt(),
-  joinedAt: const TimestampConverter().fromJson(json['joined_at']),
+  joinedAt: const TimestampConverter().fromJson(
+    (json['joined_at'] as num).toDouble(),
+  ),
   checkedTime: const NullableTimestampConverter().fromJson(
-    json['checked_time'],
+    (json['checked_time'] as num?)?.toDouble(),
   ),
 );
