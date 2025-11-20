@@ -1,4 +1,3 @@
-import 'package:event_management/features/admin/data/models/role.dart';
 import 'package:event_management/features/admin/data/models/role_dto.dart';
 import 'package:event_management/features/unit/data/model/unit_response_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
@@ -21,9 +20,9 @@ class UserResponseDto {
     final rolesJson = json['roles'] as List<dynamic>?;
     final roles = rolesJson?.map((e) {
       if (e is Map<String, dynamic>) {
-        return RoleDto.fromJson(e).toRole();
+        return RoleDto.fromJson(e);
       }
-      return RoleDto.fromJson({'id': 0, 'role_name': e.toString()}).toRole();
+      return RoleDto.fromJson({'id': 0, 'role_name': e.toString()});
     }).toList();
 
     return UserResponseDto(
@@ -58,7 +57,7 @@ class UserResponseDto {
   final UnitResponseDto? unit;
 
   @JsonKey(includeToJson: false, includeFromJson: false)
-  final List<Role>? roles;
+  final List<RoleDto>? roles;
 
   Map<String, dynamic> toJson() {
     return {
@@ -68,18 +67,7 @@ class UserResponseDto {
       'phone_number': phoneNumber,
       'enabled': enabled,
       'unit': unit?.toJson(),
-      'roles': roles?.map((role) {
-        String roleName;
-        switch (role) {
-          case Role.ROLE_ADMIN:
-            roleName = 'ROLE_ADMIN';
-          case Role.ROLE_MANAGER:
-            roleName = 'ROLE_MANAGER';
-          case Role.ROLE_USER:
-            roleName = 'ROLE_USER';
-        }
-        return {'role_name': roleName};
-      }).toList(),
+      'roles': roles?.map((role) => role.toJson()).toList(),
     };
   }
 }

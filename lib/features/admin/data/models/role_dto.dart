@@ -1,4 +1,3 @@
-import 'package:event_management/features/admin/data/models/role.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'role_dto.g.dart';
@@ -15,16 +14,17 @@ class RoleDto {
   @JsonKey(name: 'role_name')
   final String roleName;
 
-  Role toRole() {
+  /// Hiển thị tên vai trò bằng tiếng Việt
+  String get displayName {
     switch (roleName) {
       case 'ROLE_ADMIN':
-        return Role.ROLE_ADMIN;
+        return 'Quản trị viên';
       case 'ROLE_MANAGER':
-        return Role.ROLE_MANAGER;
+        return 'Quản lý';
       case 'ROLE_USER':
-        return Role.ROLE_USER;
+        return 'Người dùng';
       default:
-        throw ArgumentError('Unknown role: $roleName');
+        return roleName;
     }
   }
 

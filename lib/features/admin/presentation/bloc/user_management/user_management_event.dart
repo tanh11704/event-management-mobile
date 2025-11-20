@@ -14,3 +14,17 @@ class UserManagementFetchAll extends UserManagementEvent {
 class UserManagementRefresh extends UserManagementEvent {
   const UserManagementRefresh();
 }
+
+class UserManagementFetchRoles extends UserManagementEvent {
+  const UserManagementFetchRoles();
+}
+
+class UserManagementUpdateRole extends UserManagementEvent {
+  const UserManagementUpdateRole({required this.userId, required this.roleId});
+
+  final int userId;
+  final int roleId;
+
+  @override
+  List<Object> get props => [userId, roleId];
+}

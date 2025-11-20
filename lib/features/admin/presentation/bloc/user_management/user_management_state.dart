@@ -1,11 +1,12 @@
 import 'package:equatable/equatable.dart';
+import 'package:event_management/features/admin/domain/entity/role_entity.dart';
 import 'package:event_management/features/admin/domain/entity/user_entity.dart';
 
 abstract class UserManagementState extends Equatable {
   const UserManagementState();
 
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class UserManagementInitial extends UserManagementState {
@@ -17,12 +18,23 @@ class UserManagementLoading extends UserManagementState {
 }
 
 class UserManagementSuccess extends UserManagementState {
-  const UserManagementSuccess({required this.users});
+  const UserManagementSuccess({required this.users, this.roles});
 
   final List<UserEntity> users;
+  final List<RoleEntity>? roles;
+
+  UserManagementSuccess copyWith({
+    List<UserEntity>? users,
+    List<RoleEntity>? roles,
+  }) {
+    return UserManagementSuccess(
+      users: users ?? this.users,
+      roles: roles ?? this.roles,
+    );
+  }
 
   @override
-  List<Object> get props => [users];
+  List<Object?> get props => [users, roles];
 }
 
 class UserManagementFailure extends UserManagementState {

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:event_management/features/admin/data/models/role.dart';
+import 'package:event_management/features/admin/domain/entity/role_entity.dart';
 import 'package:event_management/features/unit/domain/entity/unit_entity.dart';
 
 class UserEntity extends Equatable {
@@ -19,9 +19,9 @@ class UserEntity extends Equatable {
   final String? phoneNumber;
   final bool? enabled;
   final UnitEntity? unit;
-  final List<Role>? roles;
+  final List<RoleEntity>? roles;
 
-  String get statusText => enabled == true ? 'Hoạt động' : 'Đã khóa';
+  String get statusText => enabled ?? false ? 'Hoạt động' : 'Đã khóa';
 
   String get rolesText {
     if (roles == null || roles!.isEmpty) {
@@ -34,13 +34,12 @@ class UserEntity extends Equatable {
 
   @override
   List<Object?> get props => [
-        id,
-        name,
-        email,
-        phoneNumber,
-        enabled,
-        unit,
-        roles,
-      ];
+    id,
+    name,
+    email,
+    phoneNumber,
+    enabled,
+    unit,
+    roles,
+  ];
 }
-

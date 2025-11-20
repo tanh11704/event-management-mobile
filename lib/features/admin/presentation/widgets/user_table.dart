@@ -1,7 +1,10 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/admin/domain/entity/user_entity.dart';
+import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
+import 'package:event_management/features/admin/presentation/widgets/update_role_dialog.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UserTable extends StatelessWidget {
   const UserTable({required this.users, super.key});
@@ -370,8 +373,20 @@ class _UserRow extends StatelessWidget {
                 ),
               ],
               onSelected: (value) {
-                // TODO: Handle action
-                // print('Action: $value for user ${user.id}');
+                if (value == 'view') {
+                  final bloc = context.read<UserManagementBloc>();
+                  showDialog<void>(
+                    context: context,
+                    builder: (dialogContext) => BlocProvider.value(
+                      value: bloc,
+                      child: UpdateRoleDialog(user: user),
+                    ),
+                  );
+                } else if (value == 'edit') {
+                  // TODO: Handle edit unit
+                } else if (value == 'block' || value == 'unblock') {
+                  // TODO: Handle block/unblock
+                }
               },
             ),
           ),
@@ -499,8 +514,20 @@ class _UserCard extends StatelessWidget {
                   ),
                 ],
                 onSelected: (value) {
-                  // TODO: Handle action
-                  // print('Action: $value for user ${user.id}');
+                  if (value == 'view') {
+                    final bloc = context.read<UserManagementBloc>();
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => BlocProvider.value(
+                        value: bloc,
+                        child: UpdateRoleDialog(user: user),
+                      ),
+                    );
+                  } else if (value == 'edit') {
+                    // TODO: Handle edit unit
+                  } else if (value == 'block' || value == 'unblock') {
+                    // TODO: Handle block/unblock
+                  }
                 },
               ),
             ],
