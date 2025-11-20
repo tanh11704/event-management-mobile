@@ -4,13 +4,6 @@ import 'package:flutter/material.dart';
 
 // TODO: Replace with actual User model from domain layer
 class User {
-  final String id;
-  final String name;
-  final String email;
-  final String unit;
-  final String role;
-  final String status;
-
   const User({
     required this.id,
     required this.name,
@@ -19,6 +12,12 @@ class User {
     required this.role,
     required this.status,
   });
+  final String id;
+  final String name;
+  final String email;
+  final String unit;
+  final String role;
+  final String status;
 }
 
 class UserTable extends StatelessWidget {
@@ -101,9 +100,9 @@ class UserTable extends StatelessWidget {
           // Table Header
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.coolGray50,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
               ),
@@ -321,7 +320,7 @@ class _UserRow extends StatelessWidget {
           SizedBox(
             width: 60,
             child: PopupMenuButton<String>(
-              icon: Icon(
+              icon: const Icon(
                 Icons.more_vert_rounded,
                 color: AppColors.coolGray700,
                 size: 20,
@@ -330,7 +329,7 @@ class _UserRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(10),
               ),
               itemBuilder: (context) => [
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'view',
                   child: Row(
                     children: [
@@ -339,12 +338,12 @@ class _UserRow extends StatelessWidget {
                         size: 20,
                         color: AppColors.coolGray700,
                       ),
-                      const SizedBox(width: 12),
-                      const Text('Xem chi tiết'),
+                      SizedBox(width: 12),
+                      Text('Chỉnh sửa vai trò'),
                     ],
                   ),
                 ),
-                PopupMenuItem(
+                const PopupMenuItem(
                   value: 'edit',
                   child: Row(
                     children: [
@@ -353,8 +352,8 @@ class _UserRow extends StatelessWidget {
                         size: 20,
                         color: AppColors.coolGray700,
                       ),
-                      const SizedBox(width: 12),
-                      const Text('Chỉnh sửa'),
+                      SizedBox(width: 12),
+                      Text('Chỉnh sửa đơn vị'),
                     ],
                   ),
                 ),
@@ -448,7 +447,7 @@ class _UserCard extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               PopupMenuButton<String>(
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_vert_rounded,
                   color: AppColors.coolGray700,
                   size: 20,
@@ -457,7 +456,7 @@ class _UserCard extends StatelessWidget {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 itemBuilder: (context) => [
-                  PopupMenuItem(
+                  const PopupMenuItem(
                     value: 'view',
                     child: Row(
                       children: [
@@ -466,12 +465,12 @@ class _UserCard extends StatelessWidget {
                           size: 18,
                           color: AppColors.coolGray700,
                         ),
-                        const SizedBox(width: 12),
-                        const Text('Xem chi tiết'),
+                        SizedBox(width: 12),
+                        Text('Chỉnh sửa vai trò'),
                       ],
                     ),
                   ),
-                  PopupMenuItem(
+                  const PopupMenuItem(
                     value: 'edit',
                     child: Row(
                       children: [
@@ -480,8 +479,8 @@ class _UserCard extends StatelessWidget {
                           size: 18,
                           color: AppColors.coolGray700,
                         ),
-                        const SizedBox(width: 12),
-                        const Text('Chỉnh sửa'),
+                        SizedBox(width: 12),
+                        Text('Chỉnh sửa đơn vị'),
                       ],
                     ),
                   ),

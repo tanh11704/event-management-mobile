@@ -1,6 +1,10 @@
 import 'package:dio/dio.dart';
-import 'package:event_management/core/services/biometric_service.dart';
 import 'package:event_management/core/network/dio_config.dart';
+import 'package:event_management/core/services/biometric_service.dart';
+import 'package:event_management/features/admin/data/datasources/admin_api_client.dart';
+import 'package:event_management/features/admin/data/repository/admin_repository_impl.dart';
+import 'package:event_management/features/admin/domain/repositories/admin_repository.dart';
+import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
@@ -43,6 +47,8 @@ Future<void> init() async {
     )
     ..registerFactory(() => CreateEventBloc(eventRepository: sl()))
     ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
+    // Admin Bloc
+    ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
     // Core - Register secure storage first
     ..registerLazySingleton(() => const FlutterSecureStorage())
     ..registerLazySingleton(BiometricService.new) // Thêm dòng này
@@ -52,6 +58,7 @@ Future<void> init() async {
     )
     ..registerLazySingleton<EventRepository>(() => EventRepositoryImpl(sl()))
     ..registerLazySingleton<UnitRepository>(() => UnitRepositoryImpl(sl()))
+    ..registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl(sl()))
     // Dio instances - Main Dio for general use (has auth interceptor)
     ..registerLazySingleton<Dio>(
       () =>
@@ -64,5 +71,6 @@ Future<void> init() async {
     )
     ..registerLazySingleton<UnitApiClient>(() => UnitApiClient(sl()))
     ..registerLazySingleton<EventApiClient>(() => EventApiClient(sl()))
+    ..registerLazySingleton<AdminApiClient>(() => AdminApiClient(sl()))
     ..registerLazySingleton<EventSseService>(() => EventSseService(sl()));
 }

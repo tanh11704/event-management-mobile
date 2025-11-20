@@ -1,6 +1,5 @@
 import 'package:event_management/core/di/injection_container.dart';
 import 'package:event_management/features/admin/presentation/pages/admin_dashboard_screen.dart';
-import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
 import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
@@ -29,7 +28,6 @@ class AppRoutes {
   static const String forgotPassword = '/forgot-password';
   static const String admin = '/admin';
   static const String createEvent = '/create-event';
-  static const String userManagement = '/admin/user-management';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -116,13 +114,6 @@ final GoRouter appRouter = GoRouter(
           create: (context) => sl<EventListBloc>(),
           child: const AdminDashboardScreen(),
         );
-      },
-    ),
-    GoRoute(
-      path: AppRoutes.userManagement,
-      name: AppRoutes.userManagement,
-      builder: (context, state) {
-        return const UserManagementScreen();
       },
     ),
   ],
