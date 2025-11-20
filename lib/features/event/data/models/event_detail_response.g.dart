@@ -10,10 +10,16 @@ EventDetailResponse _$EventDetailResponseFromJson(Map<String, dynamic> json) =>
     EventDetailResponse(
       id: (json['id'] as num).toInt(),
       title: json['title'] as String,
-      startTime: const TimestampConverter().fromJson(json['start_time']),
-      endTime: const TimestampConverter().fromJson(json['end_time']),
+      startTime: const TimestampConverter().fromJson(
+        (json['start_time'] as num).toDouble(),
+      ),
+      endTime: const TimestampConverter().fromJson(
+        (json['end_time'] as num).toDouble(),
+      ),
       status: $enumDecode(_$EventStatusEnumMap, json['status']),
-      createdAt: const TimestampConverter().fromJson(json['created_at']),
+      createdAt: const TimestampConverter().fromJson(
+        (json['created_at'] as num).toDouble(),
+      ),
       description: json['description'] as String?,
       location: json['location'] as String?,
       createBy: (json['create_by'] as num?)?.toInt(),
@@ -22,7 +28,7 @@ EventDetailResponse _$EventDetailResponseFromJson(Map<String, dynamic> json) =>
       maxParticipants: (json['max_participants'] as num?)?.toInt(),
       qrJoinToken: json['qr_join_token'] as String?,
       updatedAt: const NullableTimestampConverter().fromJson(
-        json['updated_at'],
+        (json['updated_at'] as num?)?.toDouble(),
       ),
       isUserRegistered: json['is_user_registered'] as bool?,
       participants:
