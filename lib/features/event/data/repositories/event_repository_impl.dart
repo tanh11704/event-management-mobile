@@ -1,12 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/datasources/event_api_client.dart';
-import 'package:event_management/features/event/data/models/attendant.dart';
-import 'package:event_management/features/event/data/models/create_event_dto.dart';
-import 'package:event_management/features/event/data/models/event.dart';
-import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 
 @LazySingleton(as: EventRepository)
@@ -14,21 +9,6 @@ class EventRepositoryImpl implements EventRepository {
   EventRepositoryImpl(this._eventApiClient);
 
   final EventApiClient _eventApiClient;
-
-  @override
-  Future<Event> createEvent(CreateEventDto createEventDto) async {
-    try {
-      return await _eventApiClient.createEvent(createEventDto);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tạo sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định: $e');
-    }
-  }
 
   @override
   Future<EventListResult> getAllEvents({
@@ -102,77 +82,6 @@ class EventRepositoryImpl implements EventRepository {
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định.');
-    }
-  }
-
-  @override
-  Future<EventDetailResponse> getEventDetail(int id) async {
-    try {
-      return await _eventApiClient.getEventDetail(id);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tải chi tiết sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      throw Exception('Đã xảy ra lỗi không xác định.');
-    }
-  }
-
-  @override
-  Future<Attendant> joinEvent(String eventToken) async {
-    try {
-      return await _eventApiClient.joinEvent(eventToken);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tham gia sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
-      throw Exception('Đã xảy ra lỗi không xác định.');
-    }
-  }
-
-  @override
-  Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile) async {
-    try {
-      final bytes = await bannerFile.readAsBytes();
-
-      final fileName = bannerFile.name;
-
-      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
-
-      return await _eventApiClient.uploadBanner(eventId, multipartFile);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tải lên banner.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định: $e');
-  Future<void> unjoinEvent(int eventId) async {
-    try {
-      return await _eventApiClient.unjoinEvent(eventId);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể hủy đăng ký sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      if (e is Exception) {
-        rethrow;
-      }
       throw Exception('Đã xảy ra lỗi không xác định.');
     }
   }
