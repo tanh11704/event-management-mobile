@@ -1,5 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/di/injection_container.dart' as di;
+import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
 import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_stat_card.dart';
 import 'package:event_management/features/event/data/models/event.dart';
@@ -347,7 +349,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildUserManagementTab() {
-    return const UserManagementScreen();
+    return BlocProvider(
+      create: (context) => di.sl<UserManagementBloc>(),
+      child: const UserManagementScreen(),
+    );
   }
 
   Widget _buildUnitManagementTab() {

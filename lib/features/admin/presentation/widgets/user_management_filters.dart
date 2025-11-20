@@ -1,6 +1,9 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
+import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class UserManagementFilters extends StatelessWidget {
   const UserManagementFilters({required this.searchController, super.key});
@@ -37,14 +40,14 @@ class UserManagementFilters extends StatelessWidget {
                   child: TextField(
                     controller: searchController,
                     onChanged: (value) {
-                      // TODO: Dispatch search event to BLoC
+                      // TODO: Implement search filtering if needed
                     },
                     decoration: InputDecoration(
                       hintText: 'Tìm kiếm theo tên, email...',
                       hintStyle: AppTextStyles.bodySmall.copyWith(
                         color: AppColors.coolGray500,
                       ),
-                      prefixIcon: Icon(
+                      prefixIcon: const Icon(
                         Icons.search_rounded,
                         color: AppColors.coolGray500,
                         size: 20,
@@ -71,7 +74,7 @@ class UserManagementFilters extends StatelessWidget {
                     color: AppColors.coolGray50,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.filter_list_rounded,
                     color: AppColors.coolGray700,
                     size: 20,
@@ -81,7 +84,9 @@ class UserManagementFilters extends StatelessWidget {
               const SizedBox(width: 8),
               InkWell(
                 onTap: () {
-                  // TODO: Dispatch refresh event to BLoC
+                  context.read<UserManagementBloc>().add(
+                    const UserManagementRefresh(),
+                  );
                 },
                 borderRadius: BorderRadius.circular(10),
                 child: Container(
@@ -91,7 +96,7 @@ class UserManagementFilters extends StatelessWidget {
                     color: AppColors.coolGray50,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.refresh_rounded,
                     color: AppColors.coolGray700,
                     size: 20,

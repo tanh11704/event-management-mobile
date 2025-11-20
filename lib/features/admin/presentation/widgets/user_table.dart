@@ -1,71 +1,12 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/admin/domain/entity/user_entity.dart';
 import 'package:flutter/material.dart';
 
-// TODO: Replace with actual User model from domain layer
-class User {
-  const User({
-    required this.id,
-    required this.name,
-    required this.email,
-    required this.unit,
-    required this.role,
-    required this.status,
-  });
-  final String id;
-  final String name;
-  final String email;
-  final String unit;
-  final String role;
-  final String status;
-}
-
 class UserTable extends StatelessWidget {
-  const UserTable({super.key});
+  const UserTable({required this.users, super.key});
 
-  // TODO: Replace with actual data from BLoC/API
-  List<User> get _mockUsers => [
-    const User(
-      id: '1',
-      name: 'Super Admin',
-      email: 'admin@yourapp.com',
-      unit: 'Chưa có',
-      role: 'Quản trị viên',
-      status: 'Hoạt động',
-    ),
-    const User(
-      id: '2',
-      name: 'Trần Phước Anh',
-      email: 'anhtp.22it@vku.udn.vn',
-      unit: 'Chưa có',
-      role: 'Người dùng',
-      status: 'Hoạt động',
-    ),
-    const User(
-      id: '3',
-      name: 'Trần Phước Anh',
-      email: 'tanhi1704@gmail.com',
-      unit: 'Chưa có',
-      role: 'Người dùng',
-      status: 'Hoạt động',
-    ),
-    const User(
-      id: '4',
-      name: 'test',
-      email: 'test@gmail.com',
-      unit: 'Chưa có',
-      role: 'Người dùng',
-      status: 'Đã khóa',
-    ),
-    const User(
-      id: '5',
-      name: 'Nguyễn Minh Nhật',
-      email: 'nhatnguyen389@gmail.com',
-      unit: 'Chưa có',
-      role: 'Người dùng',
-      status: 'Hoạt động',
-    ),
-  ];
+  final List<UserEntity> users;
 
   @override
   Widget build(BuildContext context) {
@@ -169,32 +110,79 @@ class UserTable extends StatelessWidget {
           ),
 
           // Table Rows
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _mockUsers.length,
-            separatorBuilder: (context, index) => Divider(
-              height: 1,
-              color: AppColors.coolGray500.withOpacity(0.1),
+          if (users.isEmpty)
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(
+                      Icons.people_outline_rounded,
+                      size: 48,
+                      color: AppColors.coolGray500.withOpacity(0.5),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Chưa có người dùng nào',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.coolGray500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: users.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                color: AppColors.coolGray500.withOpacity(0.1),
+              ),
+              itemBuilder: (context, index) {
+                final user = users[index];
+                return _UserRow(user: user);
+              },
             ),
-            itemBuilder: (context, index) {
-              final user = _mockUsers[index];
-              return _UserRow(user: user);
-            },
-          ),
         ],
       ),
     );
   }
 
   Widget _buildCardLayout() {
+    if (users.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(24),
+        child: Center(
+          child: Column(
+            children: [
+              Icon(
+                Icons.people_outline_rounded,
+                size: 48,
+                color: AppColors.coolGray500.withOpacity(0.5),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Chưa có người dùng nào',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.coolGray500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ListView.separated(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _mockUsers.length,
+      itemCount: users.length,
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final user = _mockUsers[index];
+        final user = users[index];
         return _UserCard(user: user);
       },
     );
@@ -204,11 +192,11 @@ class UserTable extends StatelessWidget {
 class _UserRow extends StatelessWidget {
   const _UserRow({required this.user});
 
-  final User user;
+  final UserEntity user;
 
   @override
   Widget build(BuildContext context) {
-    final isActive = user.status == 'Hoạt động';
+    final isActive = user.enabled ?? false;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -248,7 +236,7 @@ class _UserRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              user.unit,
+              user.unitName,
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.coolGray700,
               ),
@@ -285,7 +273,7 @@ class _UserRow extends StatelessWidget {
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
-                      user.status,
+                      user.statusText,
                       style: AppTextStyles.caption.copyWith(
                         color: isActive
                             ? AppColors.green500
@@ -306,7 +294,7 @@ class _UserRow extends StatelessWidget {
           Expanded(
             flex: 2,
             child: Text(
-              user.role,
+              user.rolesText,
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.coolGray700,
               ),
@@ -383,7 +371,7 @@ class _UserRow extends StatelessWidget {
               ],
               onSelected: (value) {
                 // TODO: Handle action
-                print('Action: $value for user ${user.id}');
+                // print('Action: $value for user ${user.id}');
               },
             ),
           ),
@@ -396,11 +384,11 @@ class _UserRow extends StatelessWidget {
 class _UserCard extends StatelessWidget {
   const _UserCard({required this.user});
 
-  final User user;
+  final UserEntity user;
 
   @override
   Widget build(BuildContext context) {
-    final isActive = user.status == 'Hoạt động';
+    final isActive = user.enabled ?? false;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -512,7 +500,7 @@ class _UserCard extends StatelessWidget {
                 ],
                 onSelected: (value) {
                   // TODO: Handle action
-                  print('Action: $value for user ${user.id}');
+                  // print('Action: $value for user ${user.id}');
                 },
               ),
             ],
@@ -522,8 +510,8 @@ class _UserCard extends StatelessWidget {
             spacing: 12,
             runSpacing: 8,
             children: [
-              _InfoChip(icon: Icons.business_rounded, label: user.unit),
-              _InfoChip(icon: Icons.badge_rounded, label: user.role),
+              _InfoChip(icon: Icons.business_rounded, label: user.unitName),
+              _InfoChip(icon: Icons.badge_rounded, label: user.rolesText),
               Container(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
@@ -550,7 +538,7 @@ class _UserCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      user.status,
+                      user.statusText,
                       style: AppTextStyles.caption.copyWith(
                         color: isActive
                             ? AppColors.green500

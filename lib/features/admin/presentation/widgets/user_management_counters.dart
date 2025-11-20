@@ -1,18 +1,18 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/admin/domain/entity/user_entity.dart';
 import 'package:flutter/material.dart';
 
 class UserManagementCounters extends StatelessWidget {
-  const UserManagementCounters({
-    required this.totalUsers,
-    required this.activeUsers,
-    required this.blockedUsers,
-    super.key,
-  });
+  const UserManagementCounters({required this.users, super.key});
 
-  final int totalUsers;
-  final int activeUsers;
-  final int blockedUsers;
+  final List<UserEntity> users;
+
+  int get _totalUsers => users.length;
+
+  int get _activeUsers => users.where((user) => user.enabled ?? false).length;
+
+  int get _blockedUsers => users.where((user) => user.enabled == false).length;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +26,7 @@ class UserManagementCounters extends StatelessWidget {
               Expanded(
                 child: _CounterCard(
                   title: 'Tổng số tài khoản',
-                  count: totalUsers,
+                  count: _totalUsers,
                   icon: Icons.groups_rounded,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
@@ -39,7 +39,7 @@ class UserManagementCounters extends StatelessWidget {
               Expanded(
                 child: _CounterCard(
                   title: 'Đang hoạt động',
-                  count: activeUsers,
+                  count: _activeUsers,
                   icon: Icons.check_circle_rounded,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF22C55E), Color(0xFF4ADE80)],
@@ -52,7 +52,7 @@ class UserManagementCounters extends StatelessWidget {
               Expanded(
                 child: _CounterCard(
                   title: 'Đã khóa',
-                  count: blockedUsers,
+                  count: _blockedUsers,
                   icon: Icons.block_rounded,
                   gradient: const LinearGradient(
                     colors: [Color(0xFF64748B), Color(0xFF94A3B8)],
@@ -69,7 +69,7 @@ class UserManagementCounters extends StatelessWidget {
           children: [
             _CounterCard(
               title: 'Tổng số tài khoản',
-              count: totalUsers,
+              count: _totalUsers,
               icon: Icons.groups_rounded,
               gradient: const LinearGradient(
                 colors: [Color(0xFF3B82F6), Color(0xFF60A5FA)],
@@ -80,7 +80,7 @@ class UserManagementCounters extends StatelessWidget {
             const SizedBox(height: 12),
             _CounterCard(
               title: 'Đang hoạt động',
-              count: activeUsers,
+              count: _activeUsers,
               icon: Icons.check_circle_rounded,
               gradient: const LinearGradient(
                 colors: [Color(0xFF22C55E), Color(0xFF4ADE80)],
@@ -91,7 +91,7 @@ class UserManagementCounters extends StatelessWidget {
             const SizedBox(height: 12),
             _CounterCard(
               title: 'Đã khóa',
-              count: blockedUsers,
+              count: _blockedUsers,
               icon: Icons.block_rounded,
               gradient: const LinearGradient(
                 colors: [Color(0xFF64748B), Color(0xFF94A3B8)],
@@ -143,11 +143,7 @@ class _CounterCard extends StatelessWidget {
               gradient: gradient,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(
-              icon,
-              color: AppColors.white,
-              size: 24,
-            ),
+            child: Icon(icon, color: AppColors.white, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(

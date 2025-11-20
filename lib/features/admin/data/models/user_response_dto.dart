@@ -1,10 +1,11 @@
 import 'package:event_management/features/admin/data/models/role.dart';
+import 'package:event_management/features/admin/data/models/role_dto.dart';
 import 'package:event_management/features/unit/data/model/unit_response_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_response_dto.g.dart';
 
-@JsonSerializable()
+@JsonSerializable(explicitToJson: true)
 class UserResponseDto {
   const UserResponseDto({
     required this.id,
@@ -16,8 +17,27 @@ class UserResponseDto {
     this.roles,
   });
 
-  factory UserResponseDto.fromJson(Map<String, dynamic> json) =>
-      _$UserResponseDtoFromJson(json);
+  factory UserResponseDto.fromJson(Map<String, dynamic> json) {
+    final rolesJson = json['roles'] as List<dynamic>?;
+    final roles = rolesJson?.map((e) {
+      if (e is Map<String, dynamic>) {
+        return RoleDto.fromJson(e).toRole();
+      }
+      return RoleDto.fromJson({'id': 0, 'role_name': e.toString()}).toRole();
+    }).toList();
+
+    return UserResponseDto(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      email: json['email'] as String,
+      phoneNumber: json['phone_number'] as String?,
+      enabled: json['enabled'] as bool?,
+      unit: json['unit'] == null
+          ? null
+          : UnitResponseDto.fromJson(json['unit'] as Map<String, dynamic>),
+      roles: roles,
+    );
+  }
 
   @JsonKey(name: 'id')
   final int id;
@@ -37,8 +57,29 @@ class UserResponseDto {
   @JsonKey(name: 'unit')
   final UnitResponseDto? unit;
 
-  @JsonKey(name: 'roles')
+  @JsonKey(includeToJson: false, includeFromJson: false)
   final List<Role>? roles;
 
-  Map<String, dynamic> toJson() => _$UserResponseDtoToJson(this);
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'email': email,
+      'phone_number': phoneNumber,
+      'enabled': enabled,
+      'unit': unit?.toJson(),
+      'roles': roles?.map((role) {
+        String roleName;
+        switch (role) {
+          case Role.ROLE_ADMIN:
+            roleName = 'ROLE_ADMIN';
+          case Role.ROLE_MANAGER:
+            roleName = 'ROLE_MANAGER';
+          case Role.ROLE_USER:
+            roleName = 'ROLE_USER';
+        }
+        return {'role_name': roleName};
+      }).toList(),
+    };
+  }
 }

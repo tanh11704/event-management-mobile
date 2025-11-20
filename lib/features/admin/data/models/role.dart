@@ -1,24 +1,24 @@
 import 'package:json_annotation/json_annotation.dart';
 
 enum Role {
-  @JsonValue('ADMIN')
-  admin,
+  @JsonValue('ROLE_ADMIN')
+  ROLE_ADMIN,
 
-  @JsonValue('MANAGER')
-  manager,
+  @JsonValue('ROLE_MANAGER')
+  ROLE_MANAGER,
 
-  @JsonValue('USER')
-  user,
+  @JsonValue('ROLE_USER')
+  ROLE_USER,
 }
 
 extension RoleExtension on Role {
   String get displayName {
     switch (this) {
-      case Role.admin:
+      case Role.ROLE_ADMIN:
         return 'Quản trị viên';
-      case Role.manager:
+      case Role.ROLE_MANAGER:
         return 'Quản lý';
-      case Role.user:
+      case Role.ROLE_USER:
         return 'Người dùng';
     }
   }

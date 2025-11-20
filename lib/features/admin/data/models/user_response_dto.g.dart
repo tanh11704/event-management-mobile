@@ -16,9 +16,6 @@ UserResponseDto _$UserResponseDtoFromJson(Map<String, dynamic> json) =>
       unit: json['unit'] == null
           ? null
           : UnitResponseDto.fromJson(json['unit'] as Map<String, dynamic>),
-      roles: (json['roles'] as List<dynamic>?)
-          ?.map((e) => $enumDecode(_$RoleEnumMap, e))
-          .toList(),
     );
 
 Map<String, dynamic> _$UserResponseDtoToJson(UserResponseDto instance) =>
@@ -28,12 +25,5 @@ Map<String, dynamic> _$UserResponseDtoToJson(UserResponseDto instance) =>
       'email': instance.email,
       'phone_number': instance.phoneNumber,
       'enabled': instance.enabled,
-      'unit': instance.unit,
-      'roles': instance.roles?.map((e) => _$RoleEnumMap[e]!).toList(),
+      'unit': instance.unit?.toJson(),
     };
-
-const _$RoleEnumMap = {
-  Role.admin: 'ADMIN',
-  Role.manager: 'MANAGER',
-  Role.user: 'USER',
-};
