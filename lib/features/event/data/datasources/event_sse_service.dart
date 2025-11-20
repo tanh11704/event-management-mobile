@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:event_management/features/event/data/models/sse_event.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
@@ -15,21 +16,42 @@ class EventSseService {
   StreamController<SseEvent>? _controller;
   CancelToken? _cancelToken;
 
+  String _buffer = '';
+
   Stream<SseEvent> subscribeToEvents() {
-    _controller?.close();
+    if (kDebugMode) {
+      debugPrint('EventSseService: subscribeToEvents called');
+    }
+
+    if (_controller != null && !_controller!.isClosed) {
+      if (kDebugMode) {
+        debugPrint('EventSseService: Returning existing stream');
+      }
+      return _controller!.stream;
+    }
+
     _controller = StreamController<SseEvent>.broadcast();
     _cancelToken = CancelToken();
+    _buffer = '';
 
-    _connectToSse();
+    unawaited(_connectToSse());
 
     return _controller!.stream;
   }
 
   Future<void> _connectToSse() async {
+    if (kDebugMode) {
+      debugPrint('EventSseService: _connectToSse starting...');
+    }
     try {
       final token = await _secureStorage.read(key: 'access_token');
       final baseUrl =
           dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1';
+
+      if (kDebugMode) {
+        debugPrint('EventSseService: Connecting to $baseUrl/events/subscribe');
+        debugPrint('EventSseService: Token exists: ${token != null}');
+      }
 
       final dio = Dio(
         BaseOptions(
@@ -40,67 +62,137 @@ class EventSseService {
             'Cache-Control': 'no-cache',
           },
           responseType: ResponseType.stream,
+
+          connectTimeout: const Duration(seconds: 30),
+
+          receiveTimeout: Duration.zero,
         ),
       );
+
+      if (kDebugMode) {
+        debugPrint('EventSseService: Sending SSE request...');
+      }
 
       final response = await dio.get<ResponseBody>(
         '/events/subscribe',
         cancelToken: _cancelToken,
       );
 
+      if (kDebugMode) {
+        debugPrint(
+          'EventSseService: SSE response received, status: ${response.statusCode}',
+        );
+      }
+
       final stream = response.data?.stream;
       if (stream != null) {
-        await for (final data in stream.transform<String>(
-          StreamTransformer<Uint8List, String>.fromHandlers(
-            handleData: (bytes, sink) {
-              final decoded = utf8.decode(bytes as List<int>);
-              sink.add(decoded);
-            },
-          ),
-        )) {
-          _parseAndEmitEvent(data);
+        if (kDebugMode) {
+          debugPrint('EventSseService: Stream exists, starting to listen...');
+        }
+
+        final lineStream = stream
+            .cast<List<int>>()
+            .transform(utf8.decoder)
+            .transform(const LineSplitter());
+
+        try {
+          await for (final line in lineStream) {
+            _parseAndEmitEvent(line);
+          }
+        } catch (e) {
+          if (kDebugMode) {
+            debugPrint('EventSseService: Error reading stream: $e');
+          }
+          rethrow;
+        }
+        if (kDebugMode) {
+          debugPrint('EventSseService: Stream ended');
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint('EventSseService: Stream is null!');
         }
       }
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('EventSseService: Connection error: $e');
+      }
+
       if (!(_cancelToken?.isCancelled ?? false)) {
         _controller?.addError(e);
-        // Retry connection after 5 seconds
+        if (kDebugMode) {
+          debugPrint('EventSseService: Will retry connection in 5 seconds...');
+        }
         await Future<void>.delayed(const Duration(seconds: 5));
         if (_controller != null && !_controller!.isClosed) {
+          if (kDebugMode) {
+            debugPrint('EventSseService: Retrying connection...');
+          }
           unawaited(_connectToSse());
         }
       }
     }
   }
 
-  void _parseAndEmitEvent(String data) {
-    final lines = data.split('\n');
+  void _parseAndEmitEvent(String line) {
+    if (kDebugMode) {
+      debugPrint('SSE raw line: $line');
+    }
+
+    if (line.isEmpty) {
+      _processCompleteEvent(_buffer);
+      _buffer = '';
+      return;
+    }
+
+    _buffer += '$line\n';
+  }
+
+  void _processCompleteEvent(String eventText) {
+    if (eventText.isEmpty) return;
+
     String? eventName;
     String? eventData;
 
+    final lines = eventText.split('\n');
     for (final line in lines) {
-      if (line.startsWith('event:')) {
-        eventName = line.substring(6).trim();
-      } else if (line.startsWith('data:')) {
-        eventData = line.substring(5).trim();
+      final trimmedLine = line.trim();
+      if (trimmedLine.isEmpty) {
+        continue;
+      } else if (trimmedLine.startsWith('event:')) {
+        eventName = trimmedLine.substring(6).trim();
+      } else if (trimmedLine.startsWith('data:')) {
+        final dataValue = trimmedLine.substring(5).trim();
+        if (eventData == null) {
+          eventData = dataValue;
+        } else {
+          eventData = '$eventData\n$dataValue';
+        }
       }
     }
 
-    if (eventName != null && eventData != null) {
-      _controller?.add(SseEvent(name: eventName, data: eventData));
+    if (eventName != null) {
+      if (kDebugMode) {
+        debugPrint(
+          'SSE Event parsed and emitting: $eventName, data: ${eventData ?? "null"}',
+        );
+      }
+      _controller?.add(SseEvent(name: eventName, data: eventData ?? ''));
+    } else {
+      if (kDebugMode) {
+        debugPrint('SSE Event parsed but no event name found in: $eventText');
+      }
     }
   }
 
   void dispose() {
+    if (kDebugMode) {
+      debugPrint('EventSseService: dispose called');
+    }
     _cancelToken?.cancel();
     _controller?.close();
     _controller = null;
+    _cancelToken = null;
+    _buffer = '';
   }
-}
-
-class SseEvent {
-  const SseEvent({required this.name, required this.data});
-
-  final String name;
-  final String data;
 }
