@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:event_management/core/services/biometric_service.dart';
 import 'package:event_management/core/network/dio_config.dart';
+import 'package:event_management/core/services/biometric_service.dart';
 import 'package:event_management/features/auth/data/datasources/auth_api_client.dart';
 import 'package:event_management/features/auth/data/repository/auth_repository_impl.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
