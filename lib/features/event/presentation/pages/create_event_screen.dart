@@ -215,7 +215,12 @@ class _CreateEventViewState extends State<_CreateEventView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text('Tạo sự kiện mới'),
+        backgroundColor: AppColors.vkuBlue,
+        foregroundColor: AppColors.white,
+        elevation: 0,
+      ),
       body: BlocListener<CreateEventBloc, CreateEventState>(
         listener: (context, state) {
           if (state is CreateEventSuccess) {
@@ -235,93 +240,25 @@ class _CreateEventViewState extends State<_CreateEventView> {
             );
           }
         },
-        child: CustomScrollView(
-          slivers: [
-            // ===== Header =====
-            SliverToBoxAdapter(
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.vkuBlue.withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  bottom: false,
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-                    child: Row(
-                      children: [
-                        InkWell(
-                          onTap: () {
-                            if (context.canPop()) {
-                              context.pop();
-                            } else {
-                              context.go('/admin');
-                            }
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: AppColors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.arrow_back_rounded,
-                              color: AppColors.white,
-                              size: 24,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tạo mới',
-                                style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.white.withOpacity(0.9),
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Sự Kiện Mới',
-                                style: AppTextStyles.heading2.copyWith(
-                                  color: AppColors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            // ===== Form =====
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
+        child: Container(
+          decoration: BoxDecoration(gradient: AppColors.background),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppSpacing.spaceLG),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // ===== Form Container =====
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.spaceLG),
                     decoration: BoxDecoration(
                       color: AppColors.white,
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.coolGray900.withOpacity(0.08),
-                          blurRadius: 20,
+                          color: AppColors.coolGray500.withOpacity(0.1),
+                          blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
                       ],
@@ -695,10 +632,10 @@ class _CreateEventViewState extends State<_CreateEventView> {
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );
