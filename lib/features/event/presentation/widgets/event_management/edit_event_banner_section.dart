@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
+import 'package:event_management/core/services/cloudinary_image_service.dart';
 import 'package:flutter/material.dart';
 
 class EditEventBannerSection extends StatelessWidget {
@@ -42,7 +43,7 @@ class EditEventBannerSection extends StatelessWidget {
               )
             else if (bannerUrl != null && bannerUrl!.isNotEmpty)
               Image.network(
-                bannerUrl!,
+                CloudinaryImageService.getBannerUrl(bannerUrl),
                 width: double.infinity,
                 height: 200,
                 fit: BoxFit.cover,

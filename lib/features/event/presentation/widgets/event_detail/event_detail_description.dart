@@ -1,6 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/utils/html_image_processor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_html/flutter_html.dart';
 
@@ -48,7 +49,7 @@ class EventDetailDescription extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.spaceMD),
           Html(
-            data: description,
+            data: HtmlImageProcessor.processHtmlImagesForView(description),
             style: {
               'body': Style(
                 margin: Margins.zero,

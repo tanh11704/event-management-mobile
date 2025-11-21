@@ -1,4 +1,3 @@
-import 'package:event_management/features/unit/data/model/unit_type.dart';
 import 'package:event_management/features/unit/domain/entity/unit_entity.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -24,7 +23,7 @@ class UnitResponseDto {
   final String unitName;
 
   @JsonKey(name: 'unit_type')
-  final UnitType unitType;
+  final String unitType;
 
   @JsonKey(name: 'parent_id')
   final int? parentId;
@@ -38,7 +37,7 @@ class UnitResponseDto {
     return UnitEntity(
       id: dto.id,
       unitName: dto.unitName,
-      unitType: dto.unitType.name,
+      unitType: dto.unitType,
       parentId: dto.parentId,
       parentName: dto.parentName,
     );
