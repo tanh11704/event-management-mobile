@@ -43,11 +43,20 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
   final AdminRepository _adminRepository;
   final AuthRepository _authRepository;
 
+  int? _cachedEventId;
+  List<ManagerInfo> _cachedSelectedManagers = [];
+
   void _onInitialized(
     EditEventInitialized event,
     Emitter<EditEventState> emit,
   ) {
     final eventDetail = event.eventDetail;
+    final managers = List<ManagerInfo>.from(eventDetail.manager);
+
+    // Cache eventId and managers for API calls
+    _cachedEventId = eventDetail.id;
+    _cachedSelectedManagers = managers;
+
     emit(
       EditEventFormState(
         eventId: eventDetail.id,
@@ -58,7 +67,7 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
         urlDocs: eventDetail.urlDocs ?? '',
         startDate: eventDetail.startTime,
         endDate: eventDetail.endTime,
-        selectedManagers: List.from(eventDetail.manager),
+        selectedManagers: managers,
         bannerUrl: eventDetail.banner,
       ),
     );
@@ -184,48 +193,82 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
     Emitter<EditEventState> emit,
   ) async {
     final currentState = state;
-    if (currentState is! EditEventFormState) {
+
+    // Get eventId and managers from state or cache
+    final eventId = currentState is EditEventFormState
+        ? currentState.eventId
+        : _cachedEventId;
+
+    if (eventId == null) {
+      emit(const EditEventManagerAssignError('Event not initialized'));
       return;
     }
 
-    final alreadyExists = currentState.selectedManagers.any(
+    // Check if user already exists in cache
+    final alreadyExists = _cachedSelectedManagers.any(
       (m) => m.userId == event.user.id,
     );
 
-    // Always call API, whether user already exists or not
-    // This ensures the manager is assigned on the server
+    // If already exists, no need to do anything
+    if (alreadyExists) {
+      return;
+    }
+
+    // Save previous cache for error revert
+    final previousCache = List<ManagerInfo>.from(_cachedSelectedManagers);
+
+    // Create manager info
+    final manager = ManagerInfo(
+      userId: event.user.id,
+      userName: event.user.name,
+      userEmail: event.user.email,
+    );
+
+    // Optimistic update: update cache immediately
+    _cachedSelectedManagers = [..._cachedSelectedManagers, manager];
+
+    // Optimistic update: update UI immediately
+    if (currentState is EditEventFormState) {
+      final optimisticState = currentState.copyWith(
+        selectedManagers: _cachedSelectedManagers,
+      );
+      emit(optimisticState);
+    }
+
     try {
       final currentUser = await _authRepository.getAuthUser();
       final currentUserId = currentUser.id;
 
       await _adminRepository.assignEventManager(
-        eventId: currentState.eventId,
+        eventId: eventId,
         userId: event.user.id,
         roleType: EventManagement.manage,
         assignedBy: currentUserId,
       );
 
-      // Only update UI state if user doesn't already exist
-      if (!alreadyExists) {
-        final manager = ManagerInfo(
-          userId: event.user.id,
-          userName: event.user.name,
-          userEmail: event.user.email,
-        );
-
-        final updatedManagers = [...currentState.selectedManagers, manager];
+      // API call successful - cache and UI are already updated
+      // Emit state again to ensure UI is in sync
+      if (currentState is EditEventFormState) {
         final updatedState = currentState.copyWith(
-          selectedManagers: updatedManagers,
+          selectedManagers: _cachedSelectedManagers,
         );
         emit(updatedState);
       }
     } catch (e) {
-      // If user doesn't exist, revert optimistic update
-      if (!alreadyExists) {
+      // Revert cache on error
+      _cachedSelectedManagers = previousCache;
+
+      // Revert UI state on error
+      if (currentState is EditEventFormState) {
         emit(currentState);
       }
+
       emit(EditEventManagerAssignError(e.toString()));
-      emit(currentState);
+
+      // Emit previous state again after error
+      if (currentState is EditEventFormState) {
+        emit(currentState);
+      }
     }
   }
 
@@ -234,34 +277,62 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
     Emitter<EditEventState> emit,
   ) async {
     final currentState = state;
-    if (currentState is EditEventFormState) {
-      if (!currentState.selectedManagers.any(
-        (m) => m.userId == event.user.id,
-      )) {
-        return;
-      }
 
-      final updatedManagers = currentState.selectedManagers
-          .where((m) => m.userId != event.user.id)
-          .toList();
+    final eventId = currentState is EditEventFormState
+        ? currentState.eventId
+        : _cachedEventId;
+
+    if (eventId == null) {
+      emit(const EditEventManagerRemoveError('Event not initialized'));
+      return;
+    }
+
+    if (!_cachedSelectedManagers.any((m) => m.userId == event.user.id)) {
+      return;
+    }
+
+    final previousCache = List<ManagerInfo>.from(_cachedSelectedManagers);
+
+    final updatedManagers = _cachedSelectedManagers
+        .where((m) => m.userId != event.user.id)
+        .toList();
+
+    _cachedSelectedManagers = updatedManagers;
+
+    if (currentState is EditEventFormState) {
       final optimisticState = currentState.copyWith(
         selectedManagers: updatedManagers,
       );
       emit(optimisticState);
+    }
 
-      try {
-        await _adminRepository.removeEventManager(
-          eventId: currentState.eventId,
-          userId: event.user.id,
-          roleType: EventManagement.manage,
+    try {
+      await _adminRepository.removeEventManager(
+        eventId: eventId,
+        userId: event.user.id,
+        roleType: EventManagement.manage,
+      );
+      // Success - ensure UI state is updated with latest cache
+      if (currentState is EditEventFormState) {
+        final latestState = currentState.copyWith(
+          selectedManagers: _cachedSelectedManagers,
         );
-      } catch (e) {
+        emit(latestState);
+      }
+    } catch (e) {
+      // Revert cache on error
+      _cachedSelectedManagers = previousCache;
+
+      // Revert UI state if we have form state
+      if (currentState is EditEventFormState) {
         emit(
           currentState.copyWith(
             selectedManagers: currentState.selectedManagers,
           ),
         );
-        emit(EditEventManagerRemoveError(e.toString()));
+      }
+      emit(EditEventManagerRemoveError(e.toString()));
+      if (currentState is EditEventFormState) {
         emit(
           currentState.copyWith(
             selectedManagers: currentState.selectedManagers,

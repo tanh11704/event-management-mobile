@@ -78,9 +78,20 @@ class _UserSearchFieldState extends State<UserSearchField> {
   }
 
   void _onFocusChanged() {
-    setState(() {
-      _showSuggestions = _focusNode.hasFocus && _filteredUsers.isNotEmpty;
-    });
+    if (_focusNode.hasFocus) {
+      setState(() {
+        _showSuggestions = _filteredUsers.isNotEmpty;
+      });
+    } else {
+      // Delay hiding suggestions to allow onTap to fire
+      Future.delayed(const Duration(milliseconds: 200), () {
+        if (mounted && !_focusNode.hasFocus) {
+          setState(() {
+            _showSuggestions = false;
+          });
+        }
+      });
+    }
   }
 
   void _selectUser(UserEntity user) {
