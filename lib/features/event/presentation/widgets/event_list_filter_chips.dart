@@ -31,15 +31,11 @@ class EventListFilterChips extends StatelessWidget {
         child: Row(
           children: [
             EventFilterChip(
-              label: 'Tất cả',
-              count:
-                  counters.upcoming +
-                  counters.ongoing +
-                  counters.completed +
-                  counters.cancelled,
-              isSelected: selectedStatus == null,
-              onTap: () => onStatusChanged(null),
-              gradient: AppColors.primaryGradient,
+              label: 'Đang diễn ra',
+              count: counters.ongoing,
+              isSelected: selectedStatus == EventStatus.ongoing,
+              onTap: () => onStatusChanged(EventStatus.ongoing),
+              color: AppColors.green500,
             ),
             const SizedBox(width: AppSpacing.spaceXM),
             EventFilterChip(
@@ -48,14 +44,6 @@ class EventListFilterChips extends StatelessWidget {
               isSelected: selectedStatus == EventStatus.upcoming,
               onTap: () => onStatusChanged(EventStatus.upcoming),
               color: AppColors.vkuBlue,
-            ),
-            const SizedBox(width: AppSpacing.spaceXM),
-            EventFilterChip(
-              label: 'Đang diễn ra',
-              count: counters.ongoing,
-              isSelected: selectedStatus == EventStatus.ongoing,
-              onTap: () => onStatusChanged(EventStatus.ongoing),
-              color: AppColors.green500,
             ),
             const SizedBox(width: AppSpacing.spaceXM),
             EventFilterChip(
