@@ -141,6 +141,11 @@ final GoRouter appRouter = GoRouter(
             builder: (context, state) {
               if (state is EventDetailSuccess) {
                 return EventManagementScreen(eventDetail: state.eventDetail);
+              } else if (state is EventDetailError) {
+                return Scaffold(
+                  appBar: AppBar(title: const Text('Lỗi')),
+                  body: Center(child: Text(state.error)),
+                );
               }
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),

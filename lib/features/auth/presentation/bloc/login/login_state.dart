@@ -19,7 +19,12 @@ class LoginLoading extends LoginState {
 
 /// State đăng nhập thành công.
 class LoginSuccess extends LoginState {
-  const LoginSuccess();
+  const LoginSuccess({this.isAdmin = false});
+
+  final bool isAdmin;
+
+  @override
+  List<Object> get props => [isAdmin];
 }
 
 /// State đăng nhập thất bại với một thông báo lỗi.
