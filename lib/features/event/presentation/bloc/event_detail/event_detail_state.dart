@@ -39,6 +39,24 @@ class EventDetailSuccess extends EventDetailState {
   List<Object> get props => [eventDetail, isJoining, isUpdating];
 }
 
+class EventDetailImportSuccess extends EventDetailState {
+  const EventDetailImportSuccess(this.message);
+
+  final String message;
+
+  @override
+  List<Object> get props => [message];
+}
+
+class EventDetailImportFailure extends EventDetailState {
+  const EventDetailImportFailure(this.error);
+
+  final String error;
+
+  @override
+  List<Object> get props => [error];
+}
+
 class EventDetailError extends EventDetailState {
   const EventDetailError(this.error);
 

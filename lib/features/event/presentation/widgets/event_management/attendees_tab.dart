@@ -3,7 +3,12 @@ import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/participant.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AttendeesTab extends StatefulWidget {
   const AttendeesTab({required this.eventDetail, super.key});
@@ -46,144 +51,173 @@ class _AttendeesTabState extends State<AttendeesTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.coolGray50,
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(AppSpacing.spaceMD),
-            color: AppColors.white,
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm theo tên, email, số điện thoại...',
-                hintStyle: AppTextStyles.bodyMedium,
-                prefixIcon: const Icon(
-                  Icons.search_rounded,
-                  color: AppColors.coolGray500,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded),
-                        onPressed: () {
-                          setState(() {
-                            _searchQuery = '';
-                          });
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.coolGray50,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.spaceMD,
-                  vertical: AppSpacing.spaceMD,
-                ),
-              ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
+    return BlocListener<EventDetailBloc, EventDetailState>(
+      listener: (context, state) {
+        if (state is EventDetailImportSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.green500,
             ),
-          ),
-
-          // Filter Chips
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.spaceMD,
-              vertical: AppSpacing.spaceXM,
+          );
+        } else if (state is EventDetailImportFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+              backgroundColor: AppColors.red500,
             ),
-            color: AppColors.white,
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _FilterChip(
-                    label: 'Tất cả',
-                    isSelected: _selectedFilter == AttendeeFilter.all,
-                    onTap: () {
-                      setState(() {
-                        _selectedFilter = AttendeeFilter.all;
-                      });
-                    },
+          );
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.coolGray50,
+        body: Column(
+          children: [
+            // Search Bar
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.spaceMD),
+              color: AppColors.white,
+              child: TextField(
+                decoration: InputDecoration(
+                  hintText: 'Tìm kiếm theo tên, email, số điện thoại...',
+                  hintStyle: AppTextStyles.bodyMedium,
+                  prefixIcon: const Icon(
+                    Icons.search_rounded,
+                    color: AppColors.coolGray500,
                   ),
-                  const SizedBox(width: AppSpacing.spaceXM),
-                  _FilterChip(
-                    label: 'Đã check-in',
-                    isSelected: _selectedFilter == AttendeeFilter.checkedIn,
-                    onTap: () {
-                      setState(() {
-                        _selectedFilter = AttendeeFilter.checkedIn;
-                      });
-                    },
+                  suffixIcon: _searchQuery.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded),
+                          onPressed: () {
+                            setState(() {
+                              _searchQuery = '';
+                            });
+                          },
+                        )
+                      : null,
+                  filled: true,
+                  fillColor: AppColors.coolGray50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
                   ),
-                  const SizedBox(width: AppSpacing.spaceXM),
-                  _FilterChip(
-                    label: 'Chưa check-in',
-                    isSelected: _selectedFilter == AttendeeFilter.notCheckedIn,
-                    onTap: () {
-                      setState(() {
-                        _selectedFilter = AttendeeFilter.notCheckedIn;
-                      });
-                    },
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.spaceMD,
+                    vertical: AppSpacing.spaceMD,
                   ),
-                ],
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _searchQuery = value;
+                  });
+                },
               ),
             ),
-          ),
 
-          // Attendees List
-          Expanded(
-            child: _filteredParticipants.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          Icons.people_outline_rounded,
-                          size: 64,
-                          color: AppColors.coolGray500,
-                        ),
-                        const SizedBox(height: AppSpacing.spaceMD),
-                        Text(
-                          'Không tìm thấy người tham dự',
-                          style: AppTextStyles.bodyLarge,
-                        ),
-                      ],
+            // Filter Chips
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.spaceMD,
+                vertical: AppSpacing.spaceXM,
+              ),
+              color: AppColors.white,
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _FilterChip(
+                      label: 'Tất cả',
+                      isSelected: _selectedFilter == AttendeeFilter.all,
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = AttendeeFilter.all;
+                        });
+                      },
                     ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(AppSpacing.spaceMD),
-                    itemCount: _filteredParticipants.length,
-                    itemBuilder: (context, index) {
-                      final participant = _filteredParticipants[index];
-                      return _AttendeeListItem(participant: participant);
-                    },
-                  ),
-          ),
-        ],
-      ),
-      floatingActionButton: _SpeedDialFab(
-        onExportExcel: () {
-          // TODO: Implement export Excel (Chức năng 7)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Chức năng xuất Excel đang được phát triển'),
+                    const SizedBox(width: AppSpacing.spaceXM),
+                    _FilterChip(
+                      label: 'Đã check-in',
+                      isSelected: _selectedFilter == AttendeeFilter.checkedIn,
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = AttendeeFilter.checkedIn;
+                        });
+                      },
+                    ),
+                    const SizedBox(width: AppSpacing.spaceXM),
+                    _FilterChip(
+                      label: 'Chưa check-in',
+                      isSelected: _selectedFilter == AttendeeFilter.notCheckedIn,
+                      onTap: () {
+                        setState(() {
+                          _selectedFilter = AttendeeFilter.notCheckedIn;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-          );
-        },
-        onInviteByFile: () {
-          // TODO: Implement invite by file (Chức năng 4)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Chức năng mời bằng file đang được phát triển'),
+
+            // Attendees List
+            Expanded(
+              child: _filteredParticipants.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.people_outline_rounded,
+                            size: 64,
+                            color: AppColors.coolGray500,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceMD),
+                          Text(
+                            'Không tìm thấy người tham dự',
+                            style: AppTextStyles.bodyLarge,
+                          ),
+                        ],
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(AppSpacing.spaceMD),
+                      itemCount: _filteredParticipants.length,
+                      itemBuilder: (context, index) {
+                        final participant = _filteredParticipants[index];
+                        return _AttendeeListItem(participant: participant);
+                      },
+                    ),
             ),
-          );
-        },
+          ],
+        ),
+        floatingActionButton: _SpeedDialFab(
+          onExportExcel: () {
+            // TODO: Implement export Excel (Chức năng 7)
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Chức năng xuất Excel đang được phát triển'),
+              ),
+            );
+          },
+          onInviteByFile: () async {
+            final result = await FilePicker.platform.pickFiles(
+              type: FileType.custom,
+              allowedExtensions: ['xlsx', 'xls', 'csv'],
+            );
+
+            if (result != null) {
+              final file = result.files.single;
+              if (context.mounted) {
+                context.read<EventDetailBloc>().add(
+                      EventDetailImportParticipants(
+                        eventId: widget.eventDetail.id,
+                        file: file.xFile,
+                      ),
+                    );
+              }
+            }
+          },
+        ),
       ),
     );
   }

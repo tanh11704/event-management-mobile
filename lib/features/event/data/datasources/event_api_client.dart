@@ -62,6 +62,13 @@ abstract class EventApiClient {
     @Body() EventDto eventDto,
   );
 
+  @POST('/events/{eventId}/import')
+  @MultiPart()
+  Future<void> importParticipants(
+    @Path('eventId') int eventId,
+    @Part(name: 'file') MultipartFile file,
+  );
+
   @POST('/medias/image-upload')
   @MultiPart()
   Future<ImageUploadResponse> uploadImage(

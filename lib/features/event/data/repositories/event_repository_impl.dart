@@ -192,17 +192,33 @@ class EventRepositoryImpl implements EventRepository {
       await _eventApiClient.updateEvent(eventId, eventDto);
       // Fetch updated event detail (returns EventDetailResponse)
       return await _eventApiClient.getEventDetail(eventId);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể cập nhật sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
       if (e is Exception) {
         rethrow;
       }
       throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<void> importParticipants(
+    int eventId,
+    XFile file,
+  ) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final fileName = file.name;
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+
+      await _eventApiClient.importParticipants(eventId, multipartFile);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể import người tham gia.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
 

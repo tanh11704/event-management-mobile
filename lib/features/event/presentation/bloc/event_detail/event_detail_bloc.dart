@@ -17,6 +17,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailJoin>(_onJoin);
     on<EventDetailUnjoin>(_onUnjoin);
     on<EventDetailUpdate>(_onUpdate);
+    on<EventDetailImportParticipants>(_onImportParticipants);
   }
 
   final EventRepository _eventRepository;
@@ -111,6 +112,30 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       } catch (e) {
         emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
         emit(currentState.copyWith(isUpdating: false));
+      }
+    }
+  }
+
+  Future<void> _onImportParticipants(
+    EventDetailImportParticipants event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      try {
+        await _eventRepository.importParticipants(
+          event.eventId,
+          event.file as XFile,
+        );
+        emit(const EventDetailImportSuccess('Import thành công!'));
+        add(EventDetailFetch(eventId: event.eventId));
+      } catch (e) {
+        emit(
+          EventDetailImportFailure(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        );
+        emit(currentState);
       }
     }
   }
