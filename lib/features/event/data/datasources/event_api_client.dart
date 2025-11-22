@@ -62,7 +62,7 @@ abstract class EventApiClient {
     @Body() EventDto eventDto,
   );
 
-  @POST('/events/{eventId}/import')
+  @POST('/attendants/{eventId}/import')
   @MultiPart()
   Future<void> importParticipants(
     @Path('eventId') int eventId,
