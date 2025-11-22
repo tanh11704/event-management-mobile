@@ -266,6 +266,31 @@ class _EventApiClient implements EventApiClient {
   }
 
   @override
+  Future<void> importParticipants(int eventId, MultipartFile file) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    final _data = FormData();
+    _data.files.add(MapEntry('file', file));
+    final _options = _setStreamType<void>(
+      Options(
+            method: 'POST',
+            headers: _headers,
+            extra: _extra,
+            contentType: 'multipart/form-data',
+          )
+          .compose(
+            _dio.options,
+            '/events/${eventId}/import',
+            queryParameters: queryParameters,
+            data: _data,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    await _dio.fetch<void>(_options);
+  }
+
+  @override
   Future<ImageUploadResponse> uploadImage(MultipartFile imageFile) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};

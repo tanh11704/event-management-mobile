@@ -17,6 +17,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailJoin>(_onJoin);
     on<EventDetailUnjoin>(_onUnjoin);
     on<EventDetailUpdate>(_onUpdate);
+    on<EventDetailImportParticipants>(_onImportParticipants);
   }
 
   final EventRepository _eventRepository;
@@ -94,7 +95,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
 
       try {
         // Upload banner if provided
-        if (event.bannerFile != null) {
+        if (event.bannerFile != null && event.bannerFile is XFile) {
           await _eventRepository.uploadBannerFromXFile(
             event.eventId,
             event.bannerFile as XFile,
@@ -102,15 +103,46 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         }
 
         // Update event
-        final updatedEventDetail = await _eventRepository.updateEvent(
-          event.eventId,
-          event.eventDto as EventDto,
-        );
-
-        emit(EventDetailSuccess(eventDetail: updatedEventDetail));
+        if (event.eventDto is EventDto) {
+          final updatedEventDetail = await _eventRepository.updateEvent(
+            event.eventId,
+            event.eventDto as EventDto,
+          );
+          emit(EventDetailSuccess(eventDetail: updatedEventDetail));
+        } else {
+          throw Exception('Invalid event DTO');
+        }
       } catch (e) {
         emit(EventDetailError(e.toString().replaceFirst('Exception: ', '')));
         emit(currentState.copyWith(isUpdating: false));
+      }
+    }
+  }
+
+  Future<void> _onImportParticipants(
+    EventDetailImportParticipants event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      try {
+        if (event.file is XFile) {
+          await _eventRepository.importParticipants(
+            event.eventId,
+            event.file as XFile,
+          );
+          emit(const EventDetailImportSuccess('Import thành công!'));
+          add(EventDetailFetch(eventId: event.eventId));
+        } else {
+          throw Exception('Invalid file');
+        }
+      } catch (e) {
+        emit(
+          EventDetailImportFailure(
+            e.toString().replaceFirst('Exception: ', ''),
+          ),
+        );
+        emit(currentState);
       }
     }
   }

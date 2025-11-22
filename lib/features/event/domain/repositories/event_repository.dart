@@ -38,6 +38,8 @@ abstract class EventRepository {
 
   Future<EventDetailResponse> updateEvent(int eventId, EventDto eventDto);
 
+  Future<void> importParticipants(int eventId, XFile file);
+
   Future<String> uploadImage(XFile imageFile);
 }
 
