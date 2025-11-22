@@ -3,15 +3,23 @@ import 'dart:io';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/di/injection_container.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
+import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_banner_section.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_html_editor.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_modern_text_field.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_picker_field.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_basic_info_section.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_date_time_handler.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_date_time_section.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_form_controller.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_image_picker.dart';
+import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_location_section.dart';
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_section_header.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
 
 class EditEventTab extends StatefulWidget {
   const EditEventTab({required this.eventDetail, super.key});
@@ -25,95 +33,63 @@ class EditEventTab extends StatefulWidget {
 class _EditEventTabState extends State<EditEventTab> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey _htmlEditorKey = GlobalKey();
-  late TextEditingController _titleController;
-  String _descriptionHtml = '';
-  late TextEditingController _locationController;
-  late TextEditingController _maxParticipantsController;
-  late TextEditingController _urlDocsController;
 
-  late DateTime _startDate;
-  late DateTime _endDate;
   File? _bannerImage;
   XFile? _bannerImageFile;
   String? _bannerUrl;
 
-  final ImagePicker _imagePicker = ImagePicker();
+  late EditEventFormController _formController;
   bool _isLoading = false;
-
-  final DateFormat _dateFormat = DateFormat('dd/MM/yyyy', 'vi');
-  final DateFormat _timeFormat = DateFormat('HH:mm', 'vi');
 
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.eventDetail.title);
-    _descriptionHtml = widget.eventDetail.description ?? '';
-    _locationController = TextEditingController(
-      text: widget.eventDetail.location ?? '',
+    _formController = EditEventFormController(
+      eventDetail: widget.eventDetail,
+      eventRepository: sl<EventRepository>(),
     );
-    _maxParticipantsController = TextEditingController(
-      text: widget.eventDetail.maxParticipants?.toString() ?? '',
-    );
-    _urlDocsController = TextEditingController(
-      text: widget.eventDetail.urlDocs ?? '',
-    );
-    _startDate = widget.eventDetail.startTime;
-    _endDate = widget.eventDetail.endTime;
-    _bannerUrl = widget.eventDetail.banner;
   }
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _locationController.dispose();
-    _maxParticipantsController.dispose();
-    _urlDocsController.dispose();
+    _formController.dispose();
     super.dispose();
   }
 
   Future<void> _selectStartDate() async {
-    final picked = await showDatePicker(
+    final picked = await EditEventDateTimeHandler.selectStartDate(
       context: context,
-      initialDate: _startDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      locale: const Locale('vi', 'VN'),
+      initialDate: _formController.startDate,
     );
     if (picked != null) {
       setState(() {
-        _startDate = DateTime(
+        _formController.startDate = DateTime(
           picked.year,
           picked.month,
           picked.day,
-          _startDate.hour,
-          _startDate.minute,
+          _formController.startDate.hour,
+          _formController.startDate.minute,
         );
-        if (_endDate.isBefore(_startDate)) {
-          _endDate = _startDate.add(const Duration(hours: 1));
+        if (_formController.endDate.isBefore(_formController.startDate)) {
+          _formController.endDate = _formController.startDate.add(
+            const Duration(hours: 1),
+          );
         }
       });
     }
   }
 
   Future<void> _selectStartTime() async {
-    final picked = await showTimePicker(
+    final picked = await EditEventDateTimeHandler.selectStartTime(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(_startDate),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
-          ),
-          child: child!,
-        );
-      },
+      initialDate: _formController.startDate,
     );
     if (picked != null) {
       setState(() {
-        _startDate = DateTime(
-          _startDate.year,
-          _startDate.month,
-          _startDate.day,
+        _formController.startDate = DateTime(
+          _formController.startDate.year,
+          _formController.startDate.month,
+          _formController.startDate.day,
           picked.hour,
           picked.minute,
         );
@@ -122,45 +98,35 @@ class _EditEventTabState extends State<EditEventTab> {
   }
 
   Future<void> _selectEndDate() async {
-    final picked = await showDatePicker(
+    final picked = await EditEventDateTimeHandler.selectEndDate(
       context: context,
-      initialDate: _endDate,
-      firstDate: _startDate,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      locale: const Locale('vi', 'VN'),
+      initialDate: _formController.endDate,
+      startDate: _formController.startDate,
     );
     if (picked != null) {
       setState(() {
-        _endDate = DateTime(
+        _formController.endDate = DateTime(
           picked.year,
           picked.month,
           picked.day,
-          _endDate.hour,
-          _endDate.minute,
+          _formController.endDate.hour,
+          _formController.endDate.minute,
         );
       });
     }
   }
 
   Future<void> _selectEndTime() async {
-    final picked = await showTimePicker(
+    final picked = await EditEventDateTimeHandler.selectEndTime(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(_endDate),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
-          ),
-          child: child!,
-        );
-      },
+      initialDate: _formController.endDate,
     );
     if (picked != null) {
       setState(() {
-        _endDate = DateTime(
-          _endDate.year,
-          _endDate.month,
-          _endDate.day,
+        _formController.endDate = DateTime(
+          _formController.endDate.year,
+          _formController.endDate.month,
+          _formController.endDate.day,
           picked.hour,
           picked.minute,
         );
@@ -169,40 +135,16 @@ class _EditEventTabState extends State<EditEventTab> {
   }
 
   Future<void> _pickImage() async {
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (BuildContext context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: const Icon(
-                  Icons.photo_library,
-                  color: AppColors.vkuBlue,
-                ),
-                title: const Text('Chọn từ thư viện'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-              ListTile(
-                leading: const Icon(Icons.camera_alt, color: AppColors.vkuBlue),
-                title: const Text('Chụp ảnh'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-
+    final source = await EditEventImagePicker.showImageSourcePicker(context);
     if (source != null) {
-      final pickedFile = await _imagePicker.pickImage(source: source);
-      if (pickedFile != null) {
+      final pickedFile = await EditEventImagePicker.pickImage(
+        context: context,
+        imagePicker: _formController.imagePicker,
+        source: source,
+      );
+      if (pickedFile != null && mounted) {
         setState(() {
-          _bannerImageFile = pickedFile;
+          _bannerImageFile = pickedFile as XFile?;
           _bannerImage = File(pickedFile.path);
           _bannerUrl = null;
         });
@@ -219,7 +161,7 @@ class _EditEventTabState extends State<EditEventTab> {
         if (error != null) {
           return;
         }
-        _descriptionHtml = await state.getText() as String;
+        _formController.descriptionHtml = await state.getText() as String;
       }
     }
 
@@ -227,33 +169,107 @@ class _EditEventTabState extends State<EditEventTab> {
       return;
     }
 
+    // Bắt đầu loading state ngay khi bắt đầu xử lý
     setState(() {
       _isLoading = true;
     });
 
-    // TODO: Implement API call to update event
-    await Future<void>.delayed(const Duration(seconds: 1));
+    try {
+      final eventDto = await _formController.createEventDto(
+        descriptionHtml: _formController.descriptionHtml,
+      );
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
+      final bannerXFile = _formController.getBannerXFile();
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Cập nhật thông tin sự kiện thành công!'),
-          backgroundColor: AppColors.green500,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
+      context.read<EventDetailBloc>().add(
+        EventDetailUpdate(
+          eventId: widget.eventDetail.id,
+          eventDto: eventDto,
+          bannerFile: bannerXFile,
         ),
       );
+    } catch (e) {
+      // Dừng loading nếu có lỗi
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi khi xử lý ảnh: $e'),
+            backgroundColor: AppColors.red500,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocListener<EventDetailBloc, EventDetailState>(
+      listener: (context, state) {
+        if (state is EventDetailSuccess) {
+          // Xử lý trạng thái loading
+          if (state.isUpdating) {
+            setState(() {
+              _isLoading = true;
+            });
+          }
+          // Xử lý khi cập nhật thành công
+          else if (!state.isUpdating && _isLoading) {
+            setState(() {
+              _isLoading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Cập nhật thông tin sự kiện thành công!'),
+                backgroundColor: AppColors.green500,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+
+            // Chỉ cập nhật bannerUrl TẠI ĐÂY, khi BLoC
+            // thực sự vừa cập nhật xong.
+            if (_formController.bannerUrl != state.eventDetail.banner) {
+              setState(() {
+                _formController.bannerUrl = state.eventDetail.banner;
+                _formController.bannerImage =
+                    null; // Xóa file local sau khi đã lưu
+              });
+            }
+          }
+        }
+        // Xử lý lỗi
+        else if (state is EventDetailError) {
+          if (_isLoading) {
+            setState(() {
+              _isLoading = false;
+            });
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.error),
+                backgroundColor: AppColors.red500,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        }
+      },
+      child: _buildForm(),
+    );
+  }
+
+  Widget _buildForm() {
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.spaceMD,
@@ -274,120 +290,36 @@ class _EditEventTabState extends State<EditEventTab> {
               onPickImage: _pickImage,
             ),
 
-            const EditEventSectionHeader(title: 'Thông tin cơ bản'),
-            EditEventModernTextField(
-              controller: _titleController,
-              label: 'Tên sự kiện',
-              icon: Icons.event_rounded,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập tên sự kiện';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: AppSpacing.spaceMD),
-            const EditEventSectionHeader(title: 'Mô tả'),
-            EditEventHtmlEditor(
-              key: _htmlEditorKey,
-              initialValue: _descriptionHtml,
-              onChanged: (value) {
+            EditEventBasicInfoSection(
+              titleController: _formController.titleController,
+              descriptionHtml: _formController.descriptionHtml,
+              htmlEditorKey: _htmlEditorKey,
+              onDescriptionChanged: (value) {
                 setState(() {
-                  _descriptionHtml = value;
+                  _formController.descriptionHtml = value;
                 });
               },
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập mô tả';
-                }
-                return null;
-              },
             ),
 
-            const EditEventSectionHeader(title: 'Thời gian & Địa điểm'),
-            Row(
-              children: [
-                Expanded(
-                  child: EditEventPickerField(
-                    label: 'Ngày bắt đầu',
-                    text: _dateFormat.format(_startDate),
-                    icon: Icons.calendar_today_rounded,
-                    onTap: _selectStartDate,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.spaceMD),
-                Expanded(
-                  child: EditEventPickerField(
-                    label: 'Giờ bắt đầu',
-                    text: _timeFormat.format(_startDate),
-                    icon: Icons.access_time_rounded,
-                    onTap: _selectStartTime,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.spaceMD),
-            Row(
-              children: [
-                Expanded(
-                  child: EditEventPickerField(
-                    label: 'Ngày kết thúc',
-                    text: _dateFormat.format(_endDate),
-                    icon: Icons.calendar_today_rounded,
-                    onTap: _selectEndDate,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.spaceMD),
-                Expanded(
-                  child: EditEventPickerField(
-                    label: 'Giờ kết thúc',
-                    text: _timeFormat.format(_endDate),
-                    icon: Icons.access_time_rounded,
-                    onTap: _selectEndTime,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.spaceMD),
-            EditEventModernTextField(
-              controller: _locationController,
-              label: 'Địa điểm',
-              icon: Icons.location_on_rounded,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập địa điểm';
-                }
-                return null;
-              },
+            EditEventDateTimeSection(
+              startDate: _formController.startDate,
+              endDate: _formController.endDate,
+              onStartDateSelected: _selectStartDate,
+              onStartTimeSelected: _selectStartTime,
+              onEndDateSelected: _selectEndDate,
+              onEndTimeSelected: _selectEndTime,
             ),
 
-            const EditEventSectionHeader(title: 'Tùy chọn bổ sung'),
-            EditEventModernTextField(
-              controller: _maxParticipantsController,
-              label: 'Số lượng tối đa',
-              icon: Icons.people_rounded,
-              keyboardType: TextInputType.number,
-              validator: (value) {
-                if (value == null || value.trim().isEmpty) {
-                  return 'Vui lòng nhập số lượng';
-                }
-                final num = int.tryParse(value);
-                if (num == null || num <= 0) {
-                  return 'Số lượng phải lớn hơn 0';
-                }
-                return null;
-              },
+            EditEventLocationSection(
+              locationController: _formController.locationController,
+              maxParticipantsController:
+                  _formController.maxParticipantsController,
+              urlDocsController: _formController.urlDocsController,
             ),
-            const SizedBox(height: AppSpacing.spaceMD),
-            EditEventModernTextField(
-              controller: _urlDocsController,
-              label: 'Link tài liệu (tùy chọn)',
-              icon: Icons.link_rounded,
-              keyboardType: TextInputType.url,
-            ),
+
             const SizedBox(height: AppSpacing.spaceLG * 2),
 
-            // Nút Save (giữ nguyên, đã tốt)
+            // Nút Save
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(

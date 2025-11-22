@@ -374,8 +374,12 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
           );
 
-          // Navigate to event list screen
-          context.go('/events');
+          // Navigate based on role
+          if (state.isAdmin) {
+            context.go('/admin');
+          } else {
+            context.go('/events');
+          }
         } else if (state is LoginBiometricAvailabilityChecked) {
           // Cập nhật trạng thái biometric availability
           if (mounted) {

@@ -33,3 +33,31 @@ class EventDetailUnjoin extends EventDetailEvent {
   @override
   List<Object?> get props => [eventId];
 }
+
+class EventDetailUpdate extends EventDetailEvent {
+  const EventDetailUpdate({
+    required this.eventId,
+    required this.eventDto,
+    this.bannerFile,
+  });
+
+  final int eventId;
+  final dynamic eventDto; // EventDto
+  final dynamic bannerFile; // XFile?
+
+  @override
+  List<Object?> get props => [eventId, eventDto, bannerFile];
+}
+
+class EventDetailImportParticipants extends EventDetailEvent {
+  const EventDetailImportParticipants({
+    required this.eventId,
+    required this.file,
+  });
+
+  final int eventId;
+  final dynamic file; // XFile
+
+  @override
+  List<Object?> get props => [eventId, file];
+}

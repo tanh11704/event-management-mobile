@@ -1,3 +1,4 @@
+import 'package:event_management/features/admin/data/models/role_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'user_response_dto.g.dart';
@@ -11,6 +12,7 @@ class UserResponseDto {
     this.phoneNumber,
     this.unitId,
     this.avatar,
+    this.roles,
   });
 
   factory UserResponseDto.fromJson(Map<String, dynamic> json) =>
@@ -33,6 +35,9 @@ class UserResponseDto {
 
   @JsonKey(name: 'avatar')
   final String? avatar;
+
+  @JsonKey(name: 'roles', includeToJson: false, includeFromJson: true)
+  final List<RoleDto>? roles;
 
   Map<String, dynamic> toJson() => _$UserResponseDtoToJson(this);
 }

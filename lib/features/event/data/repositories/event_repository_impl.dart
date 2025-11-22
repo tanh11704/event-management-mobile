@@ -4,8 +4,8 @@ import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
-import 'package:event_management/features/event/data/models/update_event_dto.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
@@ -152,7 +152,7 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<void> unjoinEvent(int eventId) async {
     try {
-      return await _eventApiClient.unjoinEvent(eventId);
+      await _eventApiClient.unjoinEvent(eventId);
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
@@ -168,13 +168,35 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Event> createEvent(CreateEventDto createEventDto) async {
+  Future<EventDetailResponse> updateEvent(
+    int eventId,
+    EventDto eventDto,
+  ) async {
     try {
-      return await _eventApiClient.createEvent(createEventDto);
+      // Update event (returns Event)
+      await _eventApiClient.updateEvent(eventId, eventDto);
+      // Fetch updated event detail (returns EventDetailResponse)
+      return await _eventApiClient.getEventDetail(eventId);
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
+  Future<void> importParticipants(int eventId, XFile file) async {
+    try {
+      final bytes = await file.readAsBytes();
+      final fileName = file.name;
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+
+      await _eventApiClient.importParticipants(eventId, multipartFile);
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tạo sự kiện.');
+        throw Exception(errorMessage ?? 'Không thể import người tham gia.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
@@ -183,13 +205,36 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<Event> updateEvent(int eventId, UpdateEventDto updateEventDto) async {
+  Future<String> uploadImage(XFile imageFile) async {
     try {
-      return await _eventApiClient.updateEvent(eventId, updateEventDto);
+      final bytes = await imageFile.readAsBytes();
+      final fileName = imageFile.name;
+      final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
+
+      final response = await _eventApiClient.uploadImage(multipartFile);
+      return response.url;
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể cập nhật sự kiện.');
+        throw Exception(errorMessage ?? 'Không thể tải lên ảnh.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<Event> createEvent(CreateEventDto createEventDto) async {
+    try {
+      return await _eventApiClient.createEvent(createEventDto);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể tạo sự kiện.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
