@@ -162,7 +162,7 @@ class _UserSearchFieldState extends State<UserSearchField> {
                           icon: const Icon(Icons.add_circle_outline),
                           onPressed: () => _selectUser(user),
                         ),
-                  onTap: isSelected ? null : () => _selectUser(user),
+                  onTap: () => _selectUser(user),
                 );
               },
             ),

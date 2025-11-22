@@ -27,5 +27,4 @@ Map<String, dynamic> _$UserResponseDtoToJson(UserResponseDto instance) =>
       'phone_number': instance.phoneNumber,
       'unit_id': instance.unitId,
       'avatar': instance.avatar,
-      'roles': instance.roles,
     };

@@ -5,8 +5,8 @@ import 'package:event_management/features/admin/domain/entity/user_entity.dart';
 import 'package:event_management/features/admin/domain/repositories/admin_repository.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/manager.dart';
-import 'package:event_management/features/event/data/models/update_event_dto.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
@@ -185,30 +185,16 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
   ) async {
     final currentState = state;
     if (currentState is! EditEventFormState) {
-      return; // Not in form state, ignore
+      return;
     }
 
-    // Check if manager already exists
-    if (currentState.selectedManagers.any((m) => m.userId == event.user.id)) {
-      return; // Already added, do nothing
-    }
-
-    final manager = ManagerInfo(
-      userId: event.user.id,
-      userName: event.user.name,
-      userEmail: event.user.email,
+    final alreadyExists = currentState.selectedManagers.any(
+      (m) => m.userId == event.user.id,
     );
 
-    // Update state immediately for UI feedback
-    final updatedManagers = [...currentState.selectedManagers, manager];
-    final optimisticState = currentState.copyWith(
-      selectedManagers: updatedManagers,
-    );
-    emit(optimisticState);
-
-    // Call API to assign manager
+    // Always call API, whether user already exists or not
+    // This ensures the manager is assigned on the server
     try {
-      // Get current logged in user ID
       final currentUser = await _authRepository.getAuthUser();
       final currentUserId = currentUser.id;
 
@@ -218,17 +204,28 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
         roleType: EventManagement.manage,
         assignedBy: currentUserId,
       );
-      // Success - optimistic update is correct, no need to re-emit
+
+      // Only update UI state if user doesn't already exist
+      if (!alreadyExists) {
+        final manager = ManagerInfo(
+          userId: event.user.id,
+          userName: event.user.name,
+          userEmail: event.user.email,
+        );
+
+        final updatedManagers = [...currentState.selectedManagers, manager];
+        final updatedState = currentState.copyWith(
+          selectedManagers: updatedManagers,
+        );
+        emit(updatedState);
+      }
     } catch (e) {
-      // Revert on error - restore previous state
-      final revertedState = currentState.copyWith(
-        selectedManagers: currentState.selectedManagers,
-      );
-      emit(revertedState);
-      // Emit error state temporarily for UI to show error message
+      // If user doesn't exist, revert optimistic update
+      if (!alreadyExists) {
+        emit(currentState);
+      }
       emit(EditEventManagerAssignError(e.toString()));
-      // Restore form state after error is shown
-      emit(revertedState);
+      emit(currentState);
     }
   }
 
@@ -238,14 +235,12 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
   ) async {
     final currentState = state;
     if (currentState is EditEventFormState) {
-      // Check if manager exists
       if (!currentState.selectedManagers.any(
         (m) => m.userId == event.user.id,
       )) {
-        return; // Not in list, do nothing
+        return;
       }
 
-      // Update state immediately for UI feedback (optimistic update)
       final updatedManagers = currentState.selectedManagers
           .where((m) => m.userId != event.user.id)
           .toList();
@@ -254,24 +249,19 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
       );
       emit(optimisticState);
 
-      // Call API to remove manager
       try {
         await _adminRepository.removeEventManager(
           eventId: currentState.eventId,
           userId: event.user.id,
           roleType: EventManagement.manage,
         );
-        // Success - optimistic update is correct, no need to re-emit
       } catch (e) {
-        // Revert on error - restore previous state
         emit(
           currentState.copyWith(
             selectedManagers: currentState.selectedManagers,
           ),
         );
-        // Emit error state temporarily for UI to show error message
         emit(EditEventManagerRemoveError(e.toString()));
-        // Restore form state after error is shown
         emit(
           currentState.copyWith(
             selectedManagers: currentState.selectedManagers,
@@ -306,7 +296,7 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
         currentState.endDate.minute,
       );
 
-      final dto = UpdateEventDto(
+      final dto = EventDto(
         title: currentState.title,
         description: currentState.description,
         location: currentState.location,
