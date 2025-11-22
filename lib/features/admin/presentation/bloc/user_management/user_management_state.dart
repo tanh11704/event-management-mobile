@@ -37,6 +37,10 @@ class UserManagementSuccess extends UserManagementState {
   List<Object?> get props => [users, roles];
 }
 
+class UserManagementRoleUpdateSuccess extends UserManagementSuccess {
+  const UserManagementRoleUpdateSuccess({required super.users, super.roles});
+}
+
 class UserManagementFailure extends UserManagementState {
   const UserManagementFailure(this.error);
 
