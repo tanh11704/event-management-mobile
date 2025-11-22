@@ -34,6 +34,7 @@ class _EditEventTabState extends State<EditEventTab> {
   late DateTime _startDate;
   late DateTime _endDate;
   File? _bannerImage;
+  XFile? _bannerImageFile;
   String? _bannerUrl;
 
   final ImagePicker _imagePicker = ImagePicker();
@@ -201,6 +202,7 @@ class _EditEventTabState extends State<EditEventTab> {
       final pickedFile = await _imagePicker.pickImage(source: source);
       if (pickedFile != null) {
         setState(() {
+          _bannerImageFile = pickedFile;
           _bannerImage = File(pickedFile.path);
           _bannerUrl = null;
         });
@@ -267,6 +269,7 @@ class _EditEventTabState extends State<EditEventTab> {
             const EditEventSectionHeader(title: 'Ảnh bìa sự kiện'),
             EditEventBannerSection(
               bannerImage: _bannerImage,
+              bannerImageFile: _bannerImageFile,
               bannerUrl: _bannerUrl,
               onPickImage: _pickImage,
             ),

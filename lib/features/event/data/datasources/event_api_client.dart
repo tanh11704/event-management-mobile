@@ -4,6 +4,7 @@ import 'package:event_management/features/event/data/models/create_event_dto.dar
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
+import 'package:event_management/features/event/data/models/update_event_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -46,6 +47,12 @@ abstract class EventApiClient {
 
   @POST('/events')
   Future<Event> createEvent(@Body() CreateEventDto createEventDto);
+
+  @PUT('/events/{id}')
+  Future<Event> updateEvent(
+    @Path('id') int eventId,
+    @Body() UpdateEventDto updateEventDto,
+  );
 
   @PUT('/events/{id}/upload-banner')
   @MultiPart()

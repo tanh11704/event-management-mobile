@@ -1,5 +1,6 @@
 import 'package:event_management/core/di/injection_container.dart';
 import 'package:event_management/features/admin/presentation/pages/admin_dashboard_screen.dart';
+import 'package:event_management/features/admin/presentation/pages/edit_event_screen.dart';
 import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
 import 'package:event_management/features/auth/presentation/bloc/change_password/change_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
@@ -34,6 +35,7 @@ class AppRoutes {
   static const String createEvent = '/create-event';
   static const String userManagement = '/admin/user-management';
   static const String eventManagement = '/events/:id/manage';
+  static const String adminEditEvent = '/admin/events/:id/edit';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -134,13 +136,42 @@ final GoRouter appRouter = GoRouter(
       name: AppRoutes.eventManagement,
       builder: (context, state) {
         final eventId = int.parse(state.pathParameters['id']!);
+        // Check if came from admin by checking referrer or extra
+        final cameFromAdmin =
+            state.uri.toString().contains('/admin') ||
+            state.extra == true ||
+            (state.uri.queryParameters['from'] == 'admin');
         return BlocProvider(
           create: (context) =>
               sl<EventDetailBloc>()..add(EventDetailFetch(eventId: eventId)),
           child: BlocBuilder<EventDetailBloc, EventDetailState>(
             builder: (context, state) {
               if (state is EventDetailSuccess) {
-                return EventManagementScreen(eventDetail: state.eventDetail);
+                return EventManagementScreen(
+                  eventDetail: state.eventDetail,
+                  cameFromAdmin: cameFromAdmin,
+                );
+              }
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            },
+          ),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.adminEditEvent,
+      name: AppRoutes.adminEditEvent,
+      builder: (context, state) {
+        final eventId = int.parse(state.pathParameters['id']!);
+        return BlocProvider(
+          create: (context) =>
+              sl<EventDetailBloc>()..add(EventDetailFetch(eventId: eventId)),
+          child: BlocBuilder<EventDetailBloc, EventDetailState>(
+            builder: (context, state) {
+              if (state is EventDetailSuccess) {
+                return EditEventScreen(eventDetail: state.eventDetail);
               }
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),

@@ -1,6 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/admin/domain/entity/user_entity.dart';
+import 'package:event_management/features/admin/domain/extensions/user_entity_extensions.dart';
 import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
 import 'package:event_management/features/admin/presentation/widgets/update_role_dialog.dart';
 import 'package:flutter/material.dart';

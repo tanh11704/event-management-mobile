@@ -17,6 +17,7 @@ import 'package:event_management/features/event/data/datasources/event_sse_servi
 import 'package:event_management/features/event/data/repositories/event_repository_impl.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/edit_event/edit_event_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
@@ -46,6 +47,13 @@ Future<void> init() async {
       () => EventListBloc(eventRepository: sl(), eventSseService: sl()),
     )
     ..registerFactory(() => CreateEventBloc(eventRepository: sl()))
+    ..registerFactory(
+      () => EditEventBloc(
+        eventRepository: sl(),
+        adminRepository: sl(),
+        authRepository: sl(),
+      ),
+    )
     ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))

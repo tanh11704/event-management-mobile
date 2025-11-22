@@ -10,9 +10,14 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class EventManagementScreen extends StatefulWidget {
-  const EventManagementScreen({required this.eventDetail, super.key});
+  const EventManagementScreen({
+    required this.eventDetail,
+    this.cameFromAdmin = false,
+    super.key,
+  });
 
   final EventDetailResponse eventDetail;
+  final bool cameFromAdmin;
 
   @override
   State<EventManagementScreen> createState() => _EventManagementScreenState();
@@ -44,6 +49,8 @@ class _EventManagementScreenState extends State<EventManagementScreen>
           onPressed: () {
             if (context.canPop()) {
               context.pop();
+            } else if (widget.cameFromAdmin) {
+              context.go(AppRoutes.admin);
             } else {
               context.go(AppRoutes.eventList);
             }

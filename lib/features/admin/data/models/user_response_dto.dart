@@ -1,4 +1,5 @@
 import 'package:event_management/features/admin/data/models/role_dto.dart';
+import 'package:event_management/features/admin/domain/entity/user_entity.dart';
 import 'package:event_management/features/unit/data/model/unit_response_dto.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -69,5 +70,21 @@ class UserResponseDto {
       'unit': unit?.toJson(),
       'roles': roles?.map((role) => role.toJson()).toList(),
     };
+  }
+
+  static UserEntity toEntity(UserResponseDto dto) {
+    return UserEntity(
+      id: dto.id,
+      name: dto.name,
+      email: dto.email,
+      phoneNumber: dto.phoneNumber,
+      enabled: dto.enabled,
+      unit: dto.unit != null ? UnitResponseDto.toEntity(dto.unit!) : null,
+      roles: dto.roles?.map(RoleDto.toEntity).toList(),
+    );
+  }
+
+  static List<UserEntity> toEntities(List<UserResponseDto> dtoList) {
+    return dtoList.map(UserResponseDto.toEntity).toList();
   }
 }
