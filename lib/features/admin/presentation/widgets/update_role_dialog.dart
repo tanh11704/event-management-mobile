@@ -42,11 +42,7 @@ class _UpdateRoleDialogState extends State<UpdateRoleDialog> {
   Widget build(BuildContext context) {
     return BlocConsumer<UserManagementBloc, UserManagementState>(
       listener: (context, state) {
-        if (state is UserManagementSuccess && state.roles != null) {
-          if (_selectedRole == null) {
-            _initializeSelectedRole(state.roles!);
-          }
-        } else if (state is UserManagementSuccess && state.users.isNotEmpty) {
+        if (state is UserManagementRoleUpdateSuccess) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -54,6 +50,10 @@ class _UpdateRoleDialogState extends State<UpdateRoleDialog> {
               backgroundColor: AppColors.green500,
             ),
           );
+        } else if (state is UserManagementSuccess && state.roles != null) {
+          if (_selectedRole == null) {
+            _initializeSelectedRole(state.roles!);
+          }
         } else if (state is UserManagementFailure) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(

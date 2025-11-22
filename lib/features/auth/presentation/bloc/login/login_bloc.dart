@@ -36,7 +36,11 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         await _authRepository.clearSavedCredentialsForBiometric();
       }
 
-      emit(const LoginSuccess());
+      // Lấy thông tin user để kiểm tra role
+      final user = await _authRepository.getAuthUser();
+      final isAdmin = user.roles?.any((role) => role.roleName == 'ROLE_ADMIN') ?? false;
+
+      emit(LoginSuccess(isAdmin: isAdmin));
     } catch (e) {
       emit(LoginFailure(e.toString().replaceFirst('Exception: ', '')));
     }
@@ -69,7 +73,12 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
         email: credentials['email']!,
         password: credentials['password']!,
       );
-      emit(const LoginSuccess());
+
+      // Lấy thông tin user để kiểm tra role
+      final user = await _authRepository.getAuthUser();
+      final isAdmin = user.roles?.any((role) => role.roleName == 'ROLE_ADMIN') ?? false;
+
+      emit(LoginSuccess(isAdmin: isAdmin));
     } catch (e) {
       emit(LoginFailure(e.toString().replaceFirst('Exception: ', '')));
     }

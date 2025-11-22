@@ -29,6 +29,16 @@ final sl = GetIt.instance;
 
 Future<void> init() async {
   sl
+    // Core - Register secure storage first
+    ..registerLazySingleton(() => const FlutterSecureStorage())
+    ..registerLazySingleton(BiometricService.new)
+    // Repositories - Must be registered before Dio (which needs AuthRepository)
+    ..registerLazySingleton<AuthRepository>(
+      () => AuthRepositoryImpl(sl(), sl()),
+    )
+    ..registerLazySingleton<EventRepository>(() => EventRepositoryImpl(sl()))
+    ..registerLazySingleton<UnitRepository>(() => UnitRepositoryImpl(sl()))
+    ..registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl(sl()))
     // Auth Bloc
     ..registerFactory(
       () => LoginBloc(
@@ -49,16 +59,6 @@ Future<void> init() async {
     ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
-    // Core - Register secure storage first
-    ..registerLazySingleton(() => const FlutterSecureStorage())
-    ..registerLazySingleton(BiometricService.new) // Thêm dòng này
-    // Repositories - Must be registered before Dio (which needs AuthRepository)
-    ..registerLazySingleton<AuthRepository>(
-      () => AuthRepositoryImpl(sl(), sl()),
-    )
-    ..registerLazySingleton<EventRepository>(() => EventRepositoryImpl(sl()))
-    ..registerLazySingleton<UnitRepository>(() => UnitRepositoryImpl(sl()))
-    ..registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl(sl()))
     // Dio instances - Main Dio for general use (has auth interceptor)
     ..registerLazySingleton<Dio>(
       () =>

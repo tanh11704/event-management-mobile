@@ -57,14 +57,7 @@ class UserManagementBloc
         emit(UserManagementSuccess(users: const [], roles: roles));
       }
     } catch (e) {
-      if (currentState is UserManagementSuccess) {
-        // Giữ nguyên state hiện tại, không emit error
-        // Dialog sẽ hiển thị error từ state.roles == null
-      } else {
-        emit(
-          UserManagementFailure(e.toString().replaceFirst('Exception: ', '')),
-        );
-      }
+      emit(UserManagementFailure(e.toString().replaceFirst('Exception: ', '')));
     }
   }
 
@@ -78,7 +71,12 @@ class UserManagementBloc
     try {
       await _adminRepository.updateUserRole(event.userId, event.roleId);
       final users = await _adminRepository.getAllUsers();
-      emit(currentState.copyWith(users: users));
+      emit(
+        UserManagementRoleUpdateSuccess(
+          users: users,
+          roles: currentState.roles,
+        ),
+      );
     } catch (e) {
       emit(UserManagementFailure(e.toString().replaceFirst('Exception: ', '')));
     }

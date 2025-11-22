@@ -1,4 +1,5 @@
 import 'package:event_management/core/config/app_colors.dart';
+import 'package:event_management/core/services/cloudinary_image_service.dart';
 import 'package:flutter/material.dart';
 
 class EventDetailBanner extends StatelessWidget {
@@ -14,7 +15,7 @@ class EventDetailBanner extends StatelessWidget {
       decoration: BoxDecoration(gradient: AppColors.primaryGradient),
       child: bannerUrl != null && bannerUrl!.isNotEmpty
           ? Image.network(
-              bannerUrl!,
+              CloudinaryImageService.getBannerUrl(bannerUrl),
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return const _PlaceholderBanner();

@@ -1,6 +1,7 @@
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/services/cloudinary_image_service.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/presentation/widgets/event_card/event_status_badge.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,7 @@ class EventCardBanner extends StatelessWidget {
           decoration: BoxDecoration(gradient: AppColors.primaryGradient),
           child: event.banner != null && event.banner!.isNotEmpty
               ? Image.network(
-                  event.banner!,
+                  CloudinaryImageService.getThumbnailUrl(event.banner),
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) =>
                       _buildPlaceholder(),

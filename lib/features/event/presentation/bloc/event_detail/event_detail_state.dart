@@ -13,23 +13,48 @@ class EventDetailInitial extends EventDetailState {}
 class EventDetailLoading extends EventDetailState {}
 
 class EventDetailSuccess extends EventDetailState {
-  const EventDetailSuccess({required this.eventDetail, this.isJoining = false});
+  const EventDetailSuccess({
+    required this.eventDetail,
+    this.isJoining = false,
+    this.isUpdating = false,
+  });
 
   final EventDetailResponse eventDetail;
   final bool isJoining;
+  final bool isUpdating;
 
   EventDetailSuccess copyWith({
     EventDetailResponse? eventDetail,
     bool? isJoining,
+    bool? isUpdating,
   }) {
     return EventDetailSuccess(
       eventDetail: eventDetail ?? this.eventDetail,
       isJoining: isJoining ?? this.isJoining,
+      isUpdating: isUpdating ?? this.isUpdating,
     );
   }
 
   @override
-  List<Object> get props => [eventDetail, isJoining];
+  List<Object> get props => [eventDetail, isJoining, isUpdating];
+}
+
+class EventDetailImportSuccess extends EventDetailState {
+  const EventDetailImportSuccess(this.message);
+
+  final String message;
+
+  @override
+  List<Object> get props => [message];
+}
+
+class EventDetailImportFailure extends EventDetailState {
+  const EventDetailImportFailure(this.error);
+
+  final String error;
+
+  @override
+  List<Object> get props => [error];
 }
 
 class EventDetailError extends EventDetailState {
