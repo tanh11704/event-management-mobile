@@ -266,13 +266,18 @@ class _EventApiClient implements EventApiClient {
   }
 
   @override
-  Future<void> importParticipants(int eventId, MultipartFile file) async {
+  Future<ImportParticipantsResponse> importParticipants(
+    int eventId,
+    MultipartFile file, {
+    void Function(int, int)? onSendProgress,
+  }) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
+    queryParameters.removeWhere((k, v) => v == null);
     final _headers = <String, dynamic>{};
     final _data = FormData();
     _data.files.add(MapEntry('file', file));
-    final _options = _setStreamType<void>(
+    final _options = _setStreamType<ImportParticipantsResponse>(
       Options(
             method: 'POST',
             headers: _headers,
@@ -281,13 +286,49 @@ class _EventApiClient implements EventApiClient {
           )
           .compose(
             _dio.options,
-            '/events/${eventId}/import',
+            '/attendants/${eventId}/import',
+            queryParameters: queryParameters,
+            data: _data,
+            onSendProgress: onSendProgress,
+          )
+          .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
+    );
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ImportParticipantsResponse _value;
+    try {
+      _value = ImportParticipantsResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
+  @override
+  Future<ImportJobResponse> getImportJobStatus(int jobId) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{};
+    const Map<String, dynamic>? _data = null;
+    final _options = _setStreamType<ImportJobResponse>(
+      Options(method: 'GET', headers: _headers, extra: _extra)
+          .compose(
+            _dio.options,
+            '/attendants/import/${jobId}',
             queryParameters: queryParameters,
             data: _data,
           )
           .copyWith(baseUrl: _combineBaseUrls(_dio.options.baseUrl, baseUrl)),
     );
-    await _dio.fetch<void>(_options);
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late ImportJobResponse _value;
+    try {
+      _value = ImportJobResponse.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
   }
 
   @override

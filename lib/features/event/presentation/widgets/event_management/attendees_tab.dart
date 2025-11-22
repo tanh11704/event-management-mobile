@@ -71,124 +71,133 @@ class _AttendeesTabState extends State<AttendeesTab> {
       },
       child: Scaffold(
         backgroundColor: AppColors.coolGray50,
-        body: Column(
-          children: [
-            // Search Bar
-            Container(
-              padding: const EdgeInsets.all(AppSpacing.spaceMD),
-              color: AppColors.white,
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Tìm kiếm theo tên, email, số điện thoại...',
-                  hintStyle: AppTextStyles.bodyMedium,
-                  prefixIcon: const Icon(
-                    Icons.search_rounded,
-                    color: AppColors.coolGray500,
+        body: BlocBuilder<EventDetailBloc, EventDetailState>(
+          builder: (context, state) {
+            return Column(
+              children: [
+                // Import Progress Banner
+                if (state is EventDetailImporting)
+                  _ImportProgressBanner(state: state),
+                // Search Bar
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.spaceMD),
+                  color: AppColors.white,
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Tìm kiếm theo tên, email, số điện thoại...',
+                      hintStyle: AppTextStyles.bodyMedium,
+                      prefixIcon: const Icon(
+                        Icons.search_rounded,
+                        color: AppColors.coolGray500,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.clear_rounded),
+                              onPressed: () {
+                                setState(() {
+                                  _searchQuery = '';
+                                });
+                              },
+                            )
+                          : null,
+                      filled: true,
+                      fillColor: AppColors.coolGray50,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.spaceMD,
+                        vertical: AppSpacing.spaceMD,
+                      ),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
                   ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: const Icon(Icons.clear_rounded),
-                          onPressed: () {
+                ),
+
+                // Filter Chips
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.spaceMD,
+                    vertical: AppSpacing.spaceXM,
+                  ),
+                  color: AppColors.white,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: [
+                        _FilterChip(
+                          label: 'Tất cả',
+                          isSelected: _selectedFilter == AttendeeFilter.all,
+                          onTap: () {
                             setState(() {
-                              _searchQuery = '';
+                              _selectedFilter = AttendeeFilter.all;
                             });
                           },
+                        ),
+                        const SizedBox(width: AppSpacing.spaceXM),
+                        _FilterChip(
+                          label: 'Đã check-in',
+                          isSelected:
+                              _selectedFilter == AttendeeFilter.checkedIn,
+                          onTap: () {
+                            setState(() {
+                              _selectedFilter = AttendeeFilter.checkedIn;
+                            });
+                          },
+                        ),
+                        const SizedBox(width: AppSpacing.spaceXM),
+                        _FilterChip(
+                          label: 'Chưa check-in',
+                          isSelected:
+                              _selectedFilter == AttendeeFilter.notCheckedIn,
+                          onTap: () {
+                            setState(() {
+                              _selectedFilter = AttendeeFilter.notCheckedIn;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Attendees List
+                Expanded(
+                  child: _filteredParticipants.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.people_outline_rounded,
+                                size: 64,
+                                color: AppColors.coolGray500,
+                              ),
+                              const SizedBox(height: AppSpacing.spaceMD),
+                              Text(
+                                'Không tìm thấy người tham dự',
+                                style: AppTextStyles.bodyLarge,
+                              ),
+                            ],
+                          ),
                         )
-                      : null,
-                  filled: true,
-                  fillColor: AppColors.coolGray50,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.spaceMD,
-                    vertical: AppSpacing.spaceMD,
-                  ),
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(AppSpacing.spaceMD),
+                          itemCount: _filteredParticipants.length,
+                          itemBuilder: (context, index) {
+                            final participant = _filteredParticipants[index];
+                            return _AttendeeListItem(participant: participant);
+                          },
+                        ),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value;
-                  });
-                },
-              ),
-            ),
-
-            // Filter Chips
-            Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.spaceMD,
-                vertical: AppSpacing.spaceXM,
-              ),
-              color: AppColors.white,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _FilterChip(
-                      label: 'Tất cả',
-                      isSelected: _selectedFilter == AttendeeFilter.all,
-                      onTap: () {
-                        setState(() {
-                          _selectedFilter = AttendeeFilter.all;
-                        });
-                      },
-                    ),
-                    const SizedBox(width: AppSpacing.spaceXM),
-                    _FilterChip(
-                      label: 'Đã check-in',
-                      isSelected: _selectedFilter == AttendeeFilter.checkedIn,
-                      onTap: () {
-                        setState(() {
-                          _selectedFilter = AttendeeFilter.checkedIn;
-                        });
-                      },
-                    ),
-                    const SizedBox(width: AppSpacing.spaceXM),
-                    _FilterChip(
-                      label: 'Chưa check-in',
-                      isSelected: _selectedFilter == AttendeeFilter.notCheckedIn,
-                      onTap: () {
-                        setState(() {
-                          _selectedFilter = AttendeeFilter.notCheckedIn;
-                        });
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Attendees List
-            Expanded(
-              child: _filteredParticipants.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.people_outline_rounded,
-                            size: 64,
-                            color: AppColors.coolGray500,
-                          ),
-                          const SizedBox(height: AppSpacing.spaceMD),
-                          Text(
-                            'Không tìm thấy người tham dự',
-                            style: AppTextStyles.bodyLarge,
-                          ),
-                        ],
-                      ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.all(AppSpacing.spaceMD),
-                      itemCount: _filteredParticipants.length,
-                      itemBuilder: (context, index) {
-                        final participant = _filteredParticipants[index];
-                        return _AttendeeListItem(participant: participant);
-                      },
-                    ),
-            ),
-          ],
+              ],
+            );
+          },
         ),
         floatingActionButton: _SpeedDialFab(
           onExportExcel: () {
@@ -209,11 +218,11 @@ class _AttendeesTabState extends State<AttendeesTab> {
               final file = result.files.single;
               if (context.mounted) {
                 context.read<EventDetailBloc>().add(
-                      EventDetailImportParticipants(
-                        eventId: widget.eventDetail.id,
-                        file: file.xFile,
-                      ),
-                    );
+                  EventDetailImportParticipants(
+                    eventId: widget.eventDetail.id,
+                    file: file.xFile,
+                  ),
+                );
               }
             }
           },
@@ -458,6 +467,116 @@ class _SpeedDialFabState extends State<_SpeedDialFab>
           ),
         ),
       ],
+    );
+  }
+}
+
+class _ImportProgressBanner extends StatelessWidget {
+  const _ImportProgressBanner({required this.state});
+
+  final EventDetailImporting state;
+
+  String get _statusText {
+    switch (state.status?.toUpperCase()) {
+      case 'PENDING':
+        return 'Đang chờ xử lý...';
+      case 'PROCESSING':
+        return 'Đang xử lý...';
+      case 'COMPLETED':
+        return 'Hoàn thành';
+      case 'FAILED':
+        return 'Thất bại';
+      default:
+        return 'Đang xử lý...';
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = state.progress.clamp(0.0, 1.0);
+    final percentage = (progress * 100).toInt();
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.spaceMD),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.coolGray900.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.upload_file_rounded,
+                color: AppColors.vkuBlue,
+                size: 20,
+              ),
+              const SizedBox(width: AppSpacing.spaceXM),
+              Expanded(
+                child: Text(
+                  'Đang import người tham gia',
+                  style: AppTextStyles.heading5.copyWith(
+                    color: AppColors.coolGray900,
+                  ),
+                ),
+              ),
+              Text(
+                '$percentage%',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.vkuBlue,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.spaceXM),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              // Show indeterminate when progress is 0 or totalRecords is null
+              value: (progress > 0 && state.totalRecords != null)
+                  ? progress
+                  : null,
+              backgroundColor: AppColors.coolGray50,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                state.status?.toUpperCase() == 'FAILED'
+                    ? AppColors.red500
+                    : AppColors.vkuBlue,
+              ),
+              minHeight: 8,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.spaceXS),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                _statusText,
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.coolGray500,
+                ),
+              ),
+              Text(
+                state.processedCount != null && state.totalRecords != null
+                    ? '${state.processedCount}/${state.totalRecords} đã xử lý'
+                    : state.totalRecords != null
+                    ? '0/${state.totalRecords} đã xử lý'
+                    : 'Đang khởi tạo...',
+                style: AppTextStyles.caption.copyWith(
+                  color: AppColors.coolGray500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
