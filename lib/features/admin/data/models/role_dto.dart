@@ -1,3 +1,4 @@
+import 'package:event_management/features/admin/domain/entity/role_entity.dart';
 import 'package:json_annotation/json_annotation.dart';
 
 part 'role_dto.g.dart';
@@ -29,4 +30,12 @@ class RoleDto {
   }
 
   Map<String, dynamic> toJson() => _$RoleDtoToJson(this);
+
+  static RoleEntity toEntity(RoleDto dto) {
+    return RoleEntity(id: dto.id, roleName: dto.roleName);
+  }
+
+  static List<RoleEntity> toEntities(List<RoleDto> dtoList) {
+    return dtoList.map(RoleDto.toEntity).toList();
+  }
 }

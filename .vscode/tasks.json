@@ -1,0 +1,30 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build Runner: Watch",
+      "type": "shell",
+      "command": "fvm flutter pub run build_runner watch --delete-conflicting-outputs",
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "focus": false
+      },
+      "runOptions": {
+        "runOn": "default"
+      }
+    },
+    {
+      "label": "Build Runner: Build",
+      "type": "shell",
+      "command": "fvm flutter pub run build_runner build --delete-conflicting-outputs",
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    }
+  ]
+}

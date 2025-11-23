@@ -1,4 +1,6 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/features/admin/data/models/event_manager_dto.dart';
+import 'package:event_management/features/admin/data/models/event_manager_response_dto.dart';
 import 'package:event_management/features/admin/data/models/role_dto.dart';
 import 'package:event_management/features/admin/data/models/user_response_dto.dart';
 import 'package:injectable/injectable.dart';
@@ -23,4 +25,12 @@ abstract class AdminApiClient {
     @Path('id') int userId,
     @Body() Map<String, int> requestBody,
   );
+
+  @POST('/event-manager/assign-manager')
+  Future<EventManagerResponseDto> assignEventManager(
+    @Body() EventManagerDto dto,
+  );
+
+  @DELETE('/event-manager/remove-manager')
+  Future<Map<String, String>> removeEventManager(@Body() EventManagerDto dto);
 }

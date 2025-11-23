@@ -10,6 +10,7 @@ class EditEventModernTextField extends StatelessWidget {
     this.maxLines = 1,
     this.keyboardType,
     this.validator,
+    this.onChanged,
     super.key,
   });
 
@@ -19,6 +20,7 @@ class EditEventModernTextField extends StatelessWidget {
   final int maxLines;
   final TextInputType? keyboardType;
   final String? Function(String?)? validator;
+  final ValueChanged<String>? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +29,7 @@ class EditEventModernTextField extends StatelessWidget {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
+      onChanged: onChanged,
       style: AppTextStyles.bodyMedium.copyWith(color: AppColors.coolGray900),
       decoration: InputDecoration(
         labelText: label,
