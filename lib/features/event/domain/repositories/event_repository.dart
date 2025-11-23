@@ -49,6 +49,11 @@ abstract class EventRepository {
   Future<ImportJobResponse> getImportJobStatus(int jobId);
 
   Future<String> uploadImage(XFile imageFile);
+
+  Future<String> exportParticipants({
+    required int eventId,
+    String filter = 'all',
+  });
 }
 
 class EventListResult {

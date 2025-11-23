@@ -23,6 +23,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailUpdate>(_onUpdate);
     on<EventDetailImportParticipants>(_onImportParticipants);
     on<EventDetailCheckImportStatus>(_onCheckImportStatus);
+    on<EventDetailExportParticipants>(_onExportParticipants);
   }
 
   final EventRepository _eventRepository;
@@ -262,6 +263,71 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       }
       // Don't stop polling on error, just log it
       // The next poll will retry
+    }
+  }
+
+  Future<void> _onExportParticipants(
+    EventDetailExportParticipants event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc (instance: $hashCode): Starting export for event ${event.eventId} with filter ${event.filter}',
+        );
+      }
+
+      // 1. Exporting vẫn giữ eventDetail
+      emit(EventDetailExporting(currentState.eventDetail));
+
+      try {
+        final filePath = await _eventRepository.exportParticipants(
+          eventId: event.eventId,
+          filter: event.filter,
+        );
+
+        if (kDebugMode) {
+          debugPrint(
+            'EventDetailBloc (instance: $hashCode): Export successful, file saved to: $filePath',
+          );
+        }
+
+        // 2. Success cũng giữ eventDetail
+        emit(
+          EventDetailExportSuccess(
+            eventDetail: currentState.eventDetail,
+            filePath: filePath,
+            message: 'Xuất file Excel thành công!',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        // (tuỳ chọn) Sau khi share xong, bạn có thể emit lại EventDetailSuccess
+        // từ UI hoặc sau 1 event khác, nhưng không bắt buộc ngay tại đây.
+        // emit(currentState);
+      } catch (e, stackTrace) {
+        if (kDebugMode) {
+          debugPrint('EventDetailBloc: Export error: $e');
+          debugPrint('EventDetailBloc: Stack trace: $stackTrace');
+        }
+
+        emit(
+          EventDetailExportFailure(
+            eventDetail: currentState.eventDetail,
+            error: e.toString().replaceFirst('Exception: ', ''),
+          ),
+        );
+
+        // Sau khi show lỗi, có thể emit lại currentState nếu muốn
+        emit(currentState);
+      }
+    } else {
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc: Cannot export - current state is not EventDetailSuccess: ${state.runtimeType}',
+        );
+      }
     }
   }
 

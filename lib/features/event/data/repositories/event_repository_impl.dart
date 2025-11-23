@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/data/datasources/event_api_client.dart';
 import 'package:event_management/features/event/data/models/attendant.dart';
@@ -9,14 +12,20 @@ import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/data/models/import_job_response.dart';
 import 'package:event_management/features/event/data/models/import_participants_response.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 
 @LazySingleton(as: EventRepository)
 class EventRepositoryImpl implements EventRepository {
-  EventRepositoryImpl(this._eventApiClient);
+  EventRepositoryImpl(this._eventApiClient, this._secureStorage);
 
   final EventApiClient _eventApiClient;
+  final FlutterSecureStorage _secureStorage;
 
   @override
   Future<EventListResult> getAllEvents({
@@ -265,6 +274,103 @@ class EventRepositoryImpl implements EventRepository {
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
       throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<String> exportParticipants({
+    required int eventId,
+    String filter = 'all',
+  }) async {
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: dotenv.env['API_BASE_URL'] ?? 'http://localhost:8080/api/v1',
+        connectTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30),
+        validateStatus: (status) => status != null && status < 300,
+      ),
+    );
+
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await _secureStorage.read(key: 'access_token');
+          if (token != null) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          return handler.next(options);
+        },
+      ),
+    );
+
+    try {
+      final response = await dio.get<List<int>>(
+        '/attendants/$eventId/export',
+        queryParameters: {'filter': filter},
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      final bytes = response.data;
+      if (bytes == null || bytes.isEmpty) {
+        throw Exception('Server trả về dữ liệu rỗng.');
+      }
+
+      final contentType = response.headers.value('content-type');
+      if (contentType != null &&
+          !contentType.contains('spreadsheet') &&
+          !contentType.contains('excel')) {
+        throw Exception('Server trả về dữ liệu không hợp lệ.');
+      }
+
+      final directory = await getApplicationDocumentsDirectory();
+
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final filename = 'Danh_sach_nguoi_tham_du_${eventId}_$timestamp.xlsx';
+      final filePath = path.join(directory.path, filename);
+
+      final file = File(filePath);
+      await file.writeAsBytes(bytes, flush: true);
+
+      return filePath;
+    } on DioException catch (e) {
+      var errorMessage = 'Không thể xuất danh sách người tham gia.';
+
+      if (e.response != null && e.response!.data != null) {
+        try {
+          final dynamic errorData = e.response!.data;
+
+          if (errorData is List<int>) {
+            final decodedString = utf8.decode(errorData);
+            try {
+              final dynamic decodedJson = jsonDecode(decodedString);
+              if (decodedJson is Map<String, dynamic>) {
+                errorMessage =
+                    decodedJson['message'] as String? ?? decodedString;
+              } else {
+                errorMessage = decodedString;
+              }
+            } catch (_) {
+              errorMessage = decodedString;
+            }
+          } else if (errorData is Map) {
+            errorMessage = errorData['message'] as String? ?? errorMessage;
+          }
+        } catch (decodeError) {
+          if (kDebugMode) {
+            debugPrint('Lỗi khi decode error message: $decodeError');
+          }
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Kết nối quá lâu. Vui lòng thử lại.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Không thể kết nối đến máy chủ. Kiểm tra mạng.';
+      }
+
+      throw Exception(errorMessage);
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Lỗi không xác định: $e');
     }
   }
 }
