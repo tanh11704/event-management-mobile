@@ -41,6 +41,11 @@ abstract class EventRepository {
   Future<void> importParticipants(int eventId, XFile file);
 
   Future<String> uploadImage(XFile imageFile);
+
+  Future<String> exportParticipants({
+    required int eventId,
+    String filter = 'all',
+  });
 }
 
 class EventListResult {

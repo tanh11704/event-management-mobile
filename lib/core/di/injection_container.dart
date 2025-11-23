@@ -37,7 +37,9 @@ Future<void> init() async {
     ..registerLazySingleton<AuthRepository>(
       () => AuthRepositoryImpl(sl(), sl()),
     )
-    ..registerLazySingleton<EventRepository>(() => EventRepositoryImpl(sl()))
+    ..registerLazySingleton<EventRepository>(
+      () => EventRepositoryImpl(sl(), sl<FlutterSecureStorage>()),
+    )
     ..registerLazySingleton<UnitRepository>(() => UnitRepositoryImpl(sl()))
     ..registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl(sl()))
     // Auth Bloc
