@@ -65,3 +65,42 @@ class EventDetailError extends EventDetailState {
   @override
   List<Object> get props => [error];
 }
+
+class EventDetailExporting extends EventDetailState {
+  const EventDetailExporting(this.eventDetail);
+
+  final EventDetailResponse eventDetail;
+
+  @override
+  List<Object> get props => [eventDetail];
+}
+
+class EventDetailExportSuccess extends EventDetailState {
+  const EventDetailExportSuccess({
+    required this.eventDetail,
+    required this.filePath,
+    required this.message,
+    required this.timestamp,
+  });
+
+  final EventDetailResponse eventDetail;
+  final String filePath;
+  final String message;
+  final int timestamp;
+
+  @override
+  List<Object> get props => [eventDetail, filePath, message, timestamp];
+}
+
+class EventDetailExportFailure extends EventDetailState {
+  const EventDetailExportFailure({
+    required this.eventDetail,
+    required this.error,
+  });
+
+  final EventDetailResponse eventDetail;
+  final String error;
+
+  @override
+  List<Object> get props => [eventDetail, error];
+}

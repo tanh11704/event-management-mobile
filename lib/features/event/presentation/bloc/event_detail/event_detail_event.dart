@@ -61,3 +61,16 @@ class EventDetailImportParticipants extends EventDetailEvent {
   @override
   List<Object?> get props => [eventId, file];
 }
+
+class EventDetailExportParticipants extends EventDetailEvent {
+  const EventDetailExportParticipants({
+    required this.eventId,
+    this.filter = 'all',
+  });
+
+  final int eventId;
+  final String filter;
+
+  @override
+  List<Object?> get props => [eventId, filter];
+}

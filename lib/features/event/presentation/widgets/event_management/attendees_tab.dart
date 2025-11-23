@@ -1,14 +1,20 @@
+import 'dart:io';
+
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/participant.dart';
+import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:share_plus/share_plus.dart';
 
 class AttendeesTab extends StatefulWidget {
   const AttendeesTab({required this.eventDetail, super.key});
@@ -22,6 +28,15 @@ class AttendeesTab extends StatefulWidget {
 class _AttendeesTabState extends State<AttendeesTab> {
   String _searchQuery = '';
   AttendeeFilter _selectedFilter = AttendeeFilter.all;
+  bool _isExporting = false;
+
+  late final EventRepository _eventRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    _eventRepository = di.sl<EventRepository>();
+  }
 
   List<ParticipantInfo> get _filteredParticipants {
     var filtered = widget.eventDetail.participants;
@@ -49,10 +64,232 @@ class _AttendeesTabState extends State<AttendeesTab> {
     return filtered;
   }
 
+  String _getFilterString(AttendeeFilter filter) {
+    switch (filter) {
+      case AttendeeFilter.all:
+        return 'all';
+      case AttendeeFilter.checkedIn:
+        return 'checked_in';
+      case AttendeeFilter.notCheckedIn:
+        return 'not_checked_in';
+    }
+  }
+
+  Future<void> _shareFile(BuildContext context, String filePath) async {
+    if (kDebugMode) {
+      debugPrint('📂 ========== DEBUG SHARE FILE ==========');
+      debugPrint('📂 Platform: ${Platform.isIOS ? "iOS" : "Android"}');
+      debugPrint('📂 File path: $filePath');
+    }
+
+    try {
+      // Bước 1: Kiểm tra file có tồn tại không
+      final file = File(filePath);
+      final fileExists = await file.exists();
+
+      if (kDebugMode) {
+        debugPrint('📂 File exists: $fileExists');
+      }
+
+      if (!fileExists) {
+        if (kDebugMode) {
+          debugPrint('❌ File không tồn tại tại đường dẫn: $filePath');
+        }
+        throw Exception('File không tồn tại tại đường dẫn: $filePath');
+      }
+
+      // Bước 2: Kiểm tra file size và permissions
+      final fileStat = await file.stat();
+      if (kDebugMode) {
+        debugPrint(
+          '📂 File size: ${fileStat.size} bytes (${(fileStat.size / 1024).toStringAsFixed(2)} KB)',
+        );
+        debugPrint('📂 File mode: ${fileStat.mode}');
+        debugPrint('📂 File modified: ${fileStat.modified}');
+        debugPrint('📂 Is file: ${fileStat.type == FileSystemEntityType.file}');
+      }
+
+      // Bước 3: Kiểm tra có thể đọc file không
+      final canRead =
+          await file.exists() &&
+          await file.readAsBytes().then((_) => true).catchError((_) => false);
+      if (kDebugMode) {
+        debugPrint('📂 Can read file: $canRead');
+      }
+
+      if (!canRead) {
+        if (kDebugMode) {
+          debugPrint('❌ Không thể đọc file');
+        }
+        throw Exception('Không thể đọc file');
+      }
+
+      // Bước 4: Tạo XFile và kiểm tra RenderBox
+      final xFile = XFile(filePath);
+      if (kDebugMode) {
+        debugPrint('📂 XFile created: ${xFile.path}');
+        debugPrint('📂 XFile name: ${xFile.name}');
+        debugPrint('📂 XFile mimeType: ${xFile.mimeType}');
+      }
+
+      // FIX: Kiểm tra RenderBox kỹ hơn
+      final box = context.findRenderObject() as RenderBox?;
+
+      Rect? shareOrigin;
+      if (box != null && box.hasSize) {
+        // Chỉ lấy 1/2 màn hình phía dưới để an toàn cho iPad
+        final offset = box.localToGlobal(Offset.zero);
+        shareOrigin = Rect.fromLTWH(
+          offset.dx,
+          offset.dy,
+          box.size.width,
+          box.size.height / 2,
+        );
+        if (kDebugMode) {
+          debugPrint('📂 Share origin: $shareOrigin');
+        }
+      } else {
+        if (kDebugMode) {
+          debugPrint('📂 RenderBox không có size, shareOrigin = null');
+        }
+      }
+
+      // Bước 5: Gọi Share
+      if (kDebugMode) {
+        debugPrint('📂 Đang gọi Share.shareXFiles...');
+      }
+
+      await Share.shareXFiles(
+        [xFile],
+        text: 'Danh sách người tham gia sự kiện',
+        // FIX: Cung cấp vị trí chính xác hơn
+        sharePositionOrigin: shareOrigin,
+      );
+
+      if (kDebugMode) {
+        debugPrint('✅ Share dialog đã đóng/hoàn tất');
+        debugPrint('📂 ========== END DEBUG ==========');
+      }
+    } catch (e, stack) {
+      if (kDebugMode) {
+        debugPrint('❌ Lỗi khi gọi Share: $e');
+        debugPrint('❌ Stack trace:');
+        debugPrint(stack.toString());
+        debugPrint('📂 ========== END DEBUG ==========');
+      }
+      rethrow;
+    }
+  }
+
+  Future<void> _exportAndShareParticipants(BuildContext context) async {
+    if (_isExporting) return;
+
+    setState(() {
+      _isExporting = true;
+    });
+
+    // SnackBar loading
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                valueColor: AlwaysStoppedAnimation<Color>(AppColors.white),
+              ),
+            ),
+            SizedBox(width: AppSpacing.spaceMD),
+            Text('Đang xuất file Excel...'),
+          ],
+        ),
+        backgroundColor: AppColors.vkuBlue,
+        duration: Duration(seconds: 30),
+      ),
+    );
+
+    try {
+      final filter = _getFilterString(_selectedFilter);
+
+      if (kDebugMode) {
+        debugPrint(
+          '📤 AttendeesTab: Gọi exportParticipants cho event ${widget.eventDetail.id} với filter $filter',
+        );
+      }
+
+      final filePath = await _eventRepository.exportParticipants(
+        eventId: widget.eventDetail.id,
+        filter: filter,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+
+      if (Platform.isIOS) {
+        // Đợi UI ổn định chút rồi share
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          if (!context.mounted) return;
+          await Future<void>.delayed(const Duration(milliseconds: 300));
+
+          final overlay = Overlay.of(context);
+          final shareContext = overlay.context;
+          await _shareFile(shareContext, filePath);
+        });
+      } else {
+        // Android: hiển thị SnackBar với nút MỞ NGAY
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('Xuất file Excel thành công!'),
+            backgroundColor: AppColors.green500,
+            duration: const Duration(seconds: 5),
+            action: SnackBarAction(
+              label: 'MỞ NGAY',
+              textColor: AppColors.white,
+              onPressed: () => _shareFile(context, filePath),
+            ),
+          ),
+        );
+      }
+    } catch (e, stack) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi xuất file: $e'),
+          backgroundColor: AppColors.red500,
+        ),
+      );
+
+      if (kDebugMode) {
+        debugPrint('❌ AttendeesTab: Lỗi exportParticipants: $e');
+        debugPrint(stack.toString());
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isExporting = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocListener<EventDetailBloc, EventDetailState>(
+      listenWhen: (previous, current) {
+        // Chỉ lắng nghe các state liên quan import
+        final shouldListen =
+            current is EventDetailImportSuccess ||
+            current is EventDetailImportFailure;
+
+        return shouldListen;
+      },
       listener: (context, state) {
+        // Import success/failure
         if (state is EventDetailImportSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -147,7 +384,8 @@ class _AttendeesTabState extends State<AttendeesTab> {
                     const SizedBox(width: AppSpacing.spaceXM),
                     _FilterChip(
                       label: 'Chưa check-in',
-                      isSelected: _selectedFilter == AttendeeFilter.notCheckedIn,
+                      isSelected:
+                          _selectedFilter == AttendeeFilter.notCheckedIn,
                       onTap: () {
                         setState(() {
                           _selectedFilter = AttendeeFilter.notCheckedIn;
@@ -191,32 +429,29 @@ class _AttendeesTabState extends State<AttendeesTab> {
           ],
         ),
         floatingActionButton: _SpeedDialFab(
-          onExportExcel: () {
-            // TODO: Implement export Excel (Chức năng 7)
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Chức năng xuất Excel đang được phát triển'),
-              ),
-            );
-          },
-          onInviteByFile: () async {
-            final result = await FilePicker.platform.pickFiles(
-              type: FileType.custom,
-              allowedExtensions: ['xlsx', 'xls', 'csv'],
-            );
+          onExportExcel: _isExporting
+              ? null
+              : () {
+                  _exportAndShareParticipants(context);
+                },
+          onInviteByFile: _isExporting
+              ? null
+              : () async {
+                  final result = await FilePicker.platform.pickFiles(
+                    type: FileType.custom,
+                    allowedExtensions: ['xlsx', 'xls', 'csv'],
+                  );
 
-            if (result != null) {
-              final file = result.files.single;
-              if (context.mounted) {
-                context.read<EventDetailBloc>().add(
+                  if (result != null && context.mounted) {
+                    final file = result.files.single;
+                    context.read<EventDetailBloc>().add(
                       EventDetailImportParticipants(
                         eventId: widget.eventDetail.id,
                         file: file.xFile,
                       ),
                     );
-              }
-            }
-          },
+                  }
+                },
         ),
       ),
     );
@@ -362,8 +597,8 @@ class _SpeedDialFab extends StatefulWidget {
     required this.onInviteByFile,
   });
 
-  final VoidCallback onExportExcel;
-  final VoidCallback onInviteByFile;
+  final VoidCallback? onExportExcel;
+  final VoidCallback? onInviteByFile;
 
   @override
   State<_SpeedDialFab> createState() => _SpeedDialFabState();
@@ -419,8 +654,21 @@ class _SpeedDialFabState extends State<_SpeedDialFab>
                 child: FloatingActionButton.extended(
                   heroTag: 'export_excel',
                   onPressed: widget.onExportExcel,
-                  backgroundColor: AppColors.green500,
-                  icon: const Icon(Icons.download_rounded),
+                  backgroundColor: widget.onExportExcel == null
+                      ? AppColors.coolGray500
+                      : AppColors.green500,
+                  icon: widget.onExportExcel == null
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.white,
+                            ),
+                          ),
+                        )
+                      : const Icon(Icons.download_rounded),
                   label: const Text('Xuất Excel'),
                 ),
               ),
@@ -438,7 +686,9 @@ class _SpeedDialFabState extends State<_SpeedDialFab>
                 child: FloatingActionButton.extended(
                   heroTag: 'invite_file',
                   onPressed: widget.onInviteByFile,
-                  backgroundColor: AppColors.blue400,
+                  backgroundColor: widget.onInviteByFile == null
+                      ? AppColors.coolGray500
+                      : AppColors.blue400,
                   icon: const Icon(Icons.upload_file_rounded),
                   label: const Text('Mời bằng file'),
                 ),

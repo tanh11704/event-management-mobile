@@ -4,6 +4,7 @@ import 'package:event_management/features/event/domain/repositories/event_reposi
 import 'package:event_management/features/event/domain/usecases/get_event_detail_usecase.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 
@@ -18,6 +19,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailUnjoin>(_onUnjoin);
     on<EventDetailUpdate>(_onUpdate);
     on<EventDetailImportParticipants>(_onImportParticipants);
+    on<EventDetailExportParticipants>(_onExportParticipants);
   }
 
   final EventRepository _eventRepository;
@@ -143,6 +145,71 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
           ),
         );
         emit(currentState);
+      }
+    }
+  }
+
+  Future<void> _onExportParticipants(
+    EventDetailExportParticipants event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is EventDetailSuccess) {
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc (instance: $hashCode): Starting export for event ${event.eventId} with filter ${event.filter}',
+        );
+      }
+
+      // 1. Exporting vẫn giữ eventDetail
+      emit(EventDetailExporting(currentState.eventDetail));
+
+      try {
+        final filePath = await _eventRepository.exportParticipants(
+          eventId: event.eventId,
+          filter: event.filter,
+        );
+
+        if (kDebugMode) {
+          debugPrint(
+            'EventDetailBloc (instance: $hashCode): Export successful, file saved to: $filePath',
+          );
+        }
+
+        // 2. Success cũng giữ eventDetail
+        emit(
+          EventDetailExportSuccess(
+            eventDetail: currentState.eventDetail,
+            filePath: filePath,
+            message: 'Xuất file Excel thành công!',
+            timestamp: DateTime.now().millisecondsSinceEpoch,
+          ),
+        );
+
+        // (tuỳ chọn) Sau khi share xong, bạn có thể emit lại EventDetailSuccess
+        // từ UI hoặc sau 1 event khác, nhưng không bắt buộc ngay tại đây.
+        // emit(currentState);
+      } catch (e, stackTrace) {
+        if (kDebugMode) {
+          debugPrint('EventDetailBloc: Export error: $e');
+          debugPrint('EventDetailBloc: Stack trace: $stackTrace');
+        }
+
+        emit(
+          EventDetailExportFailure(
+            eventDetail: currentState.eventDetail,
+            error: e.toString().replaceFirst('Exception: ', ''),
+          ),
+        );
+
+        // Sau khi show lỗi, có thể emit lại currentState nếu muốn
+        emit(currentState);
+      }
+    } else {
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc: Cannot export - current state is not EventDetailSuccess: ${state.runtimeType}',
+        );
       }
     }
   }
