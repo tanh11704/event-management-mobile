@@ -5,6 +5,8 @@ import 'package:event_management/features/event/data/models/event_counters.dart'
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/import_job_response.dart';
+import 'package:event_management/features/event/data/models/import_participants_response.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class EventRepository {
@@ -38,7 +40,13 @@ abstract class EventRepository {
 
   Future<EventDetailResponse> updateEvent(int eventId, EventDto eventDto);
 
-  Future<void> importParticipants(int eventId, XFile file);
+  Future<ImportParticipantsResponse> importParticipants(
+    int eventId,
+    XFile file, {
+    void Function(int, int)? onSendProgress,
+  });
+
+  Future<ImportJobResponse> getImportJobStatus(int jobId);
 
   Future<String> uploadImage(XFile imageFile);
 

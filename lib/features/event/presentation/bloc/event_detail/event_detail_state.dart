@@ -39,6 +39,37 @@ class EventDetailSuccess extends EventDetailState {
   List<Object> get props => [eventDetail, isJoining, isUpdating];
 }
 
+class EventDetailImporting extends EventDetailState {
+  const EventDetailImporting({
+    required this.jobId,
+    required this.progress,
+    this.totalRecords,
+    this.processedCount,
+    this.successCount,
+    this.skippedCount,
+    this.status,
+  });
+
+  final int jobId;
+  final double progress; // 0.0 to 1.0
+  final int? totalRecords;
+  final int? processedCount;
+  final int? successCount;
+  final int? skippedCount;
+  final String? status;
+
+  @override
+  List<Object?> get props => [
+    jobId,
+    progress,
+    totalRecords,
+    processedCount,
+    successCount,
+    skippedCount,
+    status,
+  ];
+}
+
 class EventDetailImportSuccess extends EventDetailState {
   const EventDetailImportSuccess(this.message);
 

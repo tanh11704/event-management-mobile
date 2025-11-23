@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
+import 'package:event_management/features/event/data/models/import_job_response.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/domain/usecases/get_event_detail_usecase.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
@@ -19,11 +22,14 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailUnjoin>(_onUnjoin);
     on<EventDetailUpdate>(_onUpdate);
     on<EventDetailImportParticipants>(_onImportParticipants);
+    on<EventDetailCheckImportStatus>(_onCheckImportStatus);
     on<EventDetailExportParticipants>(_onExportParticipants);
   }
 
   final EventRepository _eventRepository;
   final GetEventDetailUseCase _getEventDetailUseCase;
+  Timer? _pollingTimer;
+  EventDetailSuccess? _savedStateBeforeImport;
 
   Future<void> _onFetch(
     EventDetailFetch event,
@@ -129,16 +135,50 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     if (currentState is EventDetailSuccess) {
       try {
         if (event.file is XFile) {
-          await _eventRepository.importParticipants(
+          if (kDebugMode) {
+            debugPrint(
+              'EventDetailBloc: Starting import for event ${event.eventId}',
+            );
+          }
+
+          // Save current state to restore later
+          _savedStateBeforeImport = currentState;
+
+          // Show initial loading state
+          emit(
+            const EventDetailImporting(
+              jobId: 0,
+              progress: 0,
+              status: 'PROCESSING',
+            ),
+          );
+
+          // 1. Upload file and get jobId
+          final response = await _eventRepository.importParticipants(
             event.eventId,
             event.file as XFile,
           );
-          emit(const EventDetailImportSuccess('Import thành công!'));
-          add(EventDetailFetch(eventId: event.eventId));
+
+          if (kDebugMode) {
+            debugPrint(
+              'EventDetailBloc: Import accepted - jobId: ${response.jobId}, status: ${response.status}, message: ${response.message}',
+            );
+          }
+
+          // 2. Start polling for job status (every 2 seconds)
+          _startPolling(response.jobId, event.eventId);
+
+          // Poll immediately to get initial status
+          add(EventDetailCheckImportStatus(jobId: response.jobId));
         } else {
           throw Exception('Invalid file');
         }
       } catch (e) {
+        if (kDebugMode) {
+          debugPrint('EventDetailBloc: Import error: $e');
+        }
+        _pollingTimer?.cancel();
+        _pollingTimer = null;
         emit(
           EventDetailImportFailure(
             e.toString().replaceFirst('Exception: ', ''),
@@ -146,6 +186,83 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         );
         emit(currentState);
       }
+    }
+  }
+
+  void _startPolling(int jobId, int eventId) {
+    _pollingTimer?.cancel();
+
+    // Poll every 2 seconds as per backend flow
+    _pollingTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
+      add(EventDetailCheckImportStatus(jobId: jobId));
+    });
+  }
+
+  Future<void> _onCheckImportStatus(
+    EventDetailCheckImportStatus event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    try {
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc: Checking import status for jobId: ${event.jobId}',
+        );
+      }
+      final jobStatus = await _eventRepository.getImportJobStatus(event.jobId);
+
+      if (kDebugMode) {
+        debugPrint(
+          'EventDetailBloc: Job status - ${jobStatus.status}, progress: ${jobStatus.progressPercentage.toStringAsFixed(1)}%, processed: ${jobStatus.processedCount}/${jobStatus.totalRecords}',
+        );
+      }
+
+      // Emit importing state with current progress
+      emit(
+        EventDetailImporting(
+          jobId: jobStatus.id,
+          progress: jobStatus.progress,
+          totalRecords: jobStatus.totalRecords,
+          processedCount: jobStatus.processedCount,
+          successCount: jobStatus.successCount,
+          skippedCount: jobStatus.skippedCount,
+          status: jobStatus.status.toString().split('.').last,
+        ),
+      );
+
+      // Stop polling if job is completed or failed
+      if (jobStatus.status == ImportJobStatus.completed ||
+          jobStatus.status == ImportJobStatus.failed) {
+        _pollingTimer?.cancel();
+        _pollingTimer = null;
+
+        if (jobStatus.status == ImportJobStatus.completed) {
+          emit(
+            EventDetailImportSuccess(
+              'Import thành công! ${jobStatus.successCount ?? 0} người đã được thêm.${jobStatus.skippedCount != null && jobStatus.skippedCount! > 0 ? ' ${jobStatus.skippedCount} người đã bỏ qua.' : ''}',
+            ),
+          );
+          // Refresh event detail to show updated participants
+          add(EventDetailFetch(eventId: jobStatus.eventId));
+        } else {
+          // Emit failure, then restore previous state
+          emit(
+            EventDetailImportFailure(
+              jobStatus.errorMessage ?? 'Import thất bại',
+            ),
+          );
+          // Restore previous state to prevent UI from hanging
+          if (_savedStateBeforeImport != null) {
+            emit(_savedStateBeforeImport!);
+            _savedStateBeforeImport = null;
+          }
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint('EventDetailBloc: Error checking import status: $e');
+      }
+      // Don't stop polling on error, just log it
+      // The next poll will retry
     }
   }
 
@@ -212,5 +329,11 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
         );
       }
     }
+  }
+
+  @override
+  Future<void> close() {
+    _pollingTimer?.cancel();
+    return super.close();
   }
 }

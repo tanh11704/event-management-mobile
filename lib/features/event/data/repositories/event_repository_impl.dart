@@ -9,6 +9,8 @@ import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
+import 'package:event_management/features/event/data/models/import_job_response.dart';
+import 'package:event_management/features/event/data/models/import_participants_response.dart';
 import 'package:event_management/features/event/domain/repositories/event_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -195,17 +197,41 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
-  Future<void> importParticipants(int eventId, XFile file) async {
+  Future<ImportParticipantsResponse> importParticipants(
+    int eventId,
+    XFile file, {
+    void Function(int, int)? onSendProgress,
+  }) async {
     try {
       final bytes = await file.readAsBytes();
       final fileName = file.name;
       final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
 
-      await _eventApiClient.importParticipants(eventId, multipartFile);
+      final response = await _eventApiClient.importParticipants(
+        eventId,
+        multipartFile,
+        onSendProgress: onSendProgress,
+      );
+      return response;
     } on DioException catch (e) {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
         throw Exception(errorMessage ?? 'Không thể import người tham gia.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<ImportJobResponse> getImportJobStatus(int jobId) async {
+    try {
+      return await _eventApiClient.getImportJobStatus(jobId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể lấy trạng thái import.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {

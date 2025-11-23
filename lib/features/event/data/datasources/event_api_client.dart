@@ -6,7 +6,8 @@ import 'package:event_management/features/event/data/models/event_detail_respons
 import 'package:event_management/features/event/data/models/event_dto.dart';
 import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
 import 'package:event_management/features/event/data/models/image_upload_response.dart';
-import 'package:event_management/features/event/data/models/update_event_dto.dart';
+import 'package:event_management/features/event/data/models/import_job_response.dart';
+import 'package:event_management/features/event/data/models/import_participants_response.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -62,10 +63,14 @@ abstract class EventApiClient {
 
   @POST('/attendants/{eventId}/import')
   @MultiPart()
-  Future<void> importParticipants(
+  Future<ImportParticipantsResponse> importParticipants(
     @Path('eventId') int eventId,
-    @Part(name: 'file') MultipartFile file,
-  );
+    @Part(name: 'file') MultipartFile file, {
+    @SendProgress() ProgressCallback? onSendProgress,
+  });
+
+  @GET('/attendants/import/{jobId}')
+  Future<ImportJobResponse> getImportJobStatus(@Path('jobId') int jobId);
 
   @POST('/medias/image-upload')
   @MultiPart()
