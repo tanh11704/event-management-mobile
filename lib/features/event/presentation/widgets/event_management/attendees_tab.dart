@@ -234,9 +234,8 @@ class _AttendeesTabState extends State<AttendeesTab> {
           if (!context.mounted) return;
           await Future<void>.delayed(const Duration(milliseconds: 300));
 
-          final overlay = Overlay.of(context);
-          final shareContext = overlay.context;
-          await _shareFile(shareContext, filePath);
+          if (!context.mounted) return;
+          await _shareFile(context, filePath);
         });
       } else {
         // Android: hiển thị SnackBar với nút MỞ NGAY
