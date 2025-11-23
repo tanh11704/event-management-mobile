@@ -14,6 +14,9 @@ UserResponseDto _$UserResponseDtoFromJson(Map<String, dynamic> json) =>
       phoneNumber: json['phone_number'] as String?,
       unitId: (json['unit_id'] as num?)?.toInt(),
       avatar: json['avatar'] as String?,
+      roles: (json['roles'] as List<dynamic>?)
+          ?.map((e) => RoleDto.fromJson(e as Map<String, dynamic>))
+          .toList(),
     );
 
 Map<String, dynamic> _$UserResponseDtoToJson(UserResponseDto instance) =>

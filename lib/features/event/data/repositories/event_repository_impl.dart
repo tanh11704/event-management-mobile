@@ -19,21 +19,6 @@ class EventRepositoryImpl implements EventRepository {
   final EventApiClient _eventApiClient;
 
   @override
-  Future<Event> createEvent(CreateEventDto createEventDto) async {
-    try {
-      return await _eventApiClient.createEvent(createEventDto);
-    } on DioException catch (e) {
-      if (e.response?.data != null && e.response!.data is Map) {
-        final errorMessage = e.response!.data['message'] as String?;
-        throw Exception(errorMessage ?? 'Không thể tạo sự kiện.');
-      }
-      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
-    } catch (e) {
-      throw Exception('Đã xảy ra lỗi không xác định: $e');
-    }
-  }
-
-  @override
   Future<EventListResult> getAllEvents({
     int page = 0,
     int size = 12,
@@ -264,6 +249,21 @@ class EventRepositoryImpl implements EventRepository {
       if (e is Exception) {
         rethrow;
       }
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<Event> createEvent(CreateEventDto createEventDto) async {
+    try {
+      return await _eventApiClient.createEvent(createEventDto);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể tạo sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
       throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }

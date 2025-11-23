@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
@@ -17,6 +19,7 @@ import 'package:event_management/features/event/presentation/widgets/event_manag
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_section_header.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class EditEventTab extends StatefulWidget {
   const EditEventTab({required this.eventDetail, super.key});
@@ -30,6 +33,11 @@ class EditEventTab extends StatefulWidget {
 class _EditEventTabState extends State<EditEventTab> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final GlobalKey _htmlEditorKey = GlobalKey();
+
+  File? _bannerImage;
+  XFile? _bannerImageFile;
+  String? _bannerUrl;
+
   late EditEventFormController _formController;
   bool _isLoading = false;
 
@@ -136,8 +144,9 @@ class _EditEventTabState extends State<EditEventTab> {
       );
       if (pickedFile != null && mounted) {
         setState(() {
-          _formController.bannerImage = pickedFile;
-          _formController.bannerUrl = null;
+          _bannerImageFile = pickedFile as XFile?;
+          _bannerImage = File(pickedFile.path);
+          _bannerUrl = null;
         });
       }
     }
@@ -275,8 +284,9 @@ class _EditEventTabState extends State<EditEventTab> {
           children: [
             const EditEventSectionHeader(title: 'Ảnh bìa sự kiện'),
             EditEventBannerSection(
-              bannerImage: _formController.bannerImage,
-              bannerUrl: _formController.bannerUrl,
+              bannerImage: _bannerImage,
+              bannerImageFile: _bannerImageFile,
+              bannerUrl: _bannerUrl,
               onPickImage: _pickImage,
             ),
 
