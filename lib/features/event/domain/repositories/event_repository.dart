@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/data/models/event.dart';
@@ -54,6 +56,8 @@ abstract class EventRepository {
     required int eventId,
     String filter = 'all',
   });
+
+  Future<Uint8List> getQrCheck(int eventId);
 }
 
 class EventListResult {

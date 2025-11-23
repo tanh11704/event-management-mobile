@@ -77,4 +77,8 @@ abstract class EventApiClient {
   Future<ImageUploadResponse> uploadImage(
     @Part(name: 'image') MultipartFile imageFile,
   );
+
+  @GET('/attendants/get-qr-check/{eventId}')
+  @DioResponseType(ResponseType.bytes)
+  Future<List<int>> getQrCheck(@Path('eventId') int eventId);
 }
