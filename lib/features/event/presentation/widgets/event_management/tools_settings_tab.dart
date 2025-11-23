@@ -17,10 +17,7 @@ class ToolsSettingsTab extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // QR Code Section
-          QrCodeSection(
-            qrToken: eventDetail.qrJoinToken,
-            eventId: eventDetail.id,
-          ),
+          QrCodeSection(eventId: eventDetail.id),
           const SizedBox(height: AppSpacing.spaceLG),
 
           // Secretary Management Section

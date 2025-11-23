@@ -373,4 +373,71 @@ class EventRepositoryImpl implements EventRepository {
       throw Exception('Lỗi không xác định: $e');
     }
   }
+
+  @override
+  Future<Uint8List> getQrCheck(int eventId) async {
+    try {
+      final bytes = await _eventApiClient.getQrCheck(eventId);
+
+      if (bytes.isEmpty) {
+        throw Exception('Server trả về dữ liệu QR code rỗng.');
+      }
+
+      final uint8List = Uint8List.fromList(bytes);
+
+      // Validate that it's a valid PNG image (PNG signature: 89 50 4E 47)
+      if (uint8List.length >= 4) {
+        final signature = [
+          uint8List[0],
+          uint8List[1],
+          uint8List[2],
+          uint8List[3],
+        ];
+        if (kDebugMode) {
+          debugPrint('Image signature: $signature');
+        }
+      }
+
+      return uint8List;
+    } on DioException catch (e) {
+      var errorMessage = 'Không thể tải mã QR check-in.';
+
+      if (e.response != null && e.response!.data != null) {
+        try {
+          final dynamic errorData = e.response!.data;
+
+          if (errorData is List<int>) {
+            final decodedString = utf8.decode(errorData);
+            try {
+              final dynamic decodedJson = jsonDecode(decodedString);
+              if (decodedJson is Map<String, dynamic>) {
+                errorMessage =
+                    decodedJson['message'] as String? ?? decodedString;
+              } else {
+                errorMessage = decodedString;
+              }
+            } catch (_) {
+              errorMessage = decodedString;
+            }
+          } else if (errorData is Map) {
+            errorMessage = errorData['message'] as String? ?? errorMessage;
+          }
+        } catch (decodeError) {
+          if (kDebugMode) {
+            debugPrint('Lỗi khi decode error message: $decodeError');
+          }
+        }
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        errorMessage = 'Kết nối quá lâu. Vui lòng thử lại.';
+      } else if (e.type == DioExceptionType.connectionError) {
+        errorMessage = 'Không thể kết nối đến máy chủ. Kiểm tra mạng.';
+      }
+
+      throw Exception(errorMessage);
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Lỗi không xác định: $e');
+    }
+  }
 }
