@@ -39,6 +39,8 @@ dependencies:
   html_editor_enhanced: ^2.7.1
   path_provider: ^2.1.4
   file_picker: ^10.3.6
+  share_plus: ^10.1.4
+  open_filex: ^4.7.0
 
 dev_dependencies:
   build_runner: ^2.7.1

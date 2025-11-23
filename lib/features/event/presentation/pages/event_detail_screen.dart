@@ -32,7 +32,7 @@ class EventDetailScreen extends StatelessWidget {
     return Scaffold(
       body: BlocBuilder<EventDetailBloc, EventDetailState>(
         builder: (context, state) {
-          if (state is EventDetailLoading) {
+          if (state is EventDetailLoading || state is EventDetailInitial) {
             return _LoadingState();
           }
 
@@ -47,10 +47,27 @@ class EventDetailScreen extends StatelessWidget {
             );
           }
 
-          if (state is EventDetailSuccess) {
-            return _EventDetailContent(eventDetail: state.eventDetail);
+          // ✅ Mọi state có eventDetail đều render _EventDetailContent
+          if (state is EventDetailSuccess ||
+              state is EventDetailExporting ||
+              state is EventDetailExportSuccess ||
+              state is EventDetailExportFailure) {
+            late final EventDetailResponse eventDetail;
+
+            if (state is EventDetailSuccess) {
+              eventDetail = state.eventDetail;
+            } else if (state is EventDetailExporting) {
+              eventDetail = state.eventDetail;
+            } else if (state is EventDetailExportSuccess) {
+              eventDetail = state.eventDetail;
+            } else if (state is EventDetailExportFailure) {
+              eventDetail = state.eventDetail;
+            }
+
+            return _EventDetailContent(eventDetail: eventDetail);
           }
 
+          // Các state khác nếu có
           return const SizedBox.shrink();
         },
       ),

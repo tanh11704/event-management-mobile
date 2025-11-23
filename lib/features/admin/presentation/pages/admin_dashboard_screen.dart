@@ -1,15 +1,19 @@
 import 'package:event_management/core/config/app_colors.dart';
+import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
 import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
+import 'package:event_management/features/admin/presentation/widgets/admin_event_filter_chips.dart';
+import 'package:event_management/features/admin/presentation/widgets/admin_event_search_bar.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_stat_card.dart';
+import 'package:event_management/features/admin/presentation/widgets/event_list_grid_admin.dart';
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
+import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_state.dart';
-import 'package:event_management/features/event/presentation/widgets/event_list_grid.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -25,11 +29,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  EventStatus? _selectedStatus;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _scrollController.addListener(_onScroll);
     context.read<EventListBloc>().add(const EventListFetchAll());
   }
 
@@ -37,7 +44,17 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   void dispose() {
     _tabController.dispose();
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      context.read<EventListBloc>().add(
+        const EventListLoadMore(isManaged: false),
+      );
+    }
   }
 
   @override
@@ -169,116 +186,187 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildEventManagementTab() {
-    return BlocBuilder<EventListBloc, EventListState>(
-      builder: (context, state) {
-        EventCounters? counters;
-        final events = state is EventListLoaded
-            ? state.events
-            : const <Event>[];
-        if (state is EventListLoaded) counters = state.counters;
-        if (state is EventListEmpty) counters = state.counters;
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<EventListBloc>().add(
+          const EventListRefresh(isManaged: false),
+        );
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+      },
+      color: AppColors.vkuBlue,
+      child: BlocBuilder<EventListBloc, EventListState>(
+        builder: (context, state) {
+          EventCounters? counters;
+          final events = state is EventListLoaded
+              ? state.events
+              : const <Event>[];
+          if (state is EventListLoaded) {
+            counters = state.counters;
+          }
+          if (state is EventListEmpty) {
+            counters = state.counters;
+          }
 
-        return CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _DashboardCounters(counters: counters),
-                    const SizedBox(height: 24),
-                    _buildSearchAndFilter(),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-              ),
-            ),
-            if (state is EventListLoading)
-              const SliverToBoxAdapter(
-                child: Center(
-                  child: Padding(
-                    padding: EdgeInsets.all(24),
-                    child: CircularProgressIndicator(),
+          return CustomScrollView(
+            controller: _scrollController,
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _DashboardCounters(counters: counters),
+                      const SizedBox(height: AppSpacing.spaceLG),
+                      _buildSearchAndFilter(counters),
+                      const SizedBox(height: AppSpacing.spaceMD),
+                    ],
                   ),
                 ),
-              )
-            else
-              EventListGrid(
-                events: events,
-                hasNextPage: state is EventListLoaded
-                    ? state.hasNextPage
-                    : false,
-                onEventTap: (event) {
-                  context.go('/events/${event.id}');
-                },
               ),
-          ],
-        );
-      },
+              if (state is EventListLoading)
+                const SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.spaceLG),
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                )
+              else if (state is EventListError)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            size: 64,
+                            color: AppColors.red500,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceMD),
+                          Text('Đã xảy ra lỗi', style: AppTextStyles.heading3),
+                          const SizedBox(height: AppSpacing.spaceXS),
+                          Text(
+                            state.error,
+                            style: AppTextStyles.bodyMedium,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceLG),
+                          ElevatedButton.icon(
+                            onPressed: () {
+                              context.read<EventListBloc>().add(
+                                const EventListFetchAll(),
+                              );
+                            },
+                            icon: const Icon(Icons.refresh),
+                            label: const Text('Thử lại'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else if (state is EventListEmpty)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.spaceXL),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.event_busy_rounded,
+                            size: 64,
+                            color: AppColors.coolGray500,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceMD),
+                          Text(
+                            'Chưa có sự kiện nào',
+                            style: AppTextStyles.heading3,
+                          ),
+                          const SizedBox(height: AppSpacing.spaceXS),
+                          Text(
+                            'Hãy tạo sự kiện đầu tiên của bạn',
+                            style: AppTextStyles.bodyMedium,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              else
+                EventListGridAdmin(
+                  events: events,
+                  hasNextPage: state is EventListLoaded
+                      ? state.hasNextPage
+                      : false,
+                  onEventTap: (event) {
+                    context.go('/events/${event.id}');
+                  },
+                  onEventEdit: (event) {
+                    context.go('/admin/events/${event.id}/edit');
+                  },
+                  onEventDelete: (event) {
+                    // TODO: Implement delete functionality
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Xóa sự kiện "${event.title}" - Chức năng đang được phát triển',
+                        ),
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: AppColors.coolGray500,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildSearchAndFilter() {
+  Widget _buildSearchAndFilter(EventCounters? counters) {
+    if (counters == null) {
+      return const SizedBox.shrink();
+    }
+
     return Column(
       children: [
-        // Row 1: Search bar và Filter
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.coolGray500.withOpacity(0.3),
-                  ),
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'Tìm kiếm sự kiện...',
-                    hintStyle: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.coolGray500,
-                    ),
-                    prefixIcon: Icon(
-                      Icons.search_rounded,
-                      color: AppColors.coolGray500.withOpacity(0.7),
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 12,
-                    ),
-                  ),
-                ),
+        // Row 1: Search bar
+        AdminEventSearchBar(
+          controller: _searchController,
+          onChanged: (value) {
+            context.read<EventListBloc>().add(
+              EventListSearchChanged(
+                search: value.isEmpty ? null : value,
+                isManaged: false,
               ),
-            ),
-            const SizedBox(width: 12),
-            InkWell(
-              onTap: () {},
-              borderRadius: BorderRadius.circular(12),
-              child: Container(
-                height: 48,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: AppColors.coolGray500.withOpacity(0.3),
-                  ),
-                ),
-                child: const Icon(
-                  Icons.filter_list_rounded,
-                  color: AppColors.coolGray700,
-                ),
-              ),
-            ),
-          ],
+            );
+          },
         ),
-        const SizedBox(height: 16),
-        // Row 2: Thêm mới và Refresh
+        const SizedBox(height: AppSpacing.spaceMD),
+        // Row 2: Filter chips
+        AdminEventFilterChips(
+          counters: counters,
+          selectedStatus: _selectedStatus,
+          onStatusChanged: (status) {
+            setState(() {
+              _selectedStatus = status;
+            });
+            context.read<EventListBloc>().add(
+              EventListFilterChanged(status: status, isManaged: false),
+            );
+          },
+        ),
+        const SizedBox(height: AppSpacing.spaceMD),
+        // Row 3: Thêm mới và Refresh
         Row(
           children: [
             Expanded(
@@ -320,10 +408,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                 ),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.spaceXM),
             InkWell(
               onTap: () {
-                context.read<EventListBloc>().add(const EventListFetchAll());
+                context.read<EventListBloc>().add(
+                  const EventListRefresh(isManaged: false),
+                );
               },
               borderRadius: BorderRadius.circular(12),
               child: Container(
