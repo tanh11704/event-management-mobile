@@ -140,6 +140,24 @@ class EventRepositoryImpl implements EventRepository {
   }
 
   @override
+  Future<Attendant> checkInEvent(String eventToken) async {
+    try {
+      return await _eventApiClient.checkInEvent(eventToken);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể check-in sự kiện.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định.');
+    }
+  }
+
+  @override
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile) async {
     try {
       final bytes = await bannerFile.readAsBytes();

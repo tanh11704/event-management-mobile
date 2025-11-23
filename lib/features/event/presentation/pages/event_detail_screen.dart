@@ -17,6 +17,8 @@ import 'package:event_management/features/event/presentation/widgets/event_detai
 import 'package:event_management/features/event/presentation/widgets/event_detail/event_detail_participants_section.dart';
 import 'package:event_management/features/event/presentation/widgets/event_detail/event_detail_status_chip.dart';
 import 'package:event_management/features/event/presentation/widgets/event_detail/event_detail_title.dart';
+import 'package:event_management/features/event/presentation/widgets/event_detail/qr_code_scanner_dialog.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -29,49 +31,150 @@ class EventDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: BlocBuilder<EventDetailBloc, EventDetailState>(
-        builder: (context, state) {
-          if (state is EventDetailLoading || state is EventDetailInitial) {
-            return _LoadingState();
-          }
-
-          if (state is EventDetailError) {
-            return _ErrorState(
-              error: state.error,
-              onRetry: () {
-                context.read<EventDetailBloc>().add(
-                  EventDetailFetch(eventId: eventId),
-                );
-              },
-            );
-          }
-
-          // ✅ Mọi state có eventDetail đều render _EventDetailContent
-          if (state is EventDetailSuccess ||
-              state is EventDetailExporting ||
-              state is EventDetailExportSuccess ||
-              state is EventDetailExportFailure) {
-            late final EventDetailResponse eventDetail;
-
-            if (state is EventDetailSuccess) {
-              eventDetail = state.eventDetail;
-            } else if (state is EventDetailExporting) {
-              eventDetail = state.eventDetail;
-            } else if (state is EventDetailExportSuccess) {
-              eventDetail = state.eventDetail;
-            } else if (state is EventDetailExportFailure) {
-              eventDetail = state.eventDetail;
+    return BlocListener<EventDetailBloc, EventDetailState>(
+      listenWhen: (previous, current) {
+        // Chỉ lắng nghe khi state thay đổi sang EventDetailCheckInSuccess
+        return current is EventDetailCheckInSuccess &&
+            previous is! EventDetailCheckInSuccess;
+      },
+      listener: (context, state) {
+        // Hiển thị dialog thành công khi check-in thành công
+        if (state is EventDetailCheckInSuccess) {
+          // Delay nhỏ để đảm bảo QrCodeScannerDialog đã đóng
+          Future.delayed(const Duration(milliseconds: 300), () {
+            if (context.mounted) {
+              _showCheckInSuccessDialog(context);
+            }
+          });
+        }
+      },
+      child: Scaffold(
+        body: BlocBuilder<EventDetailBloc, EventDetailState>(
+          builder: (context, state) {
+            if (state is EventDetailLoading || state is EventDetailInitial) {
+              return _LoadingState();
             }
 
-            return _EventDetailContent(eventDetail: eventDetail);
-          }
+            if (state is EventDetailError) {
+              return _ErrorState(
+                error: state.error,
+                onRetry: () {
+                  context.read<EventDetailBloc>().add(
+                    EventDetailFetch(eventId: eventId),
+                  );
+                },
+              );
+            }
 
-          // Các state khác nếu có
-          return const SizedBox.shrink();
-        },
+            // ✅ Mọi state có eventDetail đều render _EventDetailContent
+            if (state is EventDetailSuccess ||
+                state is EventDetailExporting ||
+                state is EventDetailExportSuccess ||
+                state is EventDetailExportFailure ||
+                state is EventDetailCheckInChecking ||
+                state is EventDetailCheckInSuccess ||
+                state is EventDetailCheckInFailure) {
+              late final EventDetailResponse eventDetail;
+
+              if (state is EventDetailSuccess) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailExporting) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailExportSuccess) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailExportFailure) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailCheckInChecking) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailCheckInSuccess) {
+                eventDetail = state.eventDetail;
+              } else if (state is EventDetailCheckInFailure) {
+                eventDetail = state.eventDetail;
+              }
+
+              return _EventDetailContent(eventDetail: eventDetail);
+            }
+
+            // Các state khác nếu có
+            return const SizedBox.shrink();
+          },
+        ),
       ),
     );
+  }
+
+  void _showCheckInSuccessDialog(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          padding: const EdgeInsets.all(AppSpacing.spaceXL),
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 80,
+                height: 80,
+                decoration: const BoxDecoration(
+                  color: AppColors.green50,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: AppColors.green500,
+                  size: 50,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.spaceLG),
+              Text(
+                'Check-in thành công!',
+                style: AppTextStyles.heading2.copyWith(
+                  color: AppColors.green500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.spaceMD),
+              Text(
+                'Bạn đã check-in vào sự kiện thành công.',
+                style: AppTextStyles.bodyLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.spaceXL),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.green500,
+                  foregroundColor: AppColors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.spaceXL,
+                    vertical: AppSpacing.spaceMD,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text('Đóng'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    // Auto close after 3 seconds
+    Future.delayed(const Duration(seconds: 3), () {
+      if (context.mounted && Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+    });
   }
 }
 
@@ -199,6 +302,37 @@ class _EventDetailContentState extends State<_EventDetailContent> {
               },
             ),
             actions: [
+              if (!kIsWeb)
+                IconButton(
+                  icon: const Icon(
+                    Icons.qr_code_scanner,
+                    color: AppColors.white,
+                  ),
+                  tooltip: 'Quét mã QR check-in',
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => BlocProvider.value(
+                        value: context.read<EventDetailBloc>(),
+                        child: const QrCodeScannerDialog(),
+                      ),
+                    );
+                  },
+                ),
+              if (kIsWeb)
+                IconButton(
+                  icon: const Icon(Icons.upload_file, color: AppColors.white),
+                  tooltip: 'Tải ảnh QR code lên',
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) => BlocProvider.value(
+                        value: context.read<EventDetailBloc>(),
+                        child: const QrCodeScannerDialog(),
+                      ),
+                    );
+                  },
+                ),
               IconButton(
                 icon: const Icon(Icons.share, color: AppColors.white),
                 onPressed: () {

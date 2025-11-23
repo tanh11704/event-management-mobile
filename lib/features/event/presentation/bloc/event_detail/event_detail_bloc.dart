@@ -24,6 +24,7 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
     on<EventDetailImportParticipants>(_onImportParticipants);
     on<EventDetailCheckImportStatus>(_onCheckImportStatus);
     on<EventDetailExportParticipants>(_onExportParticipants);
+    on<EventDetailCheckIn>(_onCheckIn);
   }
 
   final EventRepository _eventRepository;
@@ -328,6 +329,78 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
           'EventDetailBloc: Cannot export - current state is not EventDetailSuccess: ${state.runtimeType}',
         );
       }
+    }
+  }
+
+  String? _extractEventToken(String qrCode) {
+    if (qrCode.isEmpty) return null;
+
+    final checkInPattern = RegExp(
+      r'(?:/api/v\d+/)?attendants/check-in/([^/?\s]+)',
+      caseSensitive: false,
+    );
+    final match = checkInPattern.firstMatch(qrCode);
+    if (match != null && match.groupCount >= 1) {
+      final token = match.group(1);
+      return token;
+    }
+
+    if (!qrCode.contains(' ') && !qrCode.contains('\n')) {
+      final token = qrCode.trim();
+      return token;
+    }
+
+    return null;
+  }
+
+  Future<void> _onCheckIn(
+    EventDetailCheckIn event,
+    Emitter<EventDetailState> emit,
+  ) async {
+    final currentState = state;
+    if (currentState is! EventDetailSuccess) {
+      emit(
+        const EventDetailError('Không thể check-in. Vui lòng tải lại trang.'),
+      );
+      return;
+    }
+
+    final eventToken = _extractEventToken(event.qrCode);
+    if (eventToken == null || eventToken.isEmpty) {
+      emit(
+        EventDetailCheckInFailure(
+          eventDetail: currentState.eventDetail,
+          error: 'Mã QR không hợp lệ. Vui lòng quét lại mã QR check-in.',
+        ),
+      );
+      emit(currentState);
+      return;
+    }
+
+    emit(EventDetailCheckInChecking(eventDetail: currentState.eventDetail));
+
+    try {
+      final attendant = await _eventRepository.checkInEvent(eventToken);
+
+      emit(
+        EventDetailCheckInSuccess(
+          eventDetail: currentState.eventDetail,
+          attendant: attendant,
+        ),
+      );
+
+      // Delay refresh để dialog có thời gian hiển thị
+      Future.delayed(const Duration(milliseconds: 500), () {
+        add(EventDetailFetch(eventId: currentState.eventDetail.id));
+      });
+    } catch (e) {
+      emit(
+        EventDetailCheckInFailure(
+          eventDetail: currentState.eventDetail,
+          error: e.toString().replaceFirst('Exception: ', ''),
+        ),
+      );
+      emit(currentState);
     }
   }
 

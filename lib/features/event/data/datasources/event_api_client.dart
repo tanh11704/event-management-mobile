@@ -81,4 +81,7 @@ abstract class EventApiClient {
   @GET('/attendants/get-qr-check/{eventId}')
   @DioResponseType(ResponseType.bytes)
   Future<List<int>> getQrCheck(@Path('eventId') int eventId);
+
+  @POST('/attendants/check-in/{eventToken}')
+  Future<Attendant> checkInEvent(@Path('eventToken') String eventToken);
 }

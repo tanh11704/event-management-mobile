@@ -83,3 +83,12 @@ class EventDetailExportParticipants extends EventDetailEvent {
   @override
   List<Object?> get props => [eventId, filter];
 }
+
+class EventDetailCheckIn extends EventDetailEvent {
+  const EventDetailCheckIn({required this.qrCode});
+
+  final String qrCode;
+
+  @override
+  List<Object?> get props => [qrCode];
+}
