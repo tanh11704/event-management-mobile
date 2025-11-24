@@ -27,7 +27,7 @@ class _EventListScreenState extends State<EventListScreen>
   late TabController _tabController;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  EventStatus? _selectedStatus;
+  EventStatus? _selectedStatus = EventStatus.ongoing;
   final ScrollController _scrollController = ScrollController();
   bool _isSearchFocused = false;
   EventListLoaded? _lastLoadedState;
@@ -41,7 +41,9 @@ class _EventListScreenState extends State<EventListScreen>
     _searchFocusNode.addListener(_onSearchFocusChanged);
 
     // Load initial data
-    context.read<EventListBloc>().add(const EventListFetchAll());
+    context.read<EventListBloc>().add(
+      const EventListFetchAll(status: EventStatus.ongoing),
+    );
   }
 
   void _onSearchFocusChanged() {
@@ -66,13 +68,17 @@ class _EventListScreenState extends State<EventListScreen>
 
     if (_tabController.indexIsChanging) {
       final isManaged = _tabController.index == 1;
-      _selectedStatus = null;
+      _selectedStatus = EventStatus.ongoing;
       _searchController.clear();
 
       if (isManaged) {
-        context.read<EventListBloc>().add(const EventListFetchManaged());
+        context.read<EventListBloc>().add(
+          const EventListFetchManaged(status: EventStatus.ongoing),
+        );
       } else {
-        context.read<EventListBloc>().add(const EventListFetchAll());
+        context.read<EventListBloc>().add(
+          const EventListFetchAll(status: EventStatus.ongoing),
+        );
       }
     }
   }
