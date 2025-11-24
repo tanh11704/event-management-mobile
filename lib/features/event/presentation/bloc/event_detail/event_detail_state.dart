@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:event_management/features/event/data/models/attendant.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 
 abstract class EventDetailState extends Equatable {
@@ -125,6 +126,41 @@ class EventDetailExportSuccess extends EventDetailState {
 
 class EventDetailExportFailure extends EventDetailState {
   const EventDetailExportFailure({
+    required this.eventDetail,
+    required this.error,
+  });
+
+  final EventDetailResponse eventDetail;
+  final String error;
+
+  @override
+  List<Object> get props => [eventDetail, error];
+}
+
+class EventDetailCheckInChecking extends EventDetailState {
+  const EventDetailCheckInChecking({required this.eventDetail});
+
+  final EventDetailResponse eventDetail;
+
+  @override
+  List<Object> get props => [eventDetail];
+}
+
+class EventDetailCheckInSuccess extends EventDetailState {
+  const EventDetailCheckInSuccess({
+    required this.eventDetail,
+    required this.attendant,
+  });
+
+  final EventDetailResponse eventDetail;
+  final Attendant attendant;
+
+  @override
+  List<Object> get props => [eventDetail, attendant];
+}
+
+class EventDetailCheckInFailure extends EventDetailState {
+  const EventDetailCheckInFailure({
     required this.eventDetail,
     required this.error,
   });

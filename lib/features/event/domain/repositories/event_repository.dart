@@ -34,6 +34,8 @@ abstract class EventRepository {
 
   Future<Attendant> joinEvent(String eventToken);
 
+  Future<Attendant> checkInEvent(String eventToken);
+
   Future<void> unjoinEvent(int eventId);
 
   Future<Event> createEvent(CreateEventDto createEventDto);
