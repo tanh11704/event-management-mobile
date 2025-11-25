@@ -1,22 +1,16 @@
-import 'dart:io';
-
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
-/// Helper class để xử lý image picking logic
 class EditEventImagePicker {
   EditEventImagePicker._();
 
-  /// Hiển thị bottom sheet để chọn nguồn ảnh
   static Future<ImageSource?> showImageSourcePicker(
     BuildContext context,
   ) async {
     try {
-      // Unfocus any active focus (especially HtmlEditor) to avoid JavaScript conflicts
       FocusScope.of(context).unfocus();
 
-      // Small delay to ensure focus is released
       await Future<void>.delayed(const Duration(milliseconds: 150));
 
       final source = await showModalBottomSheet<ImageSource>(
@@ -75,7 +69,8 @@ class EditEventImagePicker {
   }
 
   /// Pick image từ source đã chọn
-  static Future<File?> pickImage({
+  /// Trả về XFile? để tương thích với cả web và mobile
+  static Future<XFile?> pickImage({
     required BuildContext context,
     required ImagePicker imagePicker,
     required ImageSource source,
@@ -92,7 +87,7 @@ class EditEventImagePicker {
       );
 
       if (pickedFile != null && context.mounted) {
-        return File(pickedFile.path);
+        return pickedFile;
       }
       return null;
     } catch (e) {

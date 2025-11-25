@@ -75,7 +75,6 @@ class _EditEventHtmlEditorState extends State<EditEventHtmlEditor> {
               controller: _controller,
               htmlEditorOptions: HtmlEditorOptions(
                 hint: 'Nhập mô tả sự kiện...',
-                shouldEnsureVisible: true,
                 initialText: widget.initialValue,
               ),
               htmlToolbarOptions: HtmlToolbarOptions(
@@ -112,6 +111,13 @@ class _EditEventHtmlEditorState extends State<EditEventHtmlEditor> {
                   await Future<void>.delayed(const Duration(milliseconds: 500));
                   if (mounted) {
                     _controller.setText(widget.initialValue);
+                    // Unfocus để tránh auto-scroll
+                    await Future<void>.delayed(
+                      const Duration(milliseconds: 100),
+                    );
+                    if (mounted) {
+                      FocusScope.of(context).unfocus();
+                    }
                   }
                 },
                 onFocus: _notifyChanged,
