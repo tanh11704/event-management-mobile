@@ -69,6 +69,9 @@ Future<void> init() async {
     )
     ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
     ..registerFactory(() => EventManagementBloc(eventRepository: sl()))
+    ..registerFactory(
+      () => CheckInHistoryBloc(eventRepository: sl(), checkInSseService: sl()),
+    )
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
     // Dio instances - Main Dio for general use (has auth interceptor)
@@ -84,5 +87,8 @@ Future<void> init() async {
     ..registerLazySingleton<UnitApiClient>(() => UnitApiClient(sl()))
     ..registerLazySingleton<EventApiClient>(() => EventApiClient(sl()))
     ..registerLazySingleton<AdminApiClient>(() => AdminApiClient(sl()))
-    ..registerLazySingleton<EventSseService>(() => EventSseService(sl()));
+    ..registerLazySingleton<EventSseService>(() => EventSseService(sl()))
+    ..registerLazySingleton<CheckInSseService>(
+      () => CheckInSseService(sl<FlutterSecureStorage>()),
+    );
 }
