@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/services/cloudinary_image_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -30,9 +31,10 @@ class EditEventBannerSection extends StatelessWidget {
 
     return InkWell(
       onTap: onPickImage,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.zero,
       child: Container(
-        height: 180,
+        width: double.infinity,
+        height: 200,
         decoration: BoxDecoration(
           gradient: !hasImage && !hasUrl
               ? LinearGradient(
@@ -44,19 +46,15 @@ class EditEventBannerSection extends StatelessWidget {
                   ],
                 )
               : null,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: !hasImage && !hasUrl
-                ? AppColors.border
-                : AppColors.vkuBlue.withOpacity(0.3),
-            width: 2,
-          ),
+          borderRadius: BorderRadius.zero,
+          border: !hasImage && !hasUrl
+              ? const Border(bottom: BorderSide(color: AppColors.border))
+              : null,
         ),
         child: hasImage
             ? Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
                     child: kIsWeb
                         ? Image.network(
                             bannerImageFile!.path,
@@ -97,9 +95,8 @@ class EditEventBannerSection extends StatelessWidget {
             ? Stack(
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.circular(14),
                     child: Image.network(
-                      bannerUrl!,
+                      CloudinaryImageService.getBannerUrl(bannerUrl),
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,

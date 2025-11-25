@@ -1,6 +1,4 @@
 import 'dart:async';
-import 'dart:html' as html;
-import 'dart:js' as js;
 
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
@@ -8,6 +6,7 @@ import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_event.dart';
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_state.dart';
+import 'package:event_management/features/event/presentation/widgets/event_detail/qr_code_web_helper.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -31,7 +30,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   void dispose() {
     _cameraController.dispose();
     _tokenController.dispose();
-    // Reset processing state khi dispose
     _isProcessing = false;
     super.dispose();
   }
@@ -56,7 +54,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       return;
     }
 
-    // Timeout protection
     Future.delayed(const Duration(seconds: 15), () {
       if (mounted && _isProcessing) {
         setState(() {
@@ -86,7 +83,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
 
       if (kIsWeb) {
         final bytes = await image.readAsBytes();
-        qrCode = await _decodeQrFromBytesWeb(bytes);
+        qrCode = await decodeQrFromBytesWeb(bytes);
       } else {
         final result = await _cameraController.analyzeImage(image.path);
         if (result != null && result.barcodes.isNotEmpty) {
@@ -122,7 +119,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         return;
       }
 
-      // Gọi _handleQrCode - nó sẽ tự set _isProcessing = true
       await _handleQrCode(cleanQrCode);
     } catch (e) {
       if (mounted) {
@@ -131,128 +127,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           _errorMessage = e.toString().replaceAll('Exception: ', '');
         });
       }
-    }
-  }
-
-  Future<String?> _decodeQrFromBytesWeb(Uint8List bytes) async {
-    try {
-      final blob = html.Blob([bytes]);
-      final url = html.Url.createObjectUrlFromBlob(blob);
-
-      final img = html.ImageElement();
-      final completer = Completer<String?>();
-
-      img.onLoad.listen((_) {
-        try {
-          final canvas = html.CanvasElement(
-            width: img.width,
-            height: img.height,
-          );
-          final ctx = canvas.context2D;
-          ctx.drawImage(img, 0, 0);
-
-          // Lấy ImageData từ canvas
-          final imageData = ctx.getImageData(
-            0,
-            0,
-            canvas.width!,
-            canvas.height!,
-          );
-
-          final qrCode = _callJsQRWithImageData(imageData);
-
-          html.Url.revokeObjectUrl(url);
-          completer.complete(qrCode);
-        } catch (e) {
-          html.Url.revokeObjectUrl(url);
-          completer.complete(null);
-        }
-      });
-
-      img.onError.listen((_) {
-        html.Url.revokeObjectUrl(url);
-        completer.complete(null);
-      });
-
-      img.src = url;
-
-      return completer.future.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {
-          html.Url.revokeObjectUrl(url);
-          return null;
-        },
-      );
-    } catch (e) {
-      return null;
-    }
-  }
-
-  /// Gọi jsQR với ImageData object trực tiếp (cách đơn giản nhất)
-  String? _callJsQRWithImageData(html.ImageData imageData) {
-    try {
-      // Truy cập jsQR trực tiếp từ global context
-      final jsQRFunction = js.context['jsQR'];
-
-      if (jsQRFunction == null) {
-        return null;
-      }
-
-      // jsQR API: jsQR(data, width, height, options?)
-      // ImageData đã có sẵn data, width, height
-      // Truyền ImageData object trực tiếp (nó là JavaScript object)
-      try {
-        // Cách 1: Truyền ImageData object trực tiếp
-        final result = jsQRFunction.apply([imageData]);
-        if (result != null && result != js.context['undefined']) {
-          final dataProperty = result['data'];
-          if (dataProperty != null && dataProperty != js.context['undefined']) {
-            final qrText = dataProperty.toString();
-            return qrText;
-          }
-        }
-      } catch (e1) {
-        // Cách 2: Truyền data, width, height riêng biệt
-        try {
-          final result = jsQRFunction.apply([
-            imageData.data,
-            imageData.width,
-            imageData.height,
-          ]);
-          if (result != null && result != js.context['undefined']) {
-            final dataProperty = result['data'];
-            if (dataProperty != null &&
-                dataProperty != js.context['undefined']) {
-              var qrText = dataProperty.toString();
-
-              // Clean up: Loại bỏ phần thừa nếu có
-              // Kết quả có thể có format: "/api/v1/attendants/check-in/token extra text"
-              qrText = qrText.trim();
-
-              // Nếu có khoảng trắng, chỉ lấy phần đầu tiên (URL/path)
-              if (qrText.contains(' ')) {
-                final parts = qrText.split(' ');
-                qrText = parts.first.trim();
-              }
-
-              // Đảm bảo không có ký tự xuống dòng
-              qrText = qrText
-                  .replaceAll('\n', '')
-                  .replaceAll('\r', '')
-                  .replaceAll('\t', '')
-                  .trim();
-
-              return qrText;
-            }
-          }
-        } catch (e2) {
-          // Method 2 failed, continue
-        }
-      }
-
-      return null;
-    } catch (e) {
-      return null;
     }
   }
 
@@ -273,7 +147,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     return BlocListener<EventDetailBloc, EventDetailState>(
       listener: (context, state) {
         if (state is EventDetailCheckInChecking) {
-          // Đang xử lý check-in, đảm bảo loading state được set
           if (mounted) {
             setState(() {
               _isProcessing = true;
@@ -281,13 +154,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             });
           }
         } else if (state is EventDetailCheckInSuccess) {
-          // Check-in thành công, đóng dialog scanner
           if (mounted) {
             setState(() {
               _isProcessing = false;
             });
             Navigator.of(context).pop();
-            // Dialog thành công sẽ được hiển thị ở event_detail_screen
           }
         } else if (state is EventDetailCheckInFailure) {
           // Check-in thất bại, hiển thị lỗi và reset loading

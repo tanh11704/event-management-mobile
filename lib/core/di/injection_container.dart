@@ -73,6 +73,7 @@ Future<void> init() async {
     ..registerFactory(
       () =>
           SecretaryManagementBloc(eventRepository: sl(), adminRepository: sl()),
+      () => CheckInHistoryBloc(eventRepository: sl(), checkInSseService: sl()),
     )
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
@@ -89,5 +90,8 @@ Future<void> init() async {
     ..registerLazySingleton<UnitApiClient>(() => UnitApiClient(sl()))
     ..registerLazySingleton<EventApiClient>(() => EventApiClient(sl()))
     ..registerLazySingleton<AdminApiClient>(() => AdminApiClient(sl()))
-    ..registerLazySingleton<EventSseService>(() => EventSseService(sl()));
+    ..registerLazySingleton<EventSseService>(() => EventSseService(sl()))
+    ..registerLazySingleton<CheckInSseService>(
+      () => CheckInSseService(sl<FlutterSecureStorage>()),
+    );
 }
