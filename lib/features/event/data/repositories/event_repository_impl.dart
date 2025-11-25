@@ -8,6 +8,7 @@ import 'package:event_management/features/event/data/models/create_event_dto.dar
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
+import 'package:event_management/features/event/data/models/event_manager_info.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/data/models/import_job_response.dart';
 import 'package:event_management/features/event/data/models/import_participants_response.dart';
@@ -160,20 +161,46 @@ class EventRepositoryImpl implements EventRepository {
   @override
   Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile) async {
     try {
+      if (kDebugMode) {
+        debugPrint(
+          'EventRepository: Uploading banner from XFile: ${bannerFile.path}',
+        );
+        debugPrint('EventRepository: File name: ${bannerFile.name}');
+      }
+
       final bytes = await bannerFile.readAsBytes();
+
+      if (kDebugMode) {
+        debugPrint('EventRepository: Read ${bytes.length} bytes from file');
+      }
 
       final fileName = bannerFile.name;
 
       final multipartFile = MultipartFile.fromBytes(bytes, filename: fileName);
 
+      if (kDebugMode) {
+        debugPrint(
+          'EventRepository: Calling uploadBanner API for event $eventId',
+        );
+      }
+
       return await _eventApiClient.uploadBanner(eventId, multipartFile);
     } on DioException catch (e) {
+      if (kDebugMode) {
+        debugPrint('EventRepository: DioException during banner upload: $e');
+        debugPrint('EventRepository: Response: ${e.response?.data}');
+      }
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
         throw Exception(errorMessage ?? 'Không thể tải lên banner.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
+      if (kDebugMode) {
+        debugPrint('EventRepository: Error during banner upload: $e');
+        debugPrint('EventRepository: Error type: ${e.runtimeType}');
+      }
+      if (e is Exception) rethrow;
       throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
@@ -456,6 +483,31 @@ class EventRepositoryImpl implements EventRepository {
     } catch (e) {
       if (e is Exception) rethrow;
       throw Exception('Lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<List<EventManagerInfo>> getEventManagers(int eventId) async {
+    try {
+      final dtos = await _eventApiClient.getEventManagersByEventId(
+        eventId: eventId,
+      );
+
+      // Convert DTOs to EventManagerInfo
+      // Note: userName and userEmail are not provided by backend,
+      // they will be null and should be enriched separately if needed
+      return dtos.map((dto) => EventManagerInfo.fromDto(dto: dto)).toList();
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(
+          errorMessage ?? 'Không thể tải danh sách quản lý sự kiện.',
+        );
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
 }

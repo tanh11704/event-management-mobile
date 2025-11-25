@@ -4,6 +4,7 @@ import 'package:event_management/features/event/data/models/create_event_dto.dar
 import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
+import 'package:event_management/features/event/data/models/event_manager_dto.dart';
 import 'package:event_management/features/event/data/models/event_page_with_counters_response_dto.dart';
 import 'package:event_management/features/event/data/models/image_upload_response.dart';
 import 'package:event_management/features/event/data/models/import_job_response.dart';
@@ -84,4 +85,9 @@ abstract class EventApiClient {
 
   @POST('/attendants/check-in/{eventToken}')
   Future<Attendant> checkInEvent(@Path('eventToken') String eventToken);
+
+  @GET('/event-manager/event-managers')
+  Future<List<EventManagerDto>> getEventManagersByEventId({
+    @Query('eventId') required int eventId,
+  });
 }

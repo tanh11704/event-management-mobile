@@ -21,6 +21,7 @@ import 'package:event_management/features/event/presentation/bloc/edit_event/edi
 import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/presentation/bloc/event_management/event_management_bloc.dart';
+import 'package:event_management/features/event/presentation/bloc/secretary_management/secretary_management_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
@@ -69,6 +70,10 @@ Future<void> init() async {
     )
     ..registerFactory(() => EventDetailBloc(eventRepository: sl()))
     ..registerFactory(() => EventManagementBloc(eventRepository: sl()))
+    ..registerFactory(
+      () =>
+          SecretaryManagementBloc(eventRepository: sl(), adminRepository: sl()),
+    )
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
     // Dio instances - Main Dio for general use (has auth interceptor)
