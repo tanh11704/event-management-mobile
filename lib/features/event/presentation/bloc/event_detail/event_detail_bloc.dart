@@ -103,15 +103,36 @@ class EventDetailBloc extends Bloc<EventDetailEvent, EventDetailState> {
       emit(currentState.copyWith(isUpdating: true));
 
       try {
-        // Upload banner if provided
-        if (event.bannerFile != null && event.bannerFile is XFile) {
-          await _eventRepository.uploadBannerFromXFile(
-            event.eventId,
-            event.bannerFile as XFile,
-          );
+        // Upload banner if provided (separate endpoint, banner is saved automatically)
+        if (event.bannerFile != null) {
+          if (kDebugMode) {
+            debugPrint(
+              'EventDetailBloc: Banner file provided: ${event.bannerFile.runtimeType}',
+            );
+          }
+          if (event.bannerFile is XFile) {
+            if (kDebugMode) {
+              debugPrint(
+                'EventDetailBloc: Uploading banner for event ${event.eventId}',
+              );
+            }
+            await _eventRepository.uploadBannerFromXFile(
+              event.eventId,
+              event.bannerFile as XFile,
+            );
+            if (kDebugMode) {
+              debugPrint('EventDetailBloc: Banner uploaded successfully');
+            }
+          } else if (kDebugMode) {
+            debugPrint(
+              'EventDetailBloc: Banner file is not XFile type: ${event.bannerFile.runtimeType}',
+            );
+          }
+        } else if (kDebugMode) {
+          debugPrint('EventDetailBloc: No banner file provided');
         }
 
-        // Update event
+        // Update event (EventDto does not include banner field per backend structure)
         if (event.eventDto is EventDto) {
           final updatedEventDetail = await _eventRepository.updateEvent(
             event.eventId,

@@ -16,7 +16,7 @@ import 'package:event_management/features/event/presentation/widgets/event_manag
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_form_controller.dart';
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_image_picker.dart';
 import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_location_section.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_section_header.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -48,6 +48,8 @@ class _EditEventTabState extends State<EditEventTab> {
       eventDetail: widget.eventDetail,
       eventRepository: sl<EventRepository>(),
     );
+    // Initialize banner URL from event detail
+    _bannerUrl = widget.eventDetail.banner;
   }
 
   @override
@@ -143,11 +145,25 @@ class _EditEventTabState extends State<EditEventTab> {
         source: source,
       );
       if (pickedFile != null && mounted) {
+        if (kDebugMode) {
+          debugPrint(
+            'EditEventTab: Image picked: ${pickedFile.path}, name: ${pickedFile.name}',
+          );
+        }
         setState(() {
-          _bannerImageFile = pickedFile as XFile?;
-          _bannerImage = File(pickedFile.path);
+          _bannerImageFile = pickedFile;
+          if (!kIsWeb) {
+            _bannerImage = File(pickedFile.path);
+          } else {
+            _bannerImage = null;
+          }
           _bannerUrl = null;
         });
+        if (kDebugMode) {
+          debugPrint(
+            'EditEventTab: _bannerImageFile set to: ${_bannerImageFile?.path}',
+          );
+        }
       }
     }
   }
@@ -179,7 +195,16 @@ class _EditEventTabState extends State<EditEventTab> {
         descriptionHtml: _formController.descriptionHtml,
       );
 
-      final bannerXFile = _formController.getBannerXFile();
+      final bannerXFile = _bannerImageFile ?? _formController.getBannerXFile();
+
+      if (kDebugMode) {
+        debugPrint(
+          'EditEventTab: Saving with banner file: ${bannerXFile?.path ?? 'null'}',
+        );
+        debugPrint(
+          'EditEventTab: _bannerImageFile: ${_bannerImageFile?.path ?? 'null'}',
+        );
+      }
 
       context.read<EventDetailBloc>().add(
         EventDetailUpdate(
@@ -240,8 +265,9 @@ class _EditEventTabState extends State<EditEventTab> {
             if (_formController.bannerUrl != state.eventDetail.banner) {
               setState(() {
                 _formController.bannerUrl = state.eventDetail.banner;
-                _formController.bannerImage =
-                    null; // Xóa file local sau khi đã lưu
+                _bannerUrl = state.eventDetail.banner;
+                _bannerImage = null; // Xóa file local sau khi đã lưu
+                _bannerImageFile = null; // Xóa file local sau khi đã lưu
               });
             }
           }
@@ -271,91 +297,99 @@ class _EditEventTabState extends State<EditEventTab> {
 
   Widget _buildForm() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.spaceMD,
-        AppSpacing.spaceMD,
-        AppSpacing.spaceMD,
-        AppSpacing.spaceMD + 40,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const EditEventSectionHeader(title: 'Ảnh bìa sự kiện'),
-            EditEventBannerSection(
-              bannerImage: _bannerImage,
-              bannerImageFile: _bannerImageFile,
-              bannerUrl: _bannerUrl,
-              onPickImage: _pickImage,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Banner section full width
+          EditEventBannerSection(
+            bannerImage: _bannerImage,
+            bannerImageFile: _bannerImageFile,
+            bannerUrl: _bannerUrl,
+            onPickImage: _pickImage,
+          ),
+
+          // Form content with padding
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.spaceMD,
+              AppSpacing.spaceLG,
+              AppSpacing.spaceMD,
+              AppSpacing.spaceMD + 40,
             ),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  EditEventBasicInfoSection(
+                    titleController: _formController.titleController,
+                    descriptionHtml: _formController.descriptionHtml,
+                    htmlEditorKey: _htmlEditorKey,
+                    onDescriptionChanged: (value) {
+                      setState(() {
+                        _formController.descriptionHtml = value;
+                      });
+                    },
+                  ),
 
-            EditEventBasicInfoSection(
-              titleController: _formController.titleController,
-              descriptionHtml: _formController.descriptionHtml,
-              htmlEditorKey: _htmlEditorKey,
-              onDescriptionChanged: (value) {
-                setState(() {
-                  _formController.descriptionHtml = value;
-                });
-              },
-            ),
+                  EditEventDateTimeSection(
+                    startDate: _formController.startDate,
+                    endDate: _formController.endDate,
+                    onStartDateSelected: _selectStartDate,
+                    onStartTimeSelected: _selectStartTime,
+                    onEndDateSelected: _selectEndDate,
+                    onEndTimeSelected: _selectEndTime,
+                  ),
 
-            EditEventDateTimeSection(
-              startDate: _formController.startDate,
-              endDate: _formController.endDate,
-              onStartDateSelected: _selectStartDate,
-              onStartTimeSelected: _selectStartTime,
-              onEndDateSelected: _selectEndDate,
-              onEndTimeSelected: _selectEndTime,
-            ),
+                  EditEventLocationSection(
+                    locationController: _formController.locationController,
+                    maxParticipantsController:
+                        _formController.maxParticipantsController,
+                    urlDocsController: _formController.urlDocsController,
+                  ),
 
-            EditEventLocationSection(
-              locationController: _formController.locationController,
-              maxParticipantsController:
-                  _formController.maxParticipantsController,
-              urlDocsController: _formController.urlDocsController,
-            ),
+                  const SizedBox(height: AppSpacing.spaceLG * 2),
 
-            const SizedBox(height: AppSpacing.spaceLG * 2),
-
-            // Nút Save
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _isLoading ? null : _saveChanges,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            AppColors.white,
-                          ),
+                  // Nút Save
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: _isLoading ? null : _saveChanges,
+                      icon: _isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  AppColors.white,
+                                ),
+                              ),
+                            )
+                          : const Icon(Icons.save_rounded, size: 24),
+                      label: Text(
+                        _isLoading ? 'Đang lưu...' : 'Lưu thay đổi',
+                        style: AppTextStyles.heading5.copyWith(
+                          color: AppColors.white,
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                    : const Icon(Icons.save_rounded, size: 24),
-                label: Text(
-                  _isLoading ? 'Đang lưu...' : 'Lưu thay đổi',
-                  style: AppTextStyles.heading5.copyWith(
-                    color: AppColors.white,
-                    fontWeight: FontWeight.bold,
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.vkuBlue,
+                        foregroundColor: AppColors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        elevation: 2,
+                      ),
+                    ),
                   ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.vkuBlue,
-                  foregroundColor: AppColors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  elevation: 2,
-                ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
