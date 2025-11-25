@@ -80,11 +80,25 @@ class _CheckInHistoryItemState extends State<CheckInHistoryItem>
             widget.participant.userName,
             style: AppTextStyles.heading5,
           ),
-          subtitle: Text(
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (widget.participant.userEmail != null) ...[
+                Text(
+                  widget.participant.userEmail!,
+                  style: AppTextStyles.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.spaceXS),
+              ],
+              Text(
             widget.participant.checkedTime != null
                 ? 'Check-in lúc ${DateTimeFormatter.formatTime(widget.participant.checkedTime!)}'
                 : 'Đã check-in',
-            style: AppTextStyles.bodySmall,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.coolGray500,
+                ),
+              ),
+            ],
           ),
           trailing: Container(
             padding: const EdgeInsets.symmetric(
