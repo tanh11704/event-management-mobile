@@ -1,0 +1,82 @@
+import 'dart:typed_data';
+
+import 'package:event_management/features/event/shared/data/models/attendant.dart';
+import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
+import 'package:event_management/features/event/shared/data/models/event.dart';
+import 'package:event_management/features/event/shared/data/models/event_counters.dart';
+import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/shared/data/models/event_dto.dart';
+import 'package:event_management/features/event/shared/data/models/event_manager_info.dart';
+import 'package:event_management/features/event/shared/data/models/event_status.dart';
+import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
+import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
+import 'package:image_picker/image_picker.dart';
+
+abstract class EventRepository {
+  Future<EventListResult> getAllEvents({
+    int page = 0,
+    int size = 12,
+    String sortBy = 'startTime',
+    String sortDir = 'asc',
+    EventStatus? status,
+    String? search,
+  });
+
+  Future<EventListResult> getManagedEvents({
+    int page = 0,
+    int size = 12,
+    String sortBy = 'startTime',
+    String sortDir = 'asc',
+    EventStatus? status,
+    String? search,
+  });
+
+  Future<EventDetailResponse> getEventDetail(int id);
+
+  Future<Attendant> joinEvent(String eventToken);
+
+  Future<Attendant> checkInEvent(String eventToken);
+
+  Future<void> unjoinEvent(int eventId);
+
+  Future<Event> createEvent(CreateEventDto createEventDto);
+
+  Future<Event> uploadBannerFromXFile(int eventId, XFile bannerFile);
+
+  Future<EventDetailResponse> updateEvent(int eventId, EventDto eventDto);
+
+  Future<ImportParticipantsResponse> importParticipants(
+    int eventId,
+    XFile file, {
+    void Function(int, int)? onSendProgress,
+  });
+
+  Future<ImportJobResponse> getImportJobStatus(int jobId);
+
+  Future<String> uploadImage(XFile imageFile);
+
+  Future<String> exportParticipants({
+    required int eventId,
+    String filter = 'all',
+  });
+
+  Future<Uint8List> getQrCheck(int eventId);
+
+  Future<List<EventManagerInfo>> getEventManagers(int eventId);
+}
+
+class EventListResult {
+  const EventListResult({
+    required this.events,
+    required this.counters,
+    required this.hasNext,
+    required this.totalPages,
+    required this.currentPage,
+  });
+
+  final List<Event> events;
+  final EventCounters counters;
+  final bool hasNext;
+  final int totalPages;
+  final int currentPage;
+}
