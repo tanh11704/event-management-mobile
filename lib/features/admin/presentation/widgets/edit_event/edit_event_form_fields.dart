@@ -1,5 +1,5 @@
 import 'package:event_management/core/config/app_spacing.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_modern_text_field.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_modern_text_field.dart';
 import 'package:flutter/material.dart';
 
 /// Widget chứa các form fields cơ bản cho edit event

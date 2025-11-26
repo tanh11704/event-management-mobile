@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:add_2_calendar/add_2_calendar.dart' as add2cal;
-import 'package:event_management/features/event/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
 import 'package:flutter/foundation.dart';
 
 class CalendarService {

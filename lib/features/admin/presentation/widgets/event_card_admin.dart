@@ -4,10 +4,10 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/utils/date_time_formatter.dart';
-import 'package:event_management/features/event/data/models/event.dart';
-import 'package:event_management/features/event/presentation/widgets/event_card/event_card_banner.dart';
-import 'package:event_management/features/event/presentation/widgets/event_card/event_info_row.dart';
-import 'package:event_management/features/event/presentation/widgets/event_card/event_participants_row.dart';
+import 'package:event_management/features/event/shared/data/models/event.dart';
+import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_card_banner.dart';
+import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_info_row.dart';
+import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_participants_row.dart';
 import 'package:flutter/material.dart';
 
 class EventCardAdmin extends StatefulWidget {

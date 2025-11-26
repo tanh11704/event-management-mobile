@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:event_management/core/services/cloudinary_image_service.dart';
-import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -184,6 +184,10 @@ class HtmlImageProcessor {
       return match.group(0)!;
     }
 
+    if (src.isEmpty || src == '/' || src.trim().isEmpty) {
+      return '';
+    }
+
     // Convert path thành full Cloudinary URL
     final cloudinaryUrl = CloudinaryImageService.getDescriptionImageUrl(src);
     final quote = isDoubleQuote ? '"' : "'";
@@ -227,11 +231,26 @@ class HtmlImageProcessor {
     final cloudinaryMatch = _cloudinaryUrlRegex.firstMatch(src);
     if (cloudinaryMatch != null) {
       final path = cloudinaryMatch.group(1) ?? src;
+      // Validate path trước khi lưu - không lưu path invalid
+      if (path.isEmpty || path == '/' || path.trim().isEmpty) {
+        // Xóa tag img nếu path invalid
+        return '';
+      }
       final quote = isDoubleQuote ? '"' : "'";
       return '<img$beforeSrc src=$quote$path$quote$afterSrc>';
     }
 
-    // Nếu là data URL hoặc path khác thì giữ nguyên
+    // Nếu là data URL thì giữ nguyên để xử lý sau
+    if (_isDataUrl(src)) {
+      return match.group(0)!;
+    }
+
+    // Nếu là path invalid (không phải URL hợp lệ) thì xóa tag img
+    if (src.isEmpty || src == '/' || src.trim().isEmpty) {
+      return '';
+    }
+
+    // Nếu là path khác thì giữ nguyên
     return match.group(0)!;
   }
 
