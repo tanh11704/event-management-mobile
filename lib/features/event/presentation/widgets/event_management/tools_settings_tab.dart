@@ -22,8 +22,8 @@ class ToolsSettingsTab extends StatelessWidget {
 
           // Secretary Management Section
           SecretaryManagementSection(
-            secretaries: eventDetail.secretaries,
             eventId: eventDetail.id,
+            participants: eventDetail.participants,
           ),
         ],
       ),

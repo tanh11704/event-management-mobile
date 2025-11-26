@@ -6,6 +6,7 @@ import 'package:event_management/features/event/data/models/event.dart';
 import 'package:event_management/features/event/data/models/event_counters.dart';
 import 'package:event_management/features/event/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/data/models/event_dto.dart';
+import 'package:event_management/features/event/data/models/event_manager_info.dart';
 import 'package:event_management/features/event/data/models/event_status.dart';
 import 'package:event_management/features/event/data/models/import_job_response.dart';
 import 'package:event_management/features/event/data/models/import_participants_response.dart';
@@ -60,6 +61,8 @@ abstract class EventRepository {
   });
 
   Future<Uint8List> getQrCheck(int eventId);
+
+  Future<List<EventManagerInfo>> getEventManagers(int eventId);
 }
 
 class EventListResult {
