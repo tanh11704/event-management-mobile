@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:event_management/core/services/cloudinary_image_service.dart';
-import 'package:event_management/features/event/domain/repositories/event_repository.dart';
+import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path_provider/path_provider.dart';
 

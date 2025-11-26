@@ -12,16 +12,18 @@ import 'package:event_management/features/auth/presentation/bloc/change_password
 import 'package:event_management/features/auth/presentation/bloc/forgot_password/forgot_password_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/login/login_bloc.dart';
 import 'package:event_management/features/auth/presentation/bloc/register/register_bloc.dart';
-import 'package:event_management/features/event/data/datasources/event_api_client.dart';
-import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
-import 'package:event_management/features/event/data/repositories/event_repository_impl.dart';
-import 'package:event_management/features/event/domain/repositories/event_repository.dart';
-import 'package:event_management/features/event/presentation/bloc/create_event/create_event_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/edit_event/edit_event_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/event_detail/event_detail_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/event_management/event_management_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/secretary_management/secretary_management_bloc.dart';
+import 'package:event_management/features/event/event_create/presentation/bloc/create_event_bloc.dart';
+import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_bloc.dart';
+import 'package:event_management/features/event/event_list/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/bloc/check_in_history/check_in_history_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/bloc/edit_event/edit_event_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/bloc/event_management/event_management_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/bloc/secretary_management/secretary_management_bloc.dart';
+import 'package:event_management/features/event/shared/data/datasources/check_in_sse_service.dart';
+import 'package:event_management/features/event/shared/data/datasources/event_api_client.dart';
+import 'package:event_management/features/event/shared/data/datasources/event_sse_service.dart';
+import 'package:event_management/features/event/shared/data/repositories/event_repository_impl.dart';
+import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
@@ -73,6 +75,8 @@ Future<void> init() async {
     ..registerFactory(
       () =>
           SecretaryManagementBloc(eventRepository: sl(), adminRepository: sl()),
+    )
+    ..registerFactory(
       () => CheckInHistoryBloc(eventRepository: sl(), checkInSseService: sl()),
     )
     // Admin Bloc

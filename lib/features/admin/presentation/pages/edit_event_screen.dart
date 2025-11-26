@@ -8,10 +8,10 @@ import 'package:event_management/features/admin/presentation/widgets/edit_event/
 import 'package:event_management/features/admin/presentation/widgets/edit_event/edit_event_form_fields.dart';
 import 'package:event_management/features/admin/presentation/widgets/edit_event/edit_event_header.dart';
 import 'package:event_management/features/admin/presentation/widgets/user_search_field.dart';
-import 'package:event_management/features/event/data/models/event_detail_response.dart';
-import 'package:event_management/features/event/presentation/bloc/edit_event/edit_event_bloc.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_banner_section.dart';
-import 'package:event_management/features/event/presentation/widgets/event_management/edit_event_section_header.dart';
+import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/event_management/presentation/bloc/edit_event/edit_event_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_banner_section.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_section_header.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

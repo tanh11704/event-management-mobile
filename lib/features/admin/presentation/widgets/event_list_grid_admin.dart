@@ -1,8 +1,8 @@
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/features/admin/presentation/widgets/event_card_admin.dart';
-import 'package:event_management/features/event/data/models/event.dart';
-import 'package:event_management/features/event/presentation/bloc/event_list_bloc.dart';
-import 'package:event_management/features/event/presentation/bloc/event_list_event.dart';
+import 'package:event_management/features/event/event_list/presentation/bloc/event_list_bloc.dart';
+import 'package:event_management/features/event/event_list/presentation/bloc/event_list_event.dart';
+import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';

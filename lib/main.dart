@@ -1,7 +1,7 @@
 import 'package:event_management/core/config/app_theme.dart';
 import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/core/router/app_router.dart';
-import 'package:event_management/features/event/data/datasources/event_sse_service.dart';
+import 'package:event_management/features/event/shared/data/datasources/event_sse_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
