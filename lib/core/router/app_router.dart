@@ -19,6 +19,7 @@ import 'package:event_management/features/event/event_detail/presentation/pages/
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/event_list/presentation/pages/event_list_screen.dart';
 import 'package:event_management/features/event/event_management/presentation/pages/event_management_screen.dart';
+import 'package:event_management/features/poll/presentation/pages/vote_poll_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -36,6 +37,7 @@ class AppRoutes {
   static const String userManagement = '/admin/user-management';
   static const String eventManagement = '/events/:id/manage';
   static const String adminEditEvent = '/admin/events/:id/edit';
+  static const String votePoll = '/polls/:id/vote';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -179,6 +181,14 @@ final GoRouter appRouter = GoRouter(
             },
           ),
         );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.votePoll,
+      name: AppRoutes.votePoll,
+      builder: (context, state) {
+        final pollId = int.parse(state.pathParameters['id']!);
+        return VotePollScreen(pollId: pollId);
       },
     ),
   ],

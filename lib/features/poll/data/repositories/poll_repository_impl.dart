@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/poll/data/datasources/poll_api_client.dart';
 import 'package:event_management/features/poll/data/models/create_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/my_voted_options_response.dart';
 import 'package:event_management/features/poll/data/models/poll_response.dart';
 import 'package:event_management/features/poll/data/models/poll_stats_response.dart';
 import 'package:event_management/features/poll/data/models/update_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/vote_poll_dto.dart';
 import 'package:event_management/features/poll/domain/repositories/poll_repository.dart';
 import 'package:injectable/injectable.dart';
 
@@ -141,6 +143,45 @@ class PollRepositoryImpl implements PollRepository {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
         throw Exception(errorMessage ?? 'Không thể cập nhật poll.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<PollResponse> votePoll(int pollId, VotePollDto votePollDto) async {
+    try {
+      // Vote API returns MessageResponse, not PollResponse
+      await _pollApiClient.votePoll(pollId, votePollDto);
+      // After successful vote, fetch the poll again to get updated data
+      return await _pollApiClient.getPoll(pollId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể bỏ phiếu.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      // Re-throw if it's already an Exception
+      if (e is Exception) {
+        rethrow;
+      }
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<MyVotedOptionsResponse> getMyVotedOptions(int pollId) async {
+    try {
+      return await _pollApiClient.getMyVotedOptions(pollId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(
+          errorMessage ?? 'Không thể lấy danh sách option đã vote.',
+        );
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
