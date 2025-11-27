@@ -79,12 +79,27 @@ class PollListSection extends StatelessWidget {
                         Text('Danh sách Polls', style: AppTextStyles.heading3),
                       ],
                     ),
-                    if (state is PollListLoading)
-                      const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
+                    Row(
+                      children: [
+                        if (state is PollListLoading)
+                          const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        else
+                          IconButton(
+                            icon: const Icon(Icons.refresh_rounded),
+                            onPressed: () {
+                              context.read<PollListBloc>().add(
+                                PollListRefreshed(eventId),
+                              );
+                            },
+                            tooltip: 'Làm mới',
+                            iconSize: 20,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.spaceMD),
@@ -112,20 +127,27 @@ class PollListSection extends StatelessWidget {
       return _buildEmptyState();
     }
 
-    return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: polls.length,
-      separatorBuilder: (context, index) => const Divider(height: 1),
-      itemBuilder: (context, index) {
-        final poll = polls[index];
-        return _PollListItem(
-          poll: poll,
-          onViewStats: () => _showStatsDialog(context, poll.id),
-          onUpdate: () => _showUpdatePollBottomSheet(context, poll),
-          onClose: () => _showCloseConfirmation(context, poll),
-        );
+    return RefreshIndicator(
+      onRefresh: () async {
+        context.read<PollListBloc>().add(PollListRefreshed(eventId));
+        // Wait a bit for the state to update
+        await Future<void>.delayed(const Duration(milliseconds: 500));
       },
+      child: ListView.separated(
+        shrinkWrap: true,
+        physics: const AlwaysScrollableScrollPhysics(),
+        itemCount: polls.length,
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          final poll = polls[index];
+          return _PollListItem(
+            poll: poll,
+            onViewStats: () => _showStatsDialog(context, poll.id),
+            onUpdate: () => _showUpdatePollBottomSheet(context, poll),
+            onClose: () => _showCloseConfirmation(context, poll),
+          );
+        },
+      ),
     );
   }
 

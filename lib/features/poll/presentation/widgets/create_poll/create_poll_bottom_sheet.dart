@@ -13,9 +13,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 /// Bottom sheet widget để hiển thị form tạo poll
 class CreatePollBottomSheet extends StatefulWidget {
-  const CreatePollBottomSheet({required this.eventId, super.key});
+  const CreatePollBottomSheet({
+    required this.eventId,
+    this.onPollCreated,
+    super.key,
+  });
 
   final int eventId;
+  final VoidCallback? onPollCreated;
 
   @override
   State<CreatePollBottomSheet> createState() => _CreatePollBottomSheetState();
@@ -315,7 +320,14 @@ class _CreatePollBottomSheetState extends State<CreatePollBottomSheet> {
                   Expanded(
                     child: SingleChildScrollView(
                       controller: scrollController,
-                      padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                      padding: EdgeInsets.only(
+                        left: AppSpacing.spaceLG,
+                        right: AppSpacing.spaceLG,
+                        top: AppSpacing.spaceLG,
+                        bottom:
+                            MediaQuery.of(context).viewInsets.bottom +
+                            AppSpacing.spaceLG,
+                      ),
                       child: CreatePollForm(
                         formKey: _formKey,
                         titleController: _titleController,

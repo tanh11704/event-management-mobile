@@ -29,6 +29,7 @@ class PollOptionInput extends StatelessWidget {
           child: TextFormField(
             controller: controller,
             validator: validator,
+            textInputAction: TextInputAction.next,
             style: AppTextStyles.bodyMedium.copyWith(
               color: AppColors.coolGray900,
             ),

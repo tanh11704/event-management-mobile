@@ -6,16 +6,22 @@ import 'package:flutter/material.dart';
 
 /// Section widget với button để mở bottom sheet tạo poll
 class CreatePollSectionButton extends StatelessWidget {
-  const CreatePollSectionButton({required this.eventId, super.key});
+  const CreatePollSectionButton({
+    required this.eventId,
+    this.onPollCreated,
+    super.key,
+  });
 
   final int eventId;
+  final VoidCallback? onPollCreated;
 
   void _showCreatePollBottomSheet(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => CreatePollBottomSheet(eventId: eventId),
+      builder: (context) =>
+          CreatePollBottomSheet(eventId: eventId, onPollCreated: onPollCreated),
     );
   }
 
