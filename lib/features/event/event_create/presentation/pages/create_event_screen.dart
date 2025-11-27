@@ -3,8 +3,9 @@ import 'dart:io';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
-import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
+import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/features/event/event_create/presentation/bloc/create_event_bloc.dart';
+import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -216,6 +217,16 @@ class _CreateEventViewState extends State<_CreateEventView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: AppColors.white),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(AppRoutes.admin);
+            }
+          },
+        ),
         title: const Text('Tạo sự kiện mới'),
         backgroundColor: AppColors.vkuBlue,
         foregroundColor: AppColors.white,
@@ -230,7 +241,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
                 backgroundColor: AppColors.green500,
               ),
             );
-            context.pop();
+            context.go(AppRoutes.admin);
           } else if (state is CreateEventFailure) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
