@@ -24,6 +24,13 @@ import 'package:event_management/features/event/shared/data/datasources/event_ap
 import 'package:event_management/features/event/shared/data/datasources/event_sse_service.dart';
 import 'package:event_management/features/event/shared/data/repositories/event_repository_impl.dart';
 import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
+import 'package:event_management/features/poll/data/datasources/poll_api_client.dart';
+import 'package:event_management/features/poll/data/repositories/poll_repository_impl.dart';
+import 'package:event_management/features/poll/domain/repositories/poll_repository.dart';
+import 'package:event_management/features/poll/presentation/bloc/create_poll/create_poll_bloc.dart';
+import 'package:event_management/features/poll/presentation/bloc/poll_list/poll_list_bloc.dart';
+import 'package:event_management/features/poll/presentation/bloc/poll_stats/poll_stats_bloc.dart';
+import 'package:event_management/features/poll/presentation/bloc/update_poll/update_poll_bloc.dart';
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
@@ -46,6 +53,7 @@ Future<void> init() async {
     )
     ..registerLazySingleton<UnitRepository>(() => UnitRepositoryImpl(sl()))
     ..registerLazySingleton<AdminRepository>(() => AdminRepositoryImpl(sl()))
+    ..registerLazySingleton<PollRepository>(() => PollRepositoryImpl(sl()))
     // Auth Bloc
     ..registerFactory(
       () => LoginBloc(
@@ -81,6 +89,11 @@ Future<void> init() async {
     )
     // Admin Bloc
     ..registerFactory(() => UserManagementBloc(adminRepository: sl()))
+    // Poll Bloc
+    ..registerFactory(() => CreatePollBloc(sl<PollRepository>()))
+    ..registerFactory(() => PollListBloc(sl<PollRepository>()))
+    ..registerFactory(() => PollStatsBloc(sl<PollRepository>()))
+    ..registerFactory(() => UpdatePollBloc(sl<PollRepository>()))
     // Dio instances - Main Dio for general use (has auth interceptor)
     ..registerLazySingleton<Dio>(
       () =>
@@ -94,6 +107,7 @@ Future<void> init() async {
     ..registerLazySingleton<UnitApiClient>(() => UnitApiClient(sl()))
     ..registerLazySingleton<EventApiClient>(() => EventApiClient(sl()))
     ..registerLazySingleton<AdminApiClient>(() => AdminApiClient(sl()))
+    ..registerLazySingleton<PollApiClient>(() => PollApiClient(sl()))
     ..registerLazySingleton<EventSseService>(() => EventSseService(sl()))
     ..registerLazySingleton<CheckInSseService>(
       () => CheckInSseService(sl<FlutterSecureStorage>()),
