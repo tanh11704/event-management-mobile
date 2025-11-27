@@ -5,8 +5,6 @@ import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/core/services/calendar_service.dart';
 import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
-import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
-import 'package:event_management/features/event/shared/data/models/event_status.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_bloc.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_event.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_state.dart';
@@ -18,6 +16,9 @@ import 'package:event_management/features/event/event_detail/presentation/widget
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/event_detail_status_chip.dart';
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/event_detail_title.dart';
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/qr_code_scanner_dialog.dart';
+import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/shared/data/models/event_status.dart';
+import 'package:event_management/features/poll/presentation/widgets/poll_list/poll_list_section_for_users.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -442,6 +443,14 @@ class _EventDetailContentState extends State<_EventDetailContent> {
                     ),
                   ),
 
+                const SizedBox(height: AppSpacing.spaceLG),
+
+                // Poll Section for users
+                PollListSectionForUsers(
+                  eventId: widget.eventDetail.id,
+                  isUserRegistered:
+                      widget.eventDetail.isUserRegistered ?? false,
+                ),
                 const SizedBox(height: AppSpacing.spaceLG),
               ],
             ),

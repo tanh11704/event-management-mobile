@@ -1,8 +1,11 @@
 import 'package:dio/dio.dart';
+import 'package:event_management/features/auth/data/models/message_response.dart';
 import 'package:event_management/features/poll/data/models/create_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/my_voted_options_response.dart';
 import 'package:event_management/features/poll/data/models/poll_response.dart';
 import 'package:event_management/features/poll/data/models/poll_stats_response.dart';
 import 'package:event_management/features/poll/data/models/update_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/vote_poll_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -36,4 +39,13 @@ abstract class PollApiClient {
     @Path('pollId') int pollId,
     @Body() UpdatePollDto updatePollDto,
   );
+
+  @POST('/polls/{pollId}/vote')
+  Future<MessageResponse> votePoll(
+    @Path('pollId') int pollId,
+    @Body() VotePollDto votePollDto,
+  );
+
+  @GET('/polls/{pollId}/my-options')
+  Future<MyVotedOptionsResponse> getMyVotedOptions(@Path('pollId') int pollId);
 }
