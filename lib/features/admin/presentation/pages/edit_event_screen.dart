@@ -5,12 +5,14 @@ import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart';
 import 'package:event_management/core/router/app_router.dart';
-import 'package:event_management/features/admin/presentation/widgets/edit_event/edit_event_date_time_picker.dart';
-import 'package:event_management/features/admin/presentation/widgets/edit_event/edit_event_form_fields.dart';
 import 'package:event_management/features/admin/presentation/widgets/edit_event/edit_event_header.dart';
 import 'package:event_management/features/admin/presentation/widgets/user_search_field.dart';
 import 'package:event_management/features/event/event_management/presentation/bloc/edit_event/edit_event_bloc.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_banner_section.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_basic_info_section.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_date_time_handler.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_date_time_section.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_location_section.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_section_header.dart';
 import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
 import 'package:flutter/foundation.dart';
@@ -44,14 +46,15 @@ class _EditEventView extends StatefulWidget {
 
 class _EditEventViewState extends State<_EditEventView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey _htmlEditorKey = GlobalKey();
   final ImagePicker _imagePicker = ImagePicker();
 
   late TextEditingController _titleController;
-  late TextEditingController _descriptionController;
   late TextEditingController _locationController;
   late TextEditingController _maxParticipantsController;
   late TextEditingController _urlDocsController;
 
+  String _descriptionHtml = '';
   bool _controllersInitialized = false;
 
   @override
@@ -59,7 +62,6 @@ class _EditEventViewState extends State<_EditEventView> {
     super.initState();
     // Initialize controllers - will be updated by BLoC
     _titleController = TextEditingController();
-    _descriptionController = TextEditingController();
     _locationController = TextEditingController();
     _maxParticipantsController = TextEditingController();
     _urlDocsController = TextEditingController();
@@ -68,7 +70,6 @@ class _EditEventViewState extends State<_EditEventView> {
   @override
   void dispose() {
     _titleController.dispose();
-    _descriptionController.dispose();
     _locationController.dispose();
     _maxParticipantsController.dispose();
     _urlDocsController.dispose();
@@ -78,7 +79,7 @@ class _EditEventViewState extends State<_EditEventView> {
   void _initializeControllers(EditEventFormState state) {
     if (!_controllersInitialized) {
       _titleController.text = state.title;
-      _descriptionController.text = state.description;
+      _descriptionHtml = state.description;
       _locationController.text = state.location;
       _maxParticipantsController.text = state.maxParticipants.toString();
       _urlDocsController.text = state.urlDocs;
@@ -86,92 +87,107 @@ class _EditEventViewState extends State<_EditEventView> {
     }
   }
 
-  Future<void> _selectStartDate(DateTime currentDate) async {
-    final picked = await showDatePicker(
+  Future<void> _selectStartDate() async {
+    final state = context.read<EditEventBloc>().state;
+    if (state is! EditEventFormState) return;
+    
+    final picked = await EditEventDateTimeHandler.selectStartDate(
       context: context,
-      initialDate: currentDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      locale: const Locale('vi', 'VN'),
+      initialDate: state.startDate,
     );
     if (picked != null) {
       final newDate = DateTime(
         picked.year,
         picked.month,
         picked.day,
-        currentDate.hour,
-        currentDate.minute,
+        state.startDate.hour,
+        state.startDate.minute,
       );
       context.read<EditEventBloc>().add(EditEventStartDateChanged(newDate));
+      // Auto-adjust end date if needed
+      if (state.endDate.isBefore(newDate)) {
+        context.read<EditEventBloc>().add(
+          EditEventEndDateChanged(newDate.add(const Duration(hours: 1))),
+        );
+      }
     }
   }
 
-  Future<void> _selectStartTime(DateTime currentDate) async {
-    final picked = await showTimePicker(
+  Future<void> _selectStartTime() async {
+    final state = context.read<EditEventBloc>().state;
+    if (state is! EditEventFormState) return;
+    
+    final picked = await EditEventDateTimeHandler.selectStartTime(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(currentDate),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
-          ),
-          child: child!,
-        );
-      },
+      initialDate: state.startDate,
     );
     if (picked != null) {
       final newDate = DateTime(
-        currentDate.year,
-        currentDate.month,
-        currentDate.day,
+        state.startDate.year,
+        state.startDate.month,
+        state.startDate.day,
         picked.hour,
         picked.minute,
       );
       context.read<EditEventBloc>().add(EditEventStartDateChanged(newDate));
+      // Auto-adjust end date if needed
+      if (state.endDate.isBefore(newDate) ||
+          state.endDate.isAtSameMomentAs(newDate)) {
+        context.read<EditEventBloc>().add(
+          EditEventEndDateChanged(newDate.add(const Duration(hours: 1))),
+        );
+      }
     }
   }
 
-  Future<void> _selectEndDate(DateTime currentDate, DateTime startDate) async {
-    final picked = await showDatePicker(
+  Future<void> _selectEndDate() async {
+    final state = context.read<EditEventBloc>().state;
+    if (state is! EditEventFormState) return;
+    
+    final picked = await EditEventDateTimeHandler.selectEndDate(
       context: context,
-      initialDate: currentDate,
-      firstDate: startDate,
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      locale: const Locale('vi', 'VN'),
+      initialDate: state.endDate,
+      startDate: state.startDate,
     );
     if (picked != null) {
       final newDate = DateTime(
         picked.year,
         picked.month,
         picked.day,
-        currentDate.hour,
-        currentDate.minute,
+        state.endDate.hour,
+        state.endDate.minute,
       );
       context.read<EditEventBloc>().add(EditEventEndDateChanged(newDate));
     }
   }
 
-  Future<void> _selectEndTime(DateTime currentDate) async {
-    final picked = await showTimePicker(
+  Future<void> _selectEndTime() async {
+    final state = context.read<EditEventBloc>().state;
+    if (state is! EditEventFormState) return;
+    
+    final picked = await EditEventDateTimeHandler.selectEndTime(
       context: context,
-      initialTime: TimeOfDay.fromDateTime(currentDate),
-      builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
-          ),
-          child: child!,
-        );
-      },
+      initialDate: state.endDate,
     );
     if (picked != null) {
       final newDate = DateTime(
-        currentDate.year,
-        currentDate.month,
-        currentDate.day,
+        state.endDate.year,
+        state.endDate.month,
+        state.endDate.day,
         picked.hour,
         picked.minute,
       );
+      // Validate end date is after start date
+      if (newDate.isBefore(state.startDate) ||
+          newDate.isAtSameMomentAs(state.startDate)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Thời gian kết thúc phải sau thời gian bắt đầu'),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+        return;
+      }
       context.read<EditEventBloc>().add(EditEventEndDateChanged(newDate));
     }
   }
@@ -220,15 +236,27 @@ class _EditEventViewState extends State<_EditEventView> {
     }
   }
 
-  void _onSave(EditEventFormState state) {
+  Future<void> _onSave(EditEventFormState state) async {
     if (!_formKey.currentState!.validate()) {
       return;
+    }
+
+    // Validate HTML editor
+    final editorState = _htmlEditorKey.currentState;
+    if (editorState != null) {
+      final dynamic editor = editorState;
+      final error = await editor.validate();
+      if (error != null) {
+        return;
+      }
+      // Get HTML content from editor
+      _descriptionHtml = await editor.getText() as String;
     }
 
     // Update state with current form values
     context.read<EditEventBloc>()
       ..add(EditEventTitleChanged(_titleController.text))
-      ..add(EditEventDescriptionChanged(_descriptionController.text))
+      ..add(EditEventDescriptionChanged(_descriptionHtml))
       ..add(EditEventLocationChanged(_locationController.text))
       ..add(
         EditEventMaxParticipantsChanged(
@@ -238,6 +266,7 @@ class _EditEventViewState extends State<_EditEventView> {
       ..add(EditEventUrlDocsChanged(_urlDocsController.text))
       ..add(EditEventSubmitted(state.eventId));
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -380,26 +409,39 @@ class _EditEventViewState extends State<_EditEventView> {
                                 const SizedBox(height: AppSpacing.spaceLG),
 
                                 // Basic Info
-                                const EditEventSectionHeader(
-                                  title: 'Thông tin cơ bản',
-                                ),
-                                EditEventFormFields(
+                                EditEventBasicInfoSection(
                                   titleController: _titleController,
-                                  descriptionController: _descriptionController,
-                                  locationController: _locationController,
-                                  maxParticipantsController:
-                                      _maxParticipantsController,
-                                  urlDocsController: _urlDocsController,
-                                  onTitleChanged: (value) {
-                                    context.read<EditEventBloc>().add(
-                                      EditEventTitleChanged(value),
-                                    );
-                                  },
+                                  descriptionHtml: _descriptionHtml,
+                                  htmlEditorKey: _htmlEditorKey,
+                                  startDate: state.startDate,
+                                  endDate: state.endDate,
+                                  location: _locationController.text.trim(),
                                   onDescriptionChanged: (value) {
+                                    setState(() {
+                                      _descriptionHtml = value;
+                                    });
                                     context.read<EditEventBloc>().add(
                                       EditEventDescriptionChanged(value),
                                     );
                                   },
+                                ),
+                                const SizedBox(height: AppSpacing.spaceLG),
+
+                                // Time & Location
+                                EditEventDateTimeSection(
+                                  startDate: state.startDate,
+                                  endDate: state.endDate,
+                                  onStartDateSelected: _selectStartDate,
+                                  onStartTimeSelected: _selectStartTime,
+                                  onEndDateSelected: _selectEndDate,
+                                  onEndTimeSelected: _selectEndTime,
+                                ),
+
+                                EditEventLocationSection(
+                                  locationController: _locationController,
+                                  maxParticipantsController:
+                                      _maxParticipantsController,
+                                  urlDocsController: _urlDocsController,
                                   onLocationChanged: (value) {
                                     context.read<EditEventBloc>().add(
                                       EditEventLocationChanged(value),
@@ -416,26 +458,6 @@ class _EditEventViewState extends State<_EditEventView> {
                                       EditEventUrlDocsChanged(value),
                                     );
                                   },
-                                ),
-                                const SizedBox(height: AppSpacing.spaceLG),
-
-                                // Time & Location
-                                const EditEventSectionHeader(
-                                  title: 'Thời gian & Địa điểm',
-                                ),
-                                EditEventDateTimePicker(
-                                  startDate: state.startDate,
-                                  endDate: state.endDate,
-                                  onStartDateChanged: () =>
-                                      _selectStartDate(state.startDate),
-                                  onStartTimeChanged: () =>
-                                      _selectStartTime(state.startDate),
-                                  onEndDateChanged: () => _selectEndDate(
-                                    state.endDate,
-                                    state.startDate,
-                                  ),
-                                  onEndTimeChanged: () =>
-                                      _selectEndTime(state.endDate),
                                 ),
                                 const SizedBox(height: AppSpacing.spaceLG),
 

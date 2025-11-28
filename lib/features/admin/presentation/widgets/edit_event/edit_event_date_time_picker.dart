@@ -1,5 +1,6 @@
+import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
-import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_picker_field.dart';
+import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -22,8 +23,7 @@ class EditEventDateTimePicker extends StatelessWidget {
   final VoidCallback onEndDateChanged;
   final VoidCallback onEndTimeChanged;
 
-  final DateFormat _dateFormat = DateFormat('dd/MM/yyyy', 'vi');
-  final DateFormat _timeFormat = DateFormat('HH:mm', 'vi');
+  final DateFormat _dateTimeFormat = DateFormat('dd/MM/yyyy HH:mm', 'vi');
 
   @override
   Widget build(BuildContext context) {
@@ -32,42 +32,94 @@ class EditEventDateTimePicker extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: EditEventPickerField(
-                label: 'Ngày bắt đầu',
-                text: _dateFormat.format(startDate),
-                icon: Icons.calendar_today_rounded,
+              child: InkWell(
                 onTap: onStartDateChanged,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        color: AppColors.vkuBlue,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Thời gian bắt đầu',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.coolGray500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _dateTimeFormat.format(startDate),
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.spaceMD),
             Expanded(
-              child: EditEventPickerField(
-                label: 'Giờ bắt đầu',
-                text: _timeFormat.format(startDate),
-                icon: Icons.access_time_rounded,
-                onTap: onStartTimeChanged,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.spaceMD),
-        Row(
-          children: [
-            Expanded(
-              child: EditEventPickerField(
-                label: 'Ngày kết thúc',
-                text: _dateFormat.format(endDate),
-                icon: Icons.calendar_today_rounded,
+              child: InkWell(
                 onTap: onEndDateChanged,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.spaceMD),
-            Expanded(
-              child: EditEventPickerField(
-                label: 'Giờ kết thúc',
-                text: _timeFormat.format(endDate),
-                icon: Icons.access_time_rounded,
-                onTap: onEndTimeChanged,
+                child: Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: AppColors.border),
+                    borderRadius: BorderRadius.circular(12),
+                    color: AppColors.white,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.access_time,
+                        color: AppColors.vkuBlue,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              'Thời gian kết thúc',
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: AppColors.coolGray500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _dateTimeFormat.format(endDate),
+                              style: AppTextStyles.bodyMedium.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ],

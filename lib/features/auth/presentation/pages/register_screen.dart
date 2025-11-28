@@ -21,66 +21,73 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     return BlocConsumer<RegisterBloc, RegisterState>(
       builder: (context, state) {
-        return Scaffold(
-          body: Container(
-            decoration: BoxDecoration(gradient: AppColors.background),
-            child: SafeArea(
-              child: Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.spaceLG),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ===== Logo VKU =====
-                      Align(
-                        child: Image.asset(
-                          'assets/images/vku_logo.png',
-                          height: 80,
+        return GestureDetector(
+          onTap: () {
+            // Ẩn bàn phím khi tap ra ngoài
+            FocusScope.of(context).unfocus();
+          },
+          behavior: HitTestBehavior.opaque,
+          child: Scaffold(
+            body: Container(
+              decoration: BoxDecoration(gradient: AppColors.background),
+              child: SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // ===== Logo VKU =====
+                        Align(
+                          child: Image.asset(
+                            'assets/images/vku_logo.png',
+                            height: 80,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.spaceLG),
+                        const SizedBox(height: AppSpacing.spaceLG),
 
-                      // ===== Tiêu đề & mô tả ngắn =====
-                      const RegisterHeader(),
-                      const SizedBox(height: AppSpacing.spaceXL),
+                        // ===== Tiêu đề & mô tả ngắn =====
+                        const RegisterHeader(),
+                        const SizedBox(height: AppSpacing.spaceXL),
 
-                      // ===== Form Container =====
-                      Container(
-                        padding: const EdgeInsets.all(AppSpacing.spaceLG),
-                        decoration: BoxDecoration(
-                          color: AppColors.white,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AppColors.coolGray900.withOpacity(0.08),
-                              blurRadius: 24,
-                              offset: const Offset(0, 10),
+                        // ===== Form Container =====
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.spaceLG),
+                          decoration: BoxDecoration(
+                            color: AppColors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.coolGray900.withOpacity(0.08),
+                                blurRadius: 24,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: const RegisterForm(),
+                        ),
+
+                        const SizedBox(height: AppSpacing.spaceLG),
+
+                        // ===== Link chuyển sang màn đăng nhập =====
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Đã có tài khoản?',
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(color: AppColors.coolGray700),
+                            ),
+                            TextButton(
+                              onPressed: () {
+                                context.go(AppRoutes.login);
+                              },
+                              child: const Text('Đăng nhập'),
                             ),
                           ],
                         ),
-                        child: const RegisterForm(),
-                      ),
-
-                      const SizedBox(height: AppSpacing.spaceLG),
-
-                      // ===== Link chuyển sang màn đăng nhập =====
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Đã có tài khoản?',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(color: AppColors.coolGray700),
-                          ),
-                          TextButton(
-                            onPressed: () {
-                              context.go(AppRoutes.login);
-                            },
-                            child: const Text('Đăng nhập'),
-                          ),
-                        ],
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),

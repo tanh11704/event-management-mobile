@@ -43,6 +43,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
         return Form(
           key: _formKey,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -54,6 +55,10 @@ class _RegisterFormState extends State<RegisterForm> {
                   icon: Icons.person_outline_rounded,
                 ),
                 textInputAction: TextInputAction.next,
+                onChanged: (v) {
+                  // Lưu giá trị để validation realtime
+                  name = v.trim();
+                },
                 onSaved: (v) => name = v?.trim(),
                 validator: (v) => v == null || v.trim().isEmpty
                     ? 'Vui lòng nhập họ tên'
@@ -70,6 +75,10 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
+                onChanged: (v) {
+                  // Lưu giá trị để validation realtime
+                  email = v.trim();
+                },
                 onSaved: (v) => email = v?.trim(),
                 validator: (v) {
                   if (v == null || v.trim().isEmpty) {
@@ -93,6 +102,10 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 keyboardType: TextInputType.phone,
                 textInputAction: TextInputAction.next,
+                onChanged: (v) {
+                  // Lưu giá trị để validation realtime
+                  phoneNumber = v.trim();
+                },
                 onSaved: (v) => phoneNumber = v?.trim(),
                 validator: (v) => v == null || v.trim().isEmpty
                     ? 'Vui lòng nhập số điện thoại'
@@ -116,6 +129,15 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 obscureText: _obscurePassword,
                 textInputAction: TextInputAction.next,
+                onChanged: (v) {
+                  // Trigger validation khi người dùng nhập
+                  setState(() {
+                    password = v;
+                  });
+                  if (_formKey.currentState?.validate() ?? false) {
+                    _formKey.currentState?.save();
+                  }
+                },
                 onSaved: (v) => password = v,
                 validator: (v) {
                   if (v == null || v.isEmpty) {
@@ -145,6 +167,15 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 obscureText: _obscureConfirmPassword,
                 textInputAction: TextInputAction.next,
+                onChanged: (v) {
+                  // Trigger validation khi người dùng nhập
+                  setState(() {
+                    confirmPassword = v;
+                  });
+                  if (_formKey.currentState?.validate() ?? false) {
+                    _formKey.currentState?.save();
+                  }
+                },
                 onSaved: (v) => confirmPassword = v,
                 validator: (v) {
                   if (v == null || v.isEmpty) {
@@ -167,15 +198,21 @@ class _RegisterFormState extends State<RegisterForm> {
                     icon: Icons.account_tree_rounded,
                   ),
                   initialValue: unitsLoaded.selectedAccountTypeId,
+                  isExpanded: true,
                   items: unitsLoaded.accountTypes
                       .map<DropdownMenuItem<int>>(
                         (UnitEntity u) => DropdownMenuItem(
                           value: u.id,
-                          child: Text(u.unitName),
+                          child: Text(
+                            u.unitName,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                       )
                       .toList(),
                   onChanged: (value) {
+                    // Ẩn bàn phím khi chọn dropdown
+                    FocusScope.of(context).unfocus();
                     setState(() {
                       unitId = null;
                     });
@@ -199,15 +236,23 @@ class _RegisterFormState extends State<RegisterForm> {
                       icon: Icons.apartment_rounded,
                     ),
                     initialValue: unitId,
+                    isExpanded: true,
                     items: unitsLoaded.filteredUnits
                         .map<DropdownMenuItem<int>>(
                           (UnitEntity u) => DropdownMenuItem(
                             value: u.id,
-                            child: Text(u.unitName),
+                            child: Text(
+                              u.unitName,
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         )
                         .toList(),
-                    onChanged: (value) => setState(() => unitId = value),
+                    onChanged: (value) {
+                      // Ẩn bàn phím khi chọn dropdown
+                      FocusScope.of(context).unfocus();
+                      setState(() => unitId = value);
+                    },
                     validator: (v) =>
                         v == null ? 'Vui lòng chọn đơn vị / lớp' : null,
                   ),

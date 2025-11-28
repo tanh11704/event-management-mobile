@@ -22,8 +22,9 @@ class _EventDetailDescriptionState extends State<EventDetailDescription>
 
   @override
   Widget build(BuildContext context) {
-    final processedHtml =
-        HtmlImageProcessor.processHtmlImagesForView(widget.description);
+    final processedHtml = HtmlImageProcessor.processHtmlImagesForView(
+      widget.description,
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: AppSpacing.spaceMD),
@@ -98,9 +99,7 @@ class _EventDetailDescriptionState extends State<EventDetailDescription>
                         margin: Margins.only(bottom: 8),
                       ),
                       'img': Style(
-                        width: Width(
-                          MediaQuery.of(context).size.width - 64,
-                        ),
+                        width: Width(MediaQuery.of(context).size.width - 64),
                         margin: Margins.symmetric(vertical: 12),
                         alignment: Alignment.center,
                       ),
@@ -116,7 +115,6 @@ class _EventDetailDescriptionState extends State<EventDetailDescription>
                       right: 0,
                       bottom: 0,
                       child: IgnorePointer(
-                        ignoring: true,
                         child: Container(
                           height: 80,
                           decoration: BoxDecoration(
