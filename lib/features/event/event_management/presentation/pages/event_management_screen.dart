@@ -2,6 +2,7 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart';
 import 'package:event_management/core/router/app_router.dart';
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/event/event_management/presentation/bloc/event_management/event_management_bloc.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/attendees_tab.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_tab.dart';
@@ -30,16 +31,44 @@ class _EventManagementScreenState extends State<EventManagementScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
+  bool _isManager = false;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    _checkRole();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
     super.dispose();
+  }
+
+  Future<void> _checkRole() async {
+    try {
+      final authRepository = sl<AuthRepository>();
+      final currentUser = await authRepository.getAuthUser();
+      final currentUserId = currentUser.id;
+
+      // Manager list đến từ backend với quyền MANAGE
+      final isManager = widget.eventDetail.manager.any(
+        (manager) => manager.userId == currentUserId,
+      );
+
+      if (!mounted) return;
+
+      setState(() {
+        _isManager = isManager;
+        // Nếu chỉ là secretary (STAFF) thì _isManager sẽ là false
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isManager = false;
+      });
+    }
   }
 
   @override
@@ -93,8 +122,11 @@ class _EventManagementScreenState extends State<EventManagementScreen>
           children: [
             OverviewTab(eventDetail: widget.eventDetail),
             AttendeesTab(eventDetail: widget.eventDetail),
-            ToolsSettingsTab(eventDetail: widget.eventDetail),
-            EditEventTab(eventDetail: widget.eventDetail),
+            ToolsSettingsTab(
+              eventDetail: widget.eventDetail,
+              canManageSecretaries: _isManager,
+            ),
+            EditEventTab(eventDetail: widget.eventDetail, canEdit: _isManager),
           ],
         ),
       ),

@@ -21,10 +21,6 @@ class DateFormatter {
     return dateFormat.format(dateTime);
   }
 
-  /// Format khoảng thời gian cho sự kiện.
-  ///
-  /// - Nếu cùng 1 ngày: "10:30 - 16:00, 27/02/2025"
-  /// - Nếu khác ngày: "10:30 27/02/2025 → 16:00 28/02/2025"
   static String formatTimeRange(DateTime startTime, DateTime endTime) {
     final timeFormat = DateFormat('HH:mm', 'vi');
     final dateFormat = DateFormat('dd/MM/yyyy', 'vi');

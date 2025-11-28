@@ -22,9 +22,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditEventTab extends StatefulWidget {
-  const EditEventTab({required this.eventDetail, super.key});
+  const EditEventTab({
+    required this.eventDetail,
+    this.canEdit = true,
+    super.key,
+  });
 
   final EventDetailResponse eventDetail;
+
+  /// Chỉ manager mới được phép chỉnh sửa thông tin sự kiện.
+  final bool canEdit;
 
   @override
   State<EditEventTab> createState() => _EditEventTabState();
@@ -235,6 +242,42 @@ class _EditEventTabState extends State<EditEventTab> {
 
   @override
   Widget build(BuildContext context) {
+    if (!widget.canEdit) {
+      // STAFF: Không hiển thị form chỉnh sửa, chỉ thông báo quyền hạn
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.spaceLG),
+        child: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.lock_outline_rounded,
+                size: 48,
+                color: AppColors.coolGray500,
+              ),
+              const SizedBox(height: AppSpacing.spaceMD),
+              Text(
+                'Bạn không có quyền chỉnh sửa sự kiện này',
+                style: AppTextStyles.bodyLarge.copyWith(
+                  color: AppColors.coolGray700,
+                  fontWeight: FontWeight.w600,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.spaceXS),
+              Text(
+                'Vui lòng liên hệ người quản lý sự kiện nếu bạn cần thay đổi thông tin.',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.coolGray500,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return BlocListener<EventDetailBloc, EventDetailState>(
       listener: (context, state) {
         if (state is EventDetailSuccess) {
