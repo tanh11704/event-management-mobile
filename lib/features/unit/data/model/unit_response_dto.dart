@@ -1,3 +1,5 @@
+import 'package:event_management/features/unit/data/model/unit_type_converter.dart';
+import 'package:event_management/features/unit/domain/entities/unit_type.dart';
 import 'package:event_management/features/unit/domain/entity/unit_entity.dart';
 import 'package:json_annotation/json_annotation.dart';
 
@@ -5,7 +7,7 @@ part 'unit_response_dto.g.dart';
 
 @JsonSerializable()
 class UnitResponseDto {
-  UnitResponseDto({
+  const UnitResponseDto({
     required this.id,
     required this.unitName,
     required this.unitType,
@@ -23,7 +25,8 @@ class UnitResponseDto {
   final String unitName;
 
   @JsonKey(name: 'unit_type')
-  final String unitType;
+  @UnitTypeConverter()
+  final UnitType unitType;
 
   @JsonKey(name: 'parent_id')
   final int? parentId;
@@ -33,17 +36,21 @@ class UnitResponseDto {
 
   Map<String, dynamic> toJson() => _$UnitResponseDtoToJson(this);
 
-  static UnitEntity toEntity(UnitResponseDto dto) {
+  UnitEntity toEntity() {
     return UnitEntity(
-      id: dto.id,
-      unitName: dto.unitName,
-      unitType: dto.unitType,
-      parentId: dto.parentId,
-      parentName: dto.parentName,
+      id: id,
+      unitName: unitName,
+      unitType: unitType,
+      parentId: parentId,
+      parentName: parentName,
     );
   }
 
+  static UnitEntity toEntityStatic(UnitResponseDto dto) {
+    return dto.toEntity();
+  }
+
   static List<UnitEntity> toEntities(List<UnitResponseDto> dtoList) {
-    return dtoList.map(UnitResponseDto.toEntity).toList();
+    return dtoList.map((dto) => dto.toEntity()).toList();
   }
 }
