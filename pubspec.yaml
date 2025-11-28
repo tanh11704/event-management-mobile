@@ -37,6 +37,7 @@ dependencies:
   add_2_calendar: ^3.0.1
   qr_flutter: ^4.1.0
   html_editor_enhanced: ^2.7.1
+  flutter_markdown: ^0.7.4+1
   path_provider: ^2.1.4
   file_picker: ^10.3.6
   share_plus: ^10.1.4

@@ -1,6 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:event_management/features/event/shared/data/models/attendant.dart';
+import 'package:event_management/features/event/shared/data/models/chat_request.dart';
+import 'package:event_management/features/event/shared/data/models/chat_response.dart';
 import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:event_management/features/event/shared/data/models/event_counters.dart';
@@ -12,6 +14,7 @@ import 'package:event_management/features/event/shared/data/models/generate_desc
 import 'package:event_management/features/event/shared/data/models/generate_description_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
+import 'package:event_management/features/event/shared/data/models/message_dto.dart';
 import 'package:image_picker/image_picker.dart';
 
 abstract class EventRepository {
@@ -69,6 +72,10 @@ abstract class EventRepository {
   Future<GenerateDescriptionResponse> generateDescription(
     GenerateDescriptionRequest request,
   );
+
+  Future<ChatResponse> sendChatMessage(ChatRequest request);
+
+  Future<List<MessageDto>> getChatHistory(int eventId);
 }
 
 class EventListResult {
