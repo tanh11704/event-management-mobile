@@ -1,4 +1,5 @@
 import 'package:event_management/core/config/app_spacing.dart';
+import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/features/admin/presentation/widgets/event_card_admin.dart';
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_event.dart';
@@ -52,7 +53,12 @@ class EventListGridAdmin extends StatelessWidget {
             index: index,
             onTap: () {
               onEventTap?.call(event);
-              context.go('/events/${event.id}');
+              // Sử dụng push thay vì go để giữ lại state màn Admin
+              // Khi back từ màn chi tiết sự kiện, admin dashboard sẽ được restore đúng state cũ
+              context.pushNamed(
+                AppRoutes.eventDetail,
+                pathParameters: {'id': event.id.toString()},
+              );
             },
             onEdit: () {
               onEventEdit?.call(event);
