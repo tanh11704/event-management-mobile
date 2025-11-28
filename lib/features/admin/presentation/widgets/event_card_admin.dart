@@ -4,10 +4,10 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/utils/date_time_formatter.dart';
-import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_card_banner.dart';
 import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_info_row.dart';
 import 'package:event_management/features/event/event_list/presentation/widgets/event_card/event_participants_row.dart';
+import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:flutter/material.dart';
 
 class EventCardAdmin extends StatefulWidget {
@@ -188,10 +188,9 @@ class _EventCardAdminState extends State<EventCardAdmin>
                     borderRadius: BorderRadius.circular(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
                       children: [
                         EventCardBanner(event: widget.event),
-                        Flexible(
+                        Expanded(
                           child: Padding(
                             padding: const EdgeInsets.fromLTRB(
                               AppSpacing.spaceMD,
@@ -199,49 +198,53 @@ class _EventCardAdminState extends State<EventCardAdmin>
                               AppSpacing.spaceMD,
                               AppSpacing.spaceXM,
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Event info
-                                EventInfoRow(
-                                  icon: Icons.access_time_rounded,
-                                  text:
-                                      DateTimeFormatter.formatDateTimeWithTime(
-                                        widget.event.startTime,
-                                      ),
-                                  iconColor: AppColors.vkuBlue,
-                                ),
-                                if (widget.event.location != null) ...[
-                                  const SizedBox(height: AppSpacing.spaceXS),
+                            child: SingleChildScrollView(
+                              physics: const BouncingScrollPhysics(),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Event info
                                   EventInfoRow(
-                                    icon: Icons.location_on_rounded,
-                                    text: widget.event.location!,
-                                    iconColor: AppColors.green500,
-                                  ),
-                                ],
-                                if (widget.event.maxParticipants != null) ...[
-                                  const SizedBox(height: AppSpacing.spaceXS),
-                                  EventParticipantsRow(
-                                    currentParticipants:
-                                        widget.event.currentParticipants,
-                                    maxParticipants:
-                                        widget.event.maxParticipants,
-                                  ),
-                                ],
-                                // Admin info section - Only show if space allows
-                                if (widget.event.createdByName != null) ...[
-                                  const SizedBox(height: AppSpacing.spaceXS),
-                                  EventInfoRow(
-                                    icon: Icons.person_rounded,
+                                    icon: Icons.access_time_rounded,
                                     text:
-                                        widget.event.createdByName!.length > 20
-                                        ? 'Tạo bởi: ${widget.event.createdByName!.substring(0, 20)}...'
-                                        : 'Tạo bởi: ${widget.event.createdByName}',
-                                    iconColor: AppColors.coolGray700,
+                                        DateTimeFormatter.formatDateTimeWithTime(
+                                          widget.event.startTime,
+                                        ),
+                                    iconColor: AppColors.vkuBlue,
                                   ),
+                                  if (widget.event.location != null) ...[
+                                    const SizedBox(height: AppSpacing.spaceXS),
+                                    EventInfoRow(
+                                      icon: Icons.location_on_rounded,
+                                      text: widget.event.location!,
+                                      iconColor: AppColors.green500,
+                                    ),
+                                  ],
+                                  if (widget.event.maxParticipants != null) ...[
+                                    const SizedBox(height: AppSpacing.spaceXS),
+                                    EventParticipantsRow(
+                                      currentParticipants:
+                                          widget.event.currentParticipants,
+                                      maxParticipants:
+                                          widget.event.maxParticipants,
+                                    ),
+                                  ],
+                                  // Admin info section - Only show if space allows
+                                  if (widget.event.createdByName != null) ...[
+                                    const SizedBox(height: AppSpacing.spaceXS),
+                                    EventInfoRow(
+                                      icon: Icons.person_rounded,
+                                      text:
+                                          widget.event.createdByName!.length >
+                                              20
+                                          ? 'Tạo bởi: ${widget.event.createdByName!.substring(0, 20)}...'
+                                          : 'Tạo bởi: ${widget.event.createdByName}',
+                                      iconColor: AppColors.coolGray700,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
                           ),
                         ),

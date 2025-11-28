@@ -79,7 +79,7 @@ class UserResponseDto {
       email: dto.email,
       phoneNumber: dto.phoneNumber,
       enabled: dto.enabled,
-      unit: dto.unit != null ? UnitResponseDto.toEntity(dto.unit!) : null,
+      unit: dto.unit?.toEntity(),
       roles: dto.roles?.map(RoleDto.toEntity).toList(),
     );
   }

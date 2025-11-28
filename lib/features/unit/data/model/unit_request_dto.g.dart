@@ -1,25 +1,21 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'unit_response_dto.dart';
+part of 'unit_request_dto.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-UnitResponseDto _$UnitResponseDtoFromJson(Map<String, dynamic> json) =>
-    UnitResponseDto(
-      id: (json['id'] as num).toInt(),
+UnitRequestDto _$UnitRequestDtoFromJson(Map<String, dynamic> json) =>
+    UnitRequestDto(
       unitName: json['unit_name'] as String,
       unitType: const UnitTypeConverter().fromJson(json['unit_type'] as String),
       parentId: (json['parent_id'] as num?)?.toInt(),
-      parentName: json['parent_name'] as String?,
     );
 
-Map<String, dynamic> _$UnitResponseDtoToJson(UnitResponseDto instance) =>
+Map<String, dynamic> _$UnitRequestDtoToJson(UnitRequestDto instance) =>
     <String, dynamic>{
-      'id': instance.id,
       'unit_name': instance.unitName,
       'unit_type': const UnitTypeConverter().toJson(instance.unitType),
       'parent_id': instance.parentId,
-      'parent_name': instance.parentName,
     };

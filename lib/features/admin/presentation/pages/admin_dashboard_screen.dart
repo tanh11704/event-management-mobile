@@ -2,18 +2,22 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart' as di;
+import 'package:event_management/core/widgets/user_menu.dart';
 import 'package:event_management/features/admin/presentation/bloc/user_management/user_management_bloc.dart';
 import 'package:event_management/features/admin/presentation/pages/user_management_screen.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_event_filter_chips.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_event_search_bar.dart';
 import 'package:event_management/features/admin/presentation/widgets/admin_stat_card.dart';
 import 'package:event_management/features/admin/presentation/widgets/event_list_grid_admin.dart';
+import 'package:event_management/features/auth/domain/repositories/auth_repository.dart';
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_bloc.dart';
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_event.dart';
 import 'package:event_management/features/event/event_list/presentation/bloc/event_list_state.dart';
 import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:event_management/features/event/shared/data/models/event_counters.dart';
 import 'package:event_management/features/event/shared/data/models/event_status.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_list/unit_list_bloc.dart';
+import 'package:event_management/features/unit/presentation/pages/unit_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -136,14 +140,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                       ],
                     ),
                   ),
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(
-                      Icons.account_circle_rounded,
-                      color: AppColors.white,
-                      size: 32,
-                    ),
-                  ),
+                  UserMenu(authRepository: di.sl<AuthRepository>()),
                 ],
               ),
               const SizedBox(height: 16),
@@ -446,32 +443,9 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
   }
 
   Widget _buildUnitManagementTab() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.business_rounded,
-            size: 80,
-            color: AppColors.coolGray500.withOpacity(0.5),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Quản lý đơn vị',
-            style: AppTextStyles.heading3.copyWith(
-              color: AppColors.coolGray700,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Chức năng đang được phát triển',
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.coolGray500,
-            ),
-          ),
-        ],
-      ),
+    return BlocProvider(
+      create: (context) => di.sl<UnitListBloc>(),
+      child: const UnitListScreen(showAppBar: false),
     );
   }
 }

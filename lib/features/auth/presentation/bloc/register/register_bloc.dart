@@ -49,7 +49,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     Emitter<RegisterState> emit,
   ) async {
     emit(RegisterLoading());
-    final result = await _unitRepository.getUnits(0, 1000);
+    final result = await _unitRepository.getAllUnits();
 
     final accountTypes = result.where((u) => u.parentId == null).toList();
 

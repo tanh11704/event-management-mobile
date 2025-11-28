@@ -35,6 +35,8 @@ import 'package:event_management/features/poll/presentation/bloc/vote_poll/vote_
 import 'package:event_management/features/unit/data/datasource/unit_api_client.dart';
 import 'package:event_management/features/unit/data/repository/unit_repository_impl.dart';
 import 'package:event_management/features/unit/domain/repository/unit_repository.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_form/unit_form_bloc.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_list/unit_list_bloc.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 
@@ -96,6 +98,9 @@ Future<void> init() async {
     ..registerFactory(() => PollStatsBloc(sl<PollRepository>()))
     ..registerFactory(() => UpdatePollBloc(sl<PollRepository>()))
     ..registerFactory(() => VotePollBloc(sl<PollRepository>()))
+    // Unit Bloc
+    ..registerFactory(() => UnitListBloc(sl<UnitRepository>()))
+    ..registerFactory(() => UnitFormBloc(sl<UnitRepository>()))
     // Dio instances - Main Dio for general use (has auth interceptor)
     ..registerLazySingleton<Dio>(
       () =>

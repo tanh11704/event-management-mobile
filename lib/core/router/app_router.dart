@@ -20,6 +20,11 @@ import 'package:event_management/features/event/event_list/presentation/bloc/eve
 import 'package:event_management/features/event/event_list/presentation/pages/event_list_screen.dart';
 import 'package:event_management/features/event/event_management/presentation/pages/event_management_screen.dart';
 import 'package:event_management/features/poll/presentation/pages/vote_poll_screen.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_form/unit_form_bloc.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_form/unit_form_event.dart';
+import 'package:event_management/features/unit/presentation/bloc/unit_list/unit_list_bloc.dart';
+import 'package:event_management/features/unit/presentation/pages/unit_form_screen.dart';
+import 'package:event_management/features/unit/presentation/pages/unit_list_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -38,6 +43,9 @@ class AppRoutes {
   static const String eventManagement = '/events/:id/manage';
   static const String adminEditEvent = '/admin/events/:id/edit';
   static const String votePoll = '/polls/:id/vote';
+  static const String unitList = '/units';
+  static const String unitForm = '/units/form';
+  static const String unitFormEdit = '/units/form/:id';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -189,6 +197,38 @@ final GoRouter appRouter = GoRouter(
       builder: (context, state) {
         final pollId = int.parse(state.pathParameters['id']!);
         return VotePollScreen(pollId: pollId);
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.unitList,
+      name: AppRoutes.unitList,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<UnitListBloc>(),
+          child: const UnitListScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.unitForm,
+      name: AppRoutes.unitForm,
+      builder: (context, state) {
+        return BlocProvider(
+          create: (context) => sl<UnitFormBloc>(),
+          child: const UnitFormScreen(),
+        );
+      },
+    ),
+    GoRoute(
+      path: AppRoutes.unitFormEdit,
+      name: AppRoutes.unitFormEdit,
+      builder: (context, state) {
+        final unitId = int.parse(state.pathParameters['id']!);
+        return BlocProvider(
+          create: (context) =>
+              sl<UnitFormBloc>()..add(UnitFormInitialized(unitId)),
+          child: UnitFormScreen(unitId: unitId),
+        );
       },
     ),
   ],
