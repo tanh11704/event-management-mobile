@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:cross_file/cross_file.dart';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
@@ -13,7 +12,6 @@ import 'package:event_management/features/poll/presentation/bloc/poll_stats/poll
 import 'package:event_management/features/poll/presentation/bloc/poll_stats/poll_stats_state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path/path.dart' as path;
@@ -295,10 +293,7 @@ class PollStatsDialog extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'File đã được lưu tại:',
-              style: AppTextStyles.bodyMedium,
-            ),
+            Text('File đã được lưu tại:', style: AppTextStyles.bodyMedium),
             const SizedBox(height: AppSpacing.spaceXS),
             Text(
               filename,
