@@ -8,6 +8,8 @@ import 'package:event_management/features/event/shared/data/models/event_detail_
 import 'package:event_management/features/event/shared/data/models/event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event_manager_info.dart';
 import 'package:event_management/features/event/shared/data/models/event_status.dart';
+import 'package:event_management/features/event/shared/data/models/generate_description_request.dart';
+import 'package:event_management/features/event/shared/data/models/generate_description_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
 import 'package:image_picker/image_picker.dart';
@@ -63,6 +65,10 @@ abstract class EventRepository {
   Future<Uint8List> getQrCheck(int eventId);
 
   Future<List<EventManagerInfo>> getEventManagers(int eventId);
+
+  Future<GenerateDescriptionResponse> generateDescription(
+    GenerateDescriptionRequest request,
+  );
 }
 
 class EventListResult {

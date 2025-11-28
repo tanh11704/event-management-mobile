@@ -4,8 +4,6 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart';
-import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
-import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_bloc.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_event.dart';
 import 'package:event_management/features/event/event_detail/presentation/bloc/event_detail_state.dart';
@@ -16,6 +14,8 @@ import 'package:event_management/features/event/event_management/presentation/wi
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_form_controller.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_image_picker.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_location_section.dart';
+import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
+import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -325,6 +325,9 @@ class _EditEventTabState extends State<EditEventTab> {
                     titleController: _formController.titleController,
                     descriptionHtml: _formController.descriptionHtml,
                     htmlEditorKey: _htmlEditorKey,
+                    startDate: _formController.startDate,
+                    endDate: _formController.endDate,
+                    location: _formController.locationController.text.trim(),
                     onDescriptionChanged: (value) {
                       setState(() {
                         _formController.descriptionHtml = value;
