@@ -1,4 +1,5 @@
 import 'package:event_management/features/poll/data/models/create_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/export_format.dart';
 import 'package:event_management/features/poll/data/models/my_voted_options_response.dart';
 import 'package:event_management/features/poll/data/models/poll_response.dart';
 import 'package:event_management/features/poll/data/models/poll_stats_response.dart';
@@ -29,4 +30,7 @@ abstract class PollRepository {
 
   /// Lấy danh sách option IDs mà user đã vote
   Future<MyVotedOptionsResponse> getMyVotedOptions(int pollId);
+
+  /// Xuất kết quả poll ra file Excel
+  Future<List<int>> exportPollStats(int pollId, ExportFormat format);
 }

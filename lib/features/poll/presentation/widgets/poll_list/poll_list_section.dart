@@ -2,7 +2,6 @@ import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
 import 'package:event_management/core/di/injection_container.dart' as di;
-import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/features/poll/data/models/poll_response.dart';
 import 'package:event_management/features/poll/presentation/bloc/poll_list/poll_list_bloc.dart';
 import 'package:event_management/features/poll/presentation/bloc/poll_list/poll_list_event.dart';
@@ -11,7 +10,6 @@ import 'package:event_management/features/poll/presentation/widgets/poll_list/po
 import 'package:event_management/features/poll/presentation/widgets/poll_list/update_poll_bottom_sheet.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class PollListSection extends StatelessWidget {
@@ -148,19 +146,7 @@ class PollListSection extends StatelessWidget {
             onUpdate: () => _showUpdatePollBottomSheet(context, poll),
             onClose: () => _showCloseConfirmation(context, poll),
             onVote: () {
-              context
-                  .pushNamed(
-                    AppRoutes.votePoll,
-                    pathParameters: {'id': poll.id.toString()},
-                  )
-                  .then((result) {
-                    // Refresh poll list after voting
-                    if (result == true) {
-                      context.read<PollListBloc>().add(
-                        PollListRefreshed(eventId),
-                      );
-                    }
-                  });
+              // Not used in management screen
             },
           );
         },
@@ -310,267 +296,149 @@ class _PollListItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusText = _getStatusText();
     final statusColor = _getStatusColor();
-    final now = DateTime.now();
-    final isPollActive =
-        !poll.isDelete &&
-        now.isAfter(poll.startTime) &&
-        now.isBefore(poll.endTime);
-    final canVote = isPollActive && !poll.hasVoted;
 
-    return InkWell(
-      onTap: canVote ? onVote : null,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(AppSpacing.spaceMD),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: canVote
-              ? Border.all(
-                  color: AppColors.vkuBlue.withValues(alpha: 0.2),
-                  width: 1.5,
-                )
-              : null,
-          boxShadow: canVote
-              ? [
-                  BoxShadow(
-                    color: AppColors.vkuBlue.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          children: [
-            // Leading icon
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.amber100,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: const Icon(
-                Icons.poll_rounded,
-                color: AppColors.amber600,
-                size: 24,
-              ),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      padding: const EdgeInsets.all(AppSpacing.spaceMD),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          // Leading icon
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.amber100,
+              borderRadius: BorderRadius.circular(8),
             ),
-            const SizedBox(width: AppSpacing.spaceMD),
-
-            // Content
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          poll.title,
-                          style: AppTextStyles.heading5.copyWith(
-                            color: canVote
-                                ? AppColors.vkuBlue
-                                : AppColors.coolGray900,
-                            fontWeight: canVote
-                                ? FontWeight.w600
-                                : FontWeight.normal,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.circle, size: 8, color: statusColor),
-                      const SizedBox(width: 4),
-                      Flexible(
-                        child: Text(
-                          statusText,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: statusColor,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.spaceMD),
-                      Flexible(
-                        child: Text(
-                          poll.pollType.label,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.coolGray500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${DateFormat('dd/MM/yyyy HH:mm', 'vi').format(poll.startTime)} - ${DateFormat('dd/MM/yyyy HH:mm', 'vi').format(poll.endTime)}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.coolGray500,
-                    ),
-                  ),
-                ],
-              ),
+            child: const Icon(
+              Icons.poll_rounded,
+              color: AppColors.amber600,
+              size: 24,
             ),
+          ),
+          const SizedBox(width: AppSpacing.spaceMD),
 
-            // Trailing actions
-            Row(
-              mainAxisSize: MainAxisSize.min,
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Vote button - nổi bật hơn
-                if (canVote) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.spaceMD,
-                      vertical: AppSpacing.spaceXM,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(8),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.vkuBlue.withValues(alpha: 0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        poll.title,
+                        style: AppTextStyles.heading5.copyWith(
+                          color: AppColors.coolGray900,
+                          fontWeight: FontWeight.normal,
                         ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.how_to_vote_rounded,
-                          color: AppColors.white,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Bỏ phiếu',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.spaceXM),
-                ] else if (poll.hasVoted) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.spaceMD,
-                      vertical: AppSpacing.spaceXM,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.green50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.green500, width: 1.5),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.check_circle_rounded,
-                          color: AppColors.green500,
-                          size: 18,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Đã bỏ phiếu',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.green800,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.spaceXM),
-                ],
-                // More options menu
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert),
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'vote':
-                        onVote();
-                      case 'stats':
-                        onViewStats();
-                      case 'update':
-                        onUpdate();
-                      case 'close':
-                        if (!poll.isDelete) {
-                          onClose();
-                        }
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    if (canVote)
-                      const PopupMenuItem(
-                        value: 'vote',
-                        child: Row(
-                          children: [
-                            Icon(Icons.how_to_vote_rounded, size: 20),
-                            SizedBox(width: 8),
-                            Text('Bỏ phiếu'),
-                          ],
-                        ),
-                      ),
-                    const PopupMenuItem(
-                      value: 'stats',
-                      child: Row(
-                        children: [
-                          Icon(Icons.bar_chart_rounded, size: 20),
-                          SizedBox(width: 8),
-                          Text('Xem thống kê'),
-                        ],
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    if (!poll.isDelete)
-                      const PopupMenuItem(
-                        value: 'update',
-                        child: Row(
-                          children: [
-                            Icon(Icons.edit_rounded, size: 20),
-                            SizedBox(width: 8),
-                            Text('Chỉnh sửa'),
-                          ],
-                        ),
-                      ),
-                    if (!poll.isDelete)
-                      const PopupMenuItem(
-                        value: 'close',
-                        child: Row(
-                          children: [
-                            Icon(
-                              Icons.close_rounded,
-                              size: 20,
-                              color: AppColors.red500,
-                            ),
-                            SizedBox(width: 8),
-                            Text(
-                              'Đóng poll',
-                              style: TextStyle(color: AppColors.red500),
-                            ),
-                          ],
-                        ),
-                      ),
                   ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.circle, size: 8, color: statusColor),
+                    const SizedBox(width: 4),
+                    Flexible(
+                      child: Text(
+                        statusText,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: statusColor,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.spaceMD),
+                    Flexible(
+                      child: Text(
+                        poll.pollType.label,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.coolGray500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${DateFormat('dd/MM/yyyy HH:mm', 'vi').format(poll.startTime)} - ${DateFormat('dd/MM/yyyy HH:mm', 'vi').format(poll.endTime)}',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.coolGray500,
+                  ),
                 ),
               ],
             ),
-          ],
-        ),
+          ),
+
+          // Trailing actions
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              switch (value) {
+                case 'stats':
+                  onViewStats();
+                case 'update':
+                  onUpdate();
+                case 'close':
+                  if (!poll.isDelete) {
+                    onClose();
+                  }
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'stats',
+                child: Row(
+                  children: [
+                    Icon(Icons.bar_chart_rounded, size: 20),
+                    SizedBox(width: 8),
+                    Text('Xem thống kê'),
+                  ],
+                ),
+              ),
+              if (!poll.isDelete)
+                const PopupMenuItem(
+                  value: 'update',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit_rounded, size: 20),
+                      SizedBox(width: 8),
+                      Text('Chỉnh sửa'),
+                    ],
+                  ),
+                ),
+              if (!poll.isDelete)
+                const PopupMenuItem(
+                  value: 'close',
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.close_rounded,
+                        size: 20,
+                        color: AppColors.red500,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'Đóng poll',
+                        style: TextStyle(color: AppColors.red500),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ],
       ),
     );
   }
