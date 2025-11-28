@@ -48,4 +48,11 @@ abstract class PollApiClient {
 
   @GET('/polls/{pollId}/my-options')
   Future<MyVotedOptionsResponse> getMyVotedOptions(@Path('pollId') int pollId);
+
+  @GET('/polls/{pollId}/export')
+  @DioResponseType(ResponseType.bytes)
+  Future<List<int>> exportPollStats(
+    @Path('pollId') int pollId,
+    @Query('format') String format,
+  );
 }

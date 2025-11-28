@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/poll/data/datasources/poll_api_client.dart';
 import 'package:event_management/features/poll/data/models/create_poll_dto.dart';
+import 'package:event_management/features/poll/data/models/export_format.dart';
 import 'package:event_management/features/poll/data/models/my_voted_options_response.dart';
 import 'package:event_management/features/poll/data/models/poll_response.dart';
 import 'package:event_management/features/poll/data/models/poll_stats_response.dart';
@@ -185,6 +186,22 @@ class PollRepositoryImpl implements PollRepository {
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<List<int>> exportPollStats(int pollId, ExportFormat format) async {
+    try {
+      return await _pollApiClient.exportPollStats(pollId, format.value);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể xuất báo cáo poll.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) rethrow;
       throw Exception('Đã xảy ra lỗi không xác định: $e');
     }
   }
