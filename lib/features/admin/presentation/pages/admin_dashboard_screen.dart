@@ -300,9 +300,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen>
                   hasNextPage: state is EventListLoaded
                       ? state.hasNextPage
                       : false,
-                  onEventTap: (event) {
-                    context.go('/events/${event.id}');
-                  },
+                  // Điều hướng sang màn chi tiết sự kiện sẽ được xử lý bên trong EventListGridAdmin
+                  // để đảm bảo back từ chi tiết sự kiện quay lại đúng Admin Dashboard với state cũ.
                   onEventEdit: (event) {
                     context.go('/admin/events/${event.id}/edit');
                   },

@@ -53,8 +53,6 @@ class EventListGridAdmin extends StatelessWidget {
             index: index,
             onTap: () {
               onEventTap?.call(event);
-              // Sử dụng push thay vì go để giữ lại state màn Admin
-              // Khi back từ màn chi tiết sự kiện, admin dashboard sẽ được restore đúng state cũ
               context.pushNamed(
                 AppRoutes.eventDetail,
                 pathParameters: {'id': event.id.toString()},
