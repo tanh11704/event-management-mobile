@@ -16,6 +16,7 @@ import 'package:event_management/features/event/event_detail/presentation/widget
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/event_detail_status_chip.dart';
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/event_detail_title.dart';
 import 'package:event_management/features/event/event_detail/presentation/widgets/event_detail/qr_code_scanner_dialog.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/event_chatbot_dialog.dart';
 import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
 import 'package:event_management/features/event/shared/data/models/event_status.dart';
 import 'package:event_management/features/poll/presentation/widgets/poll_list/poll_list_section_for_users.dart';
@@ -303,6 +304,21 @@ class _EventDetailContentState extends State<_EventDetailContent> {
               },
             ),
             actions: [
+              // Chatbot button - Trợ lý AI
+              IconButton(
+                icon: const Icon(
+                  Icons.smart_toy_rounded,
+                  color: AppColors.white,
+                ),
+                tooltip: 'Trợ lý AI - Hỏi đáp về sự kiện',
+                onPressed: () {
+                  showDialog<void>(
+                    context: context,
+                    builder: (context) =>
+                        EventChatbotDialog(eventId: widget.eventDetail.id),
+                  );
+                },
+              ),
               if (!kIsWeb)
                 IconButton(
                   icon: const Icon(

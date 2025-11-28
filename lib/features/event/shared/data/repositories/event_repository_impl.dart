@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/shared/data/datasources/event_api_client.dart';
 import 'package:event_management/features/event/shared/data/models/attendant.dart';
+import 'package:event_management/features/event/shared/data/models/chat_request.dart';
+import 'package:event_management/features/event/shared/data/models/chat_response.dart';
 import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
@@ -14,6 +16,7 @@ import 'package:event_management/features/event/shared/data/models/generate_desc
 import 'package:event_management/features/event/shared/data/models/generate_description_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
+import 'package:event_management/features/event/shared/data/models/message_dto.dart';
 import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -523,6 +526,38 @@ class EventRepositoryImpl implements EventRepository {
       if (e.response?.data != null && e.response!.data is Map) {
         final errorMessage = e.response!.data['message'] as String?;
         throw Exception(errorMessage ?? 'Không thể tạo mô tả với AI.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<ChatResponse> sendChatMessage(ChatRequest request) async {
+    try {
+      return await _eventApiClient.sendChatMessage(request);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể gửi tin nhắn.');
+      }
+      throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
+    } catch (e) {
+      if (e is Exception) rethrow;
+      throw Exception('Đã xảy ra lỗi không xác định: $e');
+    }
+  }
+
+  @override
+  Future<List<MessageDto>> getChatHistory(int eventId) async {
+    try {
+      return await _eventApiClient.getChatHistory(eventId);
+    } on DioException catch (e) {
+      if (e.response?.data != null && e.response!.data is Map) {
+        final errorMessage = e.response!.data['message'] as String?;
+        throw Exception(errorMessage ?? 'Không thể tải lịch sử chat.');
       }
       throw Exception('Không thể kết nối đến máy chủ. Vui lòng thử lại.');
     } catch (e) {

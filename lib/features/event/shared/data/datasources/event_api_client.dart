@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:event_management/features/event/shared/data/models/attendant.dart';
+import 'package:event_management/features/event/shared/data/models/chat_request.dart';
+import 'package:event_management/features/event/shared/data/models/chat_response.dart';
 import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event.dart';
 import 'package:event_management/features/event/shared/data/models/event_detail_response.dart';
@@ -11,6 +13,7 @@ import 'package:event_management/features/event/shared/data/models/generate_desc
 import 'package:event_management/features/event/shared/data/models/image_upload_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
+import 'package:event_management/features/event/shared/data/models/message_dto.dart';
 import 'package:injectable/injectable.dart';
 import 'package:retrofit/retrofit.dart';
 
@@ -97,4 +100,10 @@ abstract class EventApiClient {
   Future<GenerateDescriptionResponse> generateDescription(
     @Body() GenerateDescriptionRequest request,
   );
+
+  @POST('/chats/send')
+  Future<ChatResponse> sendChatMessage(@Body() ChatRequest request);
+
+  @GET('/chats/history/{eventId}')
+  Future<List<MessageDto>> getChatHistory(@Path('eventId') int eventId);
 }
