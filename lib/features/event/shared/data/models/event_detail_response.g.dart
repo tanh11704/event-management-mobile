@@ -31,6 +31,7 @@ EventDetailResponse _$EventDetailResponseFromJson(Map<String, dynamic> json) =>
         (json['updated_at'] as num?)?.toDouble(),
       ),
       isUserRegistered: json['is_user_registered'] as bool?,
+      isUserCheckedIn: json['is_user_checked_in'] as bool?,
       participants:
           (json['participants'] as List<dynamic>?)
               ?.map((e) => ParticipantInfo.fromJson(e as Map<String, dynamic>))

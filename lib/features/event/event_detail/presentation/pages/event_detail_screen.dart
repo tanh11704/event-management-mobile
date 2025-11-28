@@ -402,6 +402,38 @@ class _EventDetailContentState extends State<_EventDetailContent> {
                       EventDetailTitle(title: widget.eventDetail.title),
                       const SizedBox(height: AppSpacing.spaceXM),
                       EventDetailStatusChip(status: widget.eventDetail.status),
+                      if (widget.eventDetail.isUserCheckedIn ?? false)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: AppSpacing.spaceXS,
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(
+                                  AppSpacing.spaceXS,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: AppColors.green50,
+                                  borderRadius: BorderRadius.circular(999),
+                                ),
+                                child: const Icon(
+                                  Icons.verified_rounded,
+                                  color: AppColors.green500,
+                                  size: 16,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.spaceXS),
+                              Text(
+                                'Bạn đã check-in sự kiện này',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.green800,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

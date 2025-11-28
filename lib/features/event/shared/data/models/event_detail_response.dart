@@ -26,6 +26,7 @@ class EventDetailResponse extends Equatable {
     this.qrJoinToken,
     this.updatedAt,
     this.isUserRegistered,
+    this.isUserCheckedIn,
     this.participants = const [],
     this.manager = const [],
     this.secretaries = const [],
@@ -74,6 +75,9 @@ class EventDetailResponse extends Equatable {
   @JsonKey(name: 'is_user_registered')
   final bool? isUserRegistered;
 
+  @JsonKey(name: 'is_user_checked_in')
+  final bool? isUserCheckedIn;
+
   final List<ParticipantInfo> participants;
 
   final List<ManagerInfo> manager;
@@ -97,6 +101,7 @@ class EventDetailResponse extends Equatable {
     createdAt,
     updatedAt,
     isUserRegistered,
+    isUserCheckedIn,
     participants,
     manager,
     secretaries,
