@@ -22,11 +22,30 @@ class EditEventHtmlEditor extends StatefulWidget {
 class _EditEventHtmlEditorState extends State<EditEventHtmlEditor> {
   late HtmlEditorController _controller;
   String? _errorText;
+  String? _lastSetValue;
 
   @override
   void initState() {
     super.initState();
     _controller = HtmlEditorController();
+    _lastSetValue = widget.initialValue;
+  }
+
+  @override
+  void didUpdateWidget(EditEventHtmlEditor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update editor if initialValue changed from outside
+    if (widget.initialValue != _lastSetValue) {
+      _lastSetValue = widget.initialValue;
+      _controller.setText(widget.initialValue);
+    }
+  }
+
+  /// Set text programmatically (for AI generation)
+  Future<void> setText(String text) async {
+    _lastSetValue = text;
+    _controller.setText(text);
+    _notifyChanged();
   }
 
   @override

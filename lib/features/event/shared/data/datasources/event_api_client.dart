@@ -6,6 +6,8 @@ import 'package:event_management/features/event/shared/data/models/event_detail_
 import 'package:event_management/features/event/shared/data/models/event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event_manager_dto.dart';
 import 'package:event_management/features/event/shared/data/models/event_page_with_counters_response_dto.dart';
+import 'package:event_management/features/event/shared/data/models/generate_description_request.dart';
+import 'package:event_management/features/event/shared/data/models/generate_description_response.dart';
 import 'package:event_management/features/event/shared/data/models/image_upload_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_job_response.dart';
 import 'package:event_management/features/event/shared/data/models/import_participants_response.dart';
@@ -90,4 +92,9 @@ abstract class EventApiClient {
   Future<List<EventManagerDto>> getEventManagersByEventId({
     @Query('eventId') required int eventId,
   });
+
+  @POST('/events/generate-description')
+  Future<GenerateDescriptionResponse> generateDescription(
+    @Body() GenerateDescriptionRequest request,
+  );
 }

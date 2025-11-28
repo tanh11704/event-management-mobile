@@ -3,9 +3,13 @@ import 'dart:io';
 import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
 import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/features/event/event_create/presentation/bloc/create_event_bloc.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/ai_description_generator_dialog.dart';
 import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
+import 'package:event_management/features/event/shared/data/models/generate_description_request.dart';
+import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -45,6 +49,94 @@ class _CreateEventViewState extends State<_CreateEventView> {
   XFile? _bannerImageFile;
 
   final ImagePicker _imagePicker = ImagePicker();
+  bool _isGeneratingDescription = false;
+
+  Future<void> _handleAiGenerate(GenerateDescriptionRequest request) async {
+    if (_nameController.text.trim().isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vui lòng nhập tên sự kiện trước'),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
+      return;
+    }
+
+    if (_startDate == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Vui lòng chọn thời gian bắt đầu trước'),
+            backgroundColor: AppColors.red500,
+          ),
+        );
+      }
+      return;
+    }
+
+    setState(() {
+      _isGeneratingDescription = true;
+    });
+
+    try {
+      final repository = di.sl<EventRepository>();
+      final fullRequest = GenerateDescriptionRequest(
+        title: _nameController.text.trim(),
+        location: _locationController.text.trim().isEmpty
+            ? null
+            : _locationController.text.trim(),
+        startTime: _startDate!.toUtc().toIso8601String(),
+        endTime: _endDate?.toUtc().toIso8601String(),
+        additionalInfo: request.additionalInfo,
+        tone: request.tone,
+        length: request.length,
+        target: request.target,
+      );
+
+      final response = await repository.generateDescription(fullRequest);
+
+      if (mounted) {
+        setState(() {
+          // Use raw_text for simple TextFormField
+          _descriptionController.text = response.rawText;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đã tạo mô tả thành công!'),
+            backgroundColor: AppColors.green500,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: $e'),
+            backgroundColor: AppColors.red500,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isGeneratingDescription = false;
+        });
+      }
+    }
+  }
+
+  void _showAiDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (context) =>
+          AiDescriptionGeneratorDialog(onGenerate: _handleAiGenerate),
+    );
+  }
 
   @override
   void dispose() {
@@ -291,6 +383,59 @@ class _CreateEventViewState extends State<_CreateEventView> {
                         const SizedBox(height: AppSpacing.spaceMD),
 
                         // ===== Mô tả sự kiện =====
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Mô tả sự kiện',
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.coolGray700,
+                                ),
+                              ),
+                            ),
+                            OutlinedButton.icon(
+                              onPressed: _isGeneratingDescription
+                                  ? null
+                                  : _showAiDialog,
+                              icon: _isGeneratingDescription
+                                  ? const SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              AppColors.vkuBlue,
+                                            ),
+                                      ),
+                                    )
+                                  : const Icon(
+                                      Icons.auto_awesome_rounded,
+                                      size: 18,
+                                    ),
+                              label: Text(
+                                _isGeneratingDescription
+                                    ? 'Đang tạo...'
+                                    : 'Tạo với AI',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: AppColors.vkuBlue,
+                                side: const BorderSide(
+                                  color: AppColors.vkuBlue,
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: AppSpacing.spaceMD,
+                                  vertical: AppSpacing.spaceXS,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.spaceXS),
                         TextFormField(
                           controller: _descriptionController,
                           decoration: const InputDecoration(
