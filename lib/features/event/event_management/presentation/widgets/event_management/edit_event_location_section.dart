@@ -8,12 +8,18 @@ class EditEventLocationSection extends StatelessWidget {
     required this.locationController,
     required this.maxParticipantsController,
     required this.urlDocsController,
+    this.onLocationChanged,
+    this.onMaxParticipantsChanged,
+    this.onUrlDocsChanged,
     super.key,
   });
 
   final TextEditingController locationController;
   final TextEditingController maxParticipantsController;
   final TextEditingController urlDocsController;
+  final ValueChanged<String>? onLocationChanged;
+  final ValueChanged<String>? onMaxParticipantsChanged;
+  final ValueChanged<String>? onUrlDocsChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +31,7 @@ class EditEventLocationSection extends StatelessWidget {
           controller: locationController,
           label: 'Địa điểm',
           icon: Icons.location_on_rounded,
+          onChanged: onLocationChanged,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
               return 'Vui lòng nhập địa điểm';
@@ -38,6 +45,7 @@ class EditEventLocationSection extends StatelessWidget {
           label: 'Số lượng tối đa',
           icon: Icons.people_rounded,
           keyboardType: TextInputType.number,
+          onChanged: onMaxParticipantsChanged,
           validator: (value) {
             if (value == null || value.trim().isEmpty) {
               return 'Vui lòng nhập số lượng';
@@ -55,6 +63,7 @@ class EditEventLocationSection extends StatelessWidget {
           label: 'Link tài liệu (tùy chọn)',
           icon: Icons.link_rounded,
           keyboardType: TextInputType.url,
+          onChanged: onUrlDocsChanged,
         ),
       ],
     );

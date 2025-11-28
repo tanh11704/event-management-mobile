@@ -21,15 +21,26 @@ class DateFormatter {
     return dateFormat.format(dateTime);
   }
 
-  /// Format khoảng thời gian: "10:30 - 16:00, 27/02/2025"
   static String formatTimeRange(DateTime startTime, DateTime endTime) {
     final timeFormat = DateFormat('HH:mm', 'vi');
     final dateFormat = DateFormat('dd/MM/yyyy', 'vi');
 
-    final startTimeStr = timeFormat.format(startTime);
-    final endTimeStr = timeFormat.format(endTime);
-    final dateStr = dateFormat.format(startTime);
+    final sameDay =
+        startTime.year == endTime.year &&
+        startTime.month == endTime.month &&
+        startTime.day == endTime.day;
 
-    return '$startTimeStr - $endTimeStr, $dateStr';
+    if (sameDay) {
+      final startTimeStr = timeFormat.format(startTime);
+      final endTimeStr = timeFormat.format(endTime);
+      final dateStr = dateFormat.format(startTime);
+      return '$startTimeStr - $endTimeStr, $dateStr';
+    } else {
+      final startStr =
+          '${timeFormat.format(startTime)} ${dateFormat.format(startTime)}';
+      final endStr =
+          '${timeFormat.format(endTime)} ${dateFormat.format(endTime)}';
+      return '$startStr → $endStr';
+    }
   }
 }

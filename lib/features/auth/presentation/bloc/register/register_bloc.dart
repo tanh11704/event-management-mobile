@@ -51,7 +51,10 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     emit(RegisterLoading());
     final result = await _unitRepository.getAllUnits();
 
-    final accountTypes = result.where((u) => u.parentId == null).toList();
+    // Account types are units where parentId is null OR parentId equals its own id (self-reference)
+    final accountTypes = result
+        .where((u) => u.parentId == null || u.parentId == u.id)
+        .toList();
 
     emit(
       RegisterUnitsLoaded(
@@ -68,8 +71,10 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   ) async {
     if (state is RegisterUnitsLoaded) {
       final loaded = state as RegisterUnitsLoaded;
+      // Filter units where parentId equals the selected account type id
+      // and exclude self-referencing units (where parentId == id)
       final filtered = loaded.allUnits
-          .where((u) => u.parentId == event.typeId)
+          .where((u) => u.parentId == event.typeId && u.parentId != u.id)
           .toList();
       emit(
         loaded.copyWith(

@@ -29,11 +29,14 @@ class EditEventDateTimeHandler {
       context: context,
       initialTime: TimeOfDay.fromDateTime(initialDate),
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );
@@ -65,11 +68,14 @@ class EditEventDateTimeHandler {
       context: context,
       initialTime: TimeOfDay.fromDateTime(initialDate),
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+          child: Theme(
+            data: Theme.of(context).copyWith(
+              colorScheme: const ColorScheme.light(primary: AppColors.vkuBlue),
+            ),
+            child: child!,
           ),
-          child: child!,
         );
       },
     );

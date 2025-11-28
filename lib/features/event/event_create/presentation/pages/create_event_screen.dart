@@ -7,6 +7,7 @@ import 'package:event_management/core/di/injection_container.dart' as di;
 import 'package:event_management/core/router/app_router.dart';
 import 'package:event_management/features/event/event_create/presentation/bloc/create_event_bloc.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/ai_description_generator_dialog.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_html_editor.dart';
 import 'package:event_management/features/event/shared/data/models/create_event_dto.dart';
 import 'package:event_management/features/event/shared/data/models/generate_description_request.dart';
 import 'package:event_management/features/event/shared/domain/repositories/event_repository.dart';
@@ -35,8 +36,8 @@ class _CreateEventView extends StatefulWidget {
 
 class _CreateEventViewState extends State<_CreateEventView> {
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final GlobalKey _htmlEditorKey = GlobalKey();
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
 
   final TextEditingController _maxParticipantsController =
@@ -44,7 +45,10 @@ class _CreateEventViewState extends State<_CreateEventView> {
   final TextEditingController _urlDocsController = TextEditingController();
 
   DateTime? _startDate;
+  DateTime? _startTime;
   DateTime? _endDate;
+  DateTime? _endTime;
+  String _descriptionHtml = '';
   File? _bannerImage;
   XFile? _bannerImageFile;
 
@@ -64,7 +68,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
       return;
     }
 
-    if (_startDate == null) {
+    if (_startDate == null || _startTime == null) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -82,13 +86,34 @@ class _CreateEventViewState extends State<_CreateEventView> {
 
     try {
       final repository = di.sl<EventRepository>();
+      // Create local DateTime first, then convert to UTC
+      final startDateTimeLocal = DateTime(
+        _startDate!.year,
+        _startDate!.month,
+        _startDate!.day,
+        _startTime!.hour,
+        _startTime!.minute,
+      );
+      final endDateTimeLocal = _endDate != null && _endTime != null
+          ? DateTime(
+              _endDate!.year,
+              _endDate!.month,
+              _endDate!.day,
+              _endTime!.hour,
+              _endTime!.minute,
+            )
+          : null;
+      // Convert local time to UTC
+      final startDateTime = startDateTimeLocal.toUtc();
+      final endDateTime = endDateTimeLocal?.toUtc();
+
       final fullRequest = GenerateDescriptionRequest(
         title: _nameController.text.trim(),
         location: _locationController.text.trim().isEmpty
             ? null
             : _locationController.text.trim(),
-        startTime: _startDate!.toUtc().toIso8601String(),
-        endTime: _endDate?.toUtc().toIso8601String(),
+        startTime: startDateTime.toIso8601String(),
+        endTime: endDateTime?.toIso8601String(),
         additionalInfo: request.additionalInfo,
         tone: request.tone,
         length: request.length,
@@ -98,10 +123,12 @@ class _CreateEventViewState extends State<_CreateEventView> {
       final response = await repository.generateDescription(fullRequest);
 
       if (mounted) {
-        setState(() {
-          // Use raw_text for simple TextFormField
-          _descriptionController.text = response.rawText;
-        });
+        // Set the generated description to the HTML editor
+        final editorState = _htmlEditorKey.currentState;
+        if (editorState != null) {
+          final dynamic state = editorState;
+          await state.setText(response.description);
+        }
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -141,44 +168,121 @@ class _CreateEventViewState extends State<_CreateEventView> {
   @override
   void dispose() {
     _nameController.dispose();
-    _descriptionController.dispose();
     _locationController.dispose();
     _maxParticipantsController.dispose();
     _urlDocsController.dispose();
     super.dispose();
   }
 
-  Future<void> _selectStartDate() async {
-    final picked = await showDatePicker(
+  Future<void> _selectStartDateTime() async {
+    // Select date first
+    final pickedDate = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
+      initialDate: _startDate ?? DateTime.now(),
       firstDate: DateTime.now(),
       lastDate: DateTime.now().add(const Duration(days: 365)),
       locale: const Locale('vi', 'VN'),
     );
-    if (picked != null) {
-      setState(() {
-        _startDate = picked;
-        // Nếu endDate đã được chọn và nhỏ hơn startDate, reset endDate
-        if (_endDate != null && _endDate!.isBefore(picked)) {
-          _endDate = null;
-        }
-      });
+    if (pickedDate != null) {
+      // Then select time
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: _startTime != null
+            ? TimeOfDay.fromDateTime(_startTime!)
+            : TimeOfDay.now(),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
+          );
+        },
+      );
+      if (pickedTime != null) {
+        setState(() {
+          _startDate = pickedDate;
+          _startTime = DateTime(
+            pickedDate.year,
+            pickedDate.month,
+            pickedDate.day,
+            pickedTime.hour,
+            pickedTime.minute,
+          );
+          // Reset end date/time if invalid
+          if (_endDate != null && _endTime != null) {
+            final endDateTime = DateTime(
+              _endDate!.year,
+              _endDate!.month,
+              _endDate!.day,
+              _endTime!.hour,
+              _endTime!.minute,
+            );
+            if (endDateTime.isBefore(_startTime!) ||
+                endDateTime.isAtSameMomentAs(_startTime!)) {
+              _endDate = null;
+              _endTime = null;
+            }
+          }
+        });
+      }
     }
   }
 
-  Future<void> _selectEndDate() async {
-    final picked = await showDatePicker(
+  Future<void> _selectEndDateTime() async {
+    if (_startDate == null || _startTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Vui lòng chọn thời gian bắt đầu trước'),
+          backgroundColor: AppColors.red500,
+        ),
+      );
+      return;
+    }
+
+    // Select date first
+    final pickedDate = await showDatePicker(
       context: context,
-      initialDate: _startDate ?? DateTime.now(),
-      firstDate: _startDate ?? DateTime.now(),
+      initialDate: _endDate ?? _startDate!,
+      firstDate: _startDate!,
       lastDate: DateTime.now().add(const Duration(days: 365)),
       locale: const Locale('vi', 'VN'),
     );
-    if (picked != null) {
-      setState(() {
-        _endDate = picked;
-      });
+    if (pickedDate != null) {
+      // Then select time
+      final pickedTime = await showTimePicker(
+        context: context,
+        initialTime: _endTime != null
+            ? TimeOfDay.fromDateTime(_endTime!)
+            : TimeOfDay.fromDateTime(_startTime!),
+        builder: (context, child) {
+          return MediaQuery(
+            data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+            child: child!,
+          );
+        },
+      );
+      if (pickedTime != null) {
+        final endDateTime = DateTime(
+          pickedDate.year,
+          pickedDate.month,
+          pickedDate.day,
+          pickedTime.hour,
+          pickedTime.minute,
+        );
+        if (endDateTime.isBefore(_startTime!) ||
+            endDateTime.isAtSameMomentAs(_startTime!)) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Thời gian kết thúc phải sau thời gian bắt đầu'),
+              backgroundColor: AppColors.red500,
+            ),
+          );
+          return;
+        }
+        setState(() {
+          _endDate = pickedDate;
+          _endTime = endDateTime;
+        });
+      }
     }
   }
 
@@ -226,35 +330,57 @@ class _CreateEventViewState extends State<_CreateEventView> {
     return null;
   }
 
-  String? _validateDescription(String? value) {
-    // Mô tả không bắt buộc nhưng nếu có thì phải hợp lệ
-    return null;
-  }
-
   String? _validateLocation(String? value) {
     // Địa điểm không bắt buộc nhưng nếu có thì phải hợp lệ
     return null;
   }
 
   String? _validateDateTime() {
-    if (_startDate == null) {
-      return 'Vui lòng chọn ngày bắt đầu';
+    if (_startDate == null || _startTime == null) {
+      return 'Vui lòng chọn thời gian bắt đầu';
     }
-    if (_endDate == null) {
-      return 'Vui lòng chọn ngày kết thúc';
+    if (_endDate == null || _endTime == null) {
+      return 'Vui lòng chọn thời gian kết thúc';
     }
 
-    if (_endDate!.isBefore(_startDate!) ||
-        _endDate!.isAtSameMomentAs(_startDate!)) {
-      return 'Ngày kết thúc phải sau ngày bắt đầu';
+    final startDateTime = DateTime(
+      _startDate!.year,
+      _startDate!.month,
+      _startDate!.day,
+      _startTime!.hour,
+      _startTime!.minute,
+    );
+    final endDateTime = DateTime(
+      _endDate!.year,
+      _endDate!.month,
+      _endDate!.day,
+      _endTime!.hour,
+      _endTime!.minute,
+    );
+
+    if (endDateTime.isBefore(startDateTime) ||
+        endDateTime.isAtSameMomentAs(startDateTime)) {
+      return 'Thời gian kết thúc phải sau thời gian bắt đầu';
     }
 
     return null;
   }
 
-  void _onSubmit() {
+  Future<void> _onSubmit() async {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
+    }
+
+    // Validate HTML editor
+    final editorState = _htmlEditorKey.currentState;
+    if (editorState != null) {
+      final dynamic state = editorState;
+      final error = await state.validate();
+      if (error != null) {
+        return;
+      }
+      // Get HTML content from editor
+      _descriptionHtml = await state.getText() as String;
     }
 
     final dateTimeError = _validateDateTime();
@@ -268,23 +394,28 @@ class _CreateEventViewState extends State<_CreateEventView> {
       return;
     }
 
-    final startDateTime = DateTime.utc(
+    // Create local DateTime first, then convert to UTC
+    final startDateTimeLocal = DateTime(
       _startDate!.year,
       _startDate!.month,
       _startDate!.day,
+      _startTime!.hour,
+      _startTime!.minute,
     );
-    final endDateTime = DateTime.utc(
+    final endDateTimeLocal = DateTime(
       _endDate!.year,
       _endDate!.month,
       _endDate!.day,
-      23,
-      59,
-      59,
+      _endTime!.hour,
+      _endTime!.minute,
     );
+    // Convert local time to UTC
+    final startDateTime = startDateTimeLocal.toUtc();
+    final endDateTime = endDateTimeLocal.toUtc();
 
     final dto = CreateEventDto(
       title: _nameController.text,
-      description: _descriptionController.text,
+      description: _descriptionHtml,
       location: _locationController.text,
       startTime: startDateTime.toIso8601String(),
       endTime: endDateTime.toIso8601String(),
@@ -300,9 +431,16 @@ class _CreateEventViewState extends State<_CreateEventView> {
     );
   }
 
-  String _formatDate(DateTime? date) {
-    if (date == null) return 'Chưa chọn';
-    return DateFormat('dd/MM/yyyy', 'vi').format(date);
+  String _formatDateTime(DateTime? date, DateTime? time) {
+    if (date == null || time == null) return 'Chưa chọn';
+    final dateTime = DateTime(
+      date.year,
+      date.month,
+      date.day,
+      time.hour,
+      time.minute,
+    );
+    return DateFormat('dd/MM/yyyy HH:mm', 'vi').format(dateTime);
   }
 
   @override
@@ -436,17 +574,20 @@ class _CreateEventViewState extends State<_CreateEventView> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.spaceXS),
-                        TextFormField(
-                          controller: _descriptionController,
-                          decoration: const InputDecoration(
-                            labelText: 'Mô tả sự kiện',
-                            prefixIcon: Icon(Icons.description),
-                            hintText: 'Nhập mô tả chi tiết về sự kiện',
-                            alignLabelWithHint: true,
-                          ),
-                          validator: _validateDescription,
-                          maxLines: 5,
-                          textCapitalization: TextCapitalization.sentences,
+                        EditEventHtmlEditor(
+                          key: _htmlEditorKey,
+                          initialValue: _descriptionHtml,
+                          onChanged: (value) {
+                            setState(() {
+                              _descriptionHtml = value;
+                            });
+                          },
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Vui lòng nhập mô tả sự kiện';
+                            }
+                            return null;
+                          },
                         ),
                         const SizedBox(height: AppSpacing.spaceMD),
 
@@ -468,7 +609,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
                           children: [
                             Expanded(
                               child: InkWell(
-                                onTap: _selectStartDate,
+                                onTap: _selectStartDateTime,
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -479,8 +620,10 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                   child: Row(
                                     children: [
                                       Icon(
-                                        Icons.calendar_today,
-                                        color: _startDate == null
+                                        Icons.access_time,
+                                        color:
+                                            (_startDate == null ||
+                                                _startTime == null)
                                             ? AppColors.coolGray500
                                             : AppColors.vkuBlue,
                                         size: 20,
@@ -493,7 +636,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
-                                              'Ngày bắt đầu',
+                                              'Thời gian bắt đầu',
                                               style: AppTextStyles.bodySmall
                                                   .copyWith(
                                                     color:
@@ -503,8 +646,13 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              _formatDate(_startDate),
-                                              style: _startDate == null
+                                              _formatDateTime(
+                                                _startDate,
+                                                _startTime,
+                                              ),
+                                              style:
+                                                  (_startDate == null ||
+                                                      _startTime == null)
                                                   ? AppTextStyles.bodyMedium
                                                         .copyWith(
                                                           color: AppColors
@@ -527,7 +675,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
                             const SizedBox(width: AppSpacing.spaceMD),
                             Expanded(
                               child: InkWell(
-                                onTap: _selectEndDate,
+                                onTap: _selectEndDateTime,
                                 child: Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -538,8 +686,10 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                   child: Row(
                                     children: [
                                       Icon(
-                                        Icons.calendar_today,
-                                        color: _endDate == null
+                                        Icons.access_time,
+                                        color:
+                                            (_endDate == null ||
+                                                _endTime == null)
                                             ? AppColors.coolGray500
                                             : AppColors.vkuBlue,
                                         size: 20,
@@ -552,7 +702,7 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             Text(
-                                              'Ngày kết thúc',
+                                              'Thời gian kết thúc',
                                               style: AppTextStyles.bodySmall
                                                   .copyWith(
                                                     color:
@@ -562,8 +712,13 @@ class _CreateEventViewState extends State<_CreateEventView> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              _formatDate(_endDate),
-                                              style: _endDate == null
+                                              _formatDateTime(
+                                                _endDate,
+                                                _endTime,
+                                              ),
+                                              style:
+                                                  (_endDate == null ||
+                                                      _endTime == null)
                                                   ? AppTextStyles.bodyMedium
                                                         .copyWith(
                                                           color: AppColors

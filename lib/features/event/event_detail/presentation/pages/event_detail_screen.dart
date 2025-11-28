@@ -449,6 +449,15 @@ class _EventDetailContentState extends State<_EventDetailContent> {
 
                 const SizedBox(height: AppSpacing.spaceMD),
 
+                // Poll Section for users - được ưu tiên hiển thị phía trên mô tả
+                PollListSectionForUsers(
+                  eventId: widget.eventDetail.id,
+                  isUserRegistered:
+                      widget.eventDetail.isUserRegistered ?? false,
+                ),
+
+                const SizedBox(height: AppSpacing.spaceLG),
+
                 if (widget.eventDetail.description != null &&
                     widget.eventDetail.description!.isNotEmpty)
                   EventDetailDescription(
@@ -491,14 +500,6 @@ class _EventDetailContentState extends State<_EventDetailContent> {
                     ),
                   ),
 
-                const SizedBox(height: AppSpacing.spaceLG),
-
-                // Poll Section for users
-                PollListSectionForUsers(
-                  eventId: widget.eventDetail.id,
-                  isUserRegistered:
-                      widget.eventDetail.isUserRegistered ?? false,
-                ),
                 const SizedBox(height: AppSpacing.spaceLG),
               ],
             ),

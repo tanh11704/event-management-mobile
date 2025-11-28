@@ -10,9 +10,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ToolsSettingsTab extends StatelessWidget {
-  const ToolsSettingsTab({required this.eventDetail, super.key});
+  const ToolsSettingsTab({
+    required this.eventDetail,
+    this.canManageSecretaries = true,
+    super.key,
+  });
 
   final EventDetailResponse eventDetail;
+
+  /// Chỉ manager mới được gán/xóa thư ký.
+  final bool canManageSecretaries;
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +35,8 @@ class ToolsSettingsTab extends StatelessWidget {
               onPollCreated: () {
                 // Refresh poll list after creating poll
                 context.read<PollListBloc>().add(
-                      PollListRefreshed(eventDetail.id),
-                    );
+                  PollListRefreshed(eventDetail.id),
+                );
               },
             ),
           ),
@@ -43,11 +50,12 @@ class ToolsSettingsTab extends StatelessWidget {
           QrCodeSection(eventId: eventDetail.id),
           const SizedBox(height: AppSpacing.spaceLG),
 
-          // Secretary Management Section
-          SecretaryManagementSection(
-            eventId: eventDetail.id,
-            participants: eventDetail.participants,
-          ),
+          // Secretary Management Section - chỉ hiển thị cho Manager
+          if (canManageSecretaries)
+            SecretaryManagementSection(
+              eventId: eventDetail.id,
+              participants: eventDetail.participants,
+            ),
         ],
       ),
     );

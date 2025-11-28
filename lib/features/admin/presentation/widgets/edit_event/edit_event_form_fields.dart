@@ -1,4 +1,7 @@
+import 'package:event_management/core/config/app_colors.dart';
 import 'package:event_management/core/config/app_spacing.dart';
+import 'package:event_management/core/config/app_text_styles.dart';
+import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_html_editor.dart';
 import 'package:event_management/features/event/event_management/presentation/widgets/event_management/edit_event_modern_text_field.dart';
 import 'package:flutter/material.dart';
 
@@ -6,7 +9,8 @@ import 'package:flutter/material.dart';
 class EditEventFormFields extends StatelessWidget {
   const EditEventFormFields({
     required this.titleController,
-    required this.descriptionController,
+    required this.descriptionHtml,
+    required this.htmlEditorKey,
     required this.locationController,
     required this.maxParticipantsController,
     required this.urlDocsController,
@@ -15,11 +19,14 @@ class EditEventFormFields extends StatelessWidget {
     this.onLocationChanged,
     this.onMaxParticipantsChanged,
     this.onUrlDocsChanged,
+    this.onAiGenerate,
+    this.isGeneratingDescription = false,
     super.key,
   });
 
   final TextEditingController titleController;
-  final TextEditingController descriptionController;
+  final String descriptionHtml;
+  final GlobalKey htmlEditorKey;
   final TextEditingController locationController;
   final TextEditingController maxParticipantsController;
   final TextEditingController urlDocsController;
@@ -28,6 +35,8 @@ class EditEventFormFields extends StatelessWidget {
   final ValueChanged<String>? onLocationChanged;
   final ValueChanged<String>? onMaxParticipantsChanged;
   final ValueChanged<String>? onUrlDocsChanged;
+  final VoidCallback? onAiGenerate;
+  final bool isGeneratingDescription;
 
   @override
   Widget build(BuildContext context) {
@@ -47,17 +56,65 @@ class EditEventFormFields extends StatelessWidget {
           },
         ),
         const SizedBox(height: AppSpacing.spaceMD),
-        TextFormField(
-          controller: descriptionController,
-          onChanged: onDescriptionChanged,
-          decoration: const InputDecoration(
-            labelText: 'Mô tả sự kiện',
-            prefixIcon: Icon(Icons.description),
-            hintText: 'Nhập mô tả chi tiết về sự kiện',
-            alignLabelWithHint: true,
-          ),
-          maxLines: 5,
-          textCapitalization: TextCapitalization.sentences,
+        // Mô tả với AI generator
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                'Mô tả sự kiện',
+                style: AppTextStyles.bodyMedium.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.coolGray700,
+                ),
+              ),
+            ),
+            if (onAiGenerate != null)
+              OutlinedButton.icon(
+                onPressed:
+                    (isGeneratingDescription ||
+                        titleController.text.trim().isEmpty)
+                    ? null
+                    : onAiGenerate,
+                icon: isGeneratingDescription
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            AppColors.vkuBlue,
+                          ),
+                        ),
+                      )
+                    : const Icon(Icons.auto_awesome_rounded, size: 18),
+                label: Text(
+                  isGeneratingDescription ? 'Đang tạo...' : 'Tạo với AI',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.vkuBlue,
+                  side: const BorderSide(color: AppColors.vkuBlue),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.spaceMD,
+                    vertical: AppSpacing.spaceXS,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: AppSpacing.spaceXS),
+        EditEventHtmlEditor(
+          key: htmlEditorKey,
+          initialValue: descriptionHtml,
+          onChanged: onDescriptionChanged ?? (_) {},
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Vui lòng nhập mô tả sự kiện';
+            }
+            return null;
+          },
         ),
         const SizedBox(height: AppSpacing.spaceMD),
         EditEventModernTextField(

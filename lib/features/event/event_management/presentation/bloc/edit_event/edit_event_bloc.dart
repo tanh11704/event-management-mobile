@@ -352,20 +352,9 @@ class EditEventBloc extends Bloc<EditEventEvent, EditEventState> {
     emit(EditEventSaving());
 
     try {
-      final startDateTime = DateTime.utc(
-        currentState.startDate.year,
-        currentState.startDate.month,
-        currentState.startDate.day,
-        currentState.startDate.hour,
-        currentState.startDate.minute,
-      );
-      final endDateTime = DateTime.utc(
-        currentState.endDate.year,
-        currentState.endDate.month,
-        currentState.endDate.day,
-        currentState.endDate.hour,
-        currentState.endDate.minute,
-      );
+      // Convert local time to UTC
+      final startDateTime = currentState.startDate.toUtc();
+      final endDateTime = currentState.endDate.toUtc();
 
       final dto = EventDto(
         title: currentState.title,
